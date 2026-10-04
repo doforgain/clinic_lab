@@ -1,0 +1,4473 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHAMS HEALTH CARE - Lab Report Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="logo">SHC</div>
+                <h1>SHAMS HEALTH CARE</h1>
+                <div class="today-report-count" id="todayTestCount">0</div>
+            </div>
+            <p>Laboratory Diagnostic Services</p>
+        </header>
+
+        <div class="patient-info">
+            <div class="form-group">
+                <label for="patientName" class="required">Patient Name</label>
+                <div style="display: flex; gap: 6px;">
+                    <select id="patientTitle" style="width: 85px;">
+                        <option value="Mr.">Mr.</option>
+                        <option value="Mrs.">Mrs.</option>
+                        <option value="Miss">Miss</option>
+                        <option value="Master">Master</option>
+                        <option value="Baby">Baby</option>
+                        <option value="B/O">B/O</option>
+                    </select>
+                    <input type="text" id="patientName" placeholder="Full Name" required style="flex: 1;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="patientAge" class="required">Age</label>
+                <div style="display: flex; gap: 6px;">
+                    <input type="number" id="patientAge" min="0" required placeholder="Age" style="flex: 1;" oninput="autoUpdatePatientTitle()">
+                    <select id="patientAgeUnit" style="width: 95px;" onchange="autoUpdatePatientTitle()">
+                        <option value="Yrs">Yrs</option>
+                        <option value="Months">Months</option>
+                        <option value="Days">Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="patientGender" class="required">Gender</label>
+                <select id="patientGender" required onchange="autoUpdatePatientTitle()">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="patientId" class="required">Patient ID</label>
+                <input type="text" id="patientId" required>
+                <small class="patient-id-warning" id="patientIdWarning" style="display: none; color: red;">This Patient
+                    ID already exists!</small>
+            </div>
+            <div class="form-group">
+                <label for="collectionDate" class="required">Collection Date</label>
+                <input type="date" id="collectionDate" required>
+            </div>
+            <div class="form-group">
+                <label for="receivedDate" class="required">Received Date</label>
+                <input type="date" id="receivedDate" required>
+            </div>
+            <div class="form-group">
+                <label for="reportedDate" class="required">Reported Date</label>
+                <input type="date" id="reportedDate" required>
+            </div>
+            <div class="form-group">
+                <label for="referredBy">Referred By</label>
+                <input type="text" id="referredBy" value="SELF" placeholder="Doctor's Name">
+            </div>
+        </div>
+
+        <div class="test-selection">
+            <h3>Select Tests</h3>
+            <div class="test-options">
+                <div class="test-option">
+                    <input type="checkbox" id="testCBC" checked>
+                    <label for="testCBC">CBC</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testESR">
+                    <label for="testESR">ESR</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testTyphi" checked>
+                    <label for="testTyphi">Typhoid</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testDengue">
+                    <label for="testDengue">Dengue</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testMalaria" checked>
+                    <label for="testMalaria">Malaria Parasite</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testWidal">
+                    <label for="testWidal">Widal</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testBloodGroup">
+                    <label for="testBloodGroup">Blood Group</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testBilirubin">
+                    <label for="testBilirubin">Bilirubin</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testCRP">
+                    <label for="testCRP">CRP</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-inputs">
+            <div id="cbcInputs" class="test-section">
+                <h3>CBC Test Parameters</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="hemoglobin">Hemoglobin (g/dL)</label>
+                        <input type="number" id="hemoglobin" step="0.1" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="tlc">Total Leucocyte Count (cells/cumm)</label>
+                        <input type="number" id="tlc" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="neutrophils">Neutrophils (%)</label>
+                        <input type="number" id="neutrophils" step="0.1" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="lymphocytes">Lymphocytes (%)</label>
+                        <input type="number" id="lymphocytes" step="0.1" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="mid">Mid (%)</label>
+                        <input type="number" id="mid" step="0.1" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="rbcCount">RBC Count (million/cumm)</label>
+                        <input type="number" id="rbcCount" step="0.1" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="mcv">MCV (fL)</label>
+                        <input type="number" id="mcv" step="0.1" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="platelet">Platelet Count (lakhs/cumm)</label>
+                        <input type="number" id="platelet" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="absoluteNeutrophils">Absolute Neutrophils (cells/cumm)</label>
+                        <input type="number" id="absoluteNeutrophils">
+                    </div>
+                    <div class="form-group">
+                        <label for="absoluteLymphocytes">Absolute Lymphocytes (cells/cumm)</label>
+                        <input type="number" id="absoluteLymphocytes">
+                    </div>
+                    <div class="form-group">
+                        <label for="absoluteMid">Absolute Mid (cells/cumm)</label>
+                        <input type="number" id="absoluteMid">
+                    </div>
+                    <!-- <div class="form-group">
+                        <label for="eosinophils">Eosinophils (%)</label>
+                        <input type="number" id="eosinophils" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="monocytes">Monocytes (%)</label>
+                        <input type="number" id="monocytes" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="basophils">Basophils (%)</label>
+                        <input type="number" id="basophils" step="0.1">
+                    </div> -->
+                    <div class="form-group">
+                        <label for="pcv">PCV (%)</label>
+                        <input type="number" id="pcv" step="0.1" oninput="calculateCBCParameters()">
+                    </div>
+                    <div class="form-group">
+                        <label for="mch">MCH (pg)</label>
+                        <input type="number" id="mch" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="mchc">MCHC (g/dL)</label>
+                        <input type="number" id="mchc" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <div id="esrInputs" class="test-section" style="display: none;">
+                <h3>ESR Test Parameter</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="esr">ESR (mm/hr)</label>
+                        <input type="number" id="esr">
+                    </div>
+                </div>
+            </div>
+
+            <div id="typhiInputs" class="test-section" style="display: none;">
+                <h3>Typhoid Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="typhiResult">Result</label>
+                        <select id="typhiResult">
+                            <option value="Negative">Negative</option>
+                            <option value="Positive">Positive</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="typhiSubtypeContainer" style="display: none;">
+                        <label for="typhiSubtype">Typhoid Subtype</label>
+                        <select id="typhiSubtype">
+                            <option value="IgM">IgM</option>
+                            <option value="IgG">IgG</option>
+                            <option value="Both">Both (IgM and IgG)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dengueInputs" class="test-section" style="display: none;">
+                <h3>Dengue Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="dengueResult">Result</label>
+                        <select id="dengueResult">
+                            <option value="Negative">Negative</option>
+                            <option value="Positive">Positive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="malariaInputs" class="test-section" style="display: none;">
+                <h3>Malaria Parasite Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="malariaResult">Result</label>
+                        <select id="malariaResult">
+                            <option value="Negative">Negative</option>
+                            <option value="Positive">Positive</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="malariaSubtypeContainer" style="display: none;">
+                        <label for="malariaSubtype">Malaria Subtype</label>
+                        <select id="malariaSubtype">
+                            <option value="Pf">Pf</option>
+                            <option value="Pv">Pv</option>
+                            <option value="Both">Both (Pf and Pv)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="widalInputs" class="test-section" style="display: none;">
+                <h3>Widal Test Parameters</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="oAntigen">O Antigen (Titer)</label>
+                        <input type="text" id="oAntigen" placeholder="e.g., 1:80">
+                    </div>
+                    <div class="form-group">
+                        <label for="hAntigen">H Antigen (Titer)</label>
+                        <input type="text" id="hAntigen" placeholder="e.g., 1:160">
+                    </div>
+                    <div class="form-group">
+                        <label for="ahAntigen">AH Antigen (Titer)</label>
+                        <input type="text" id="ahAntigen" placeholder="e.g., 1:80">
+                    </div>
+                    <div class="form-group">
+                        <label for="bhAntigen">BH Antigen (Titer)</label>
+                        <input type="text" id="bhAntigen" placeholder="e.g., 1:80">
+                    </div>
+                </div>
+            </div>
+
+            <div id="bloodGroupInputs" class="test-section" style="display: none;">
+                <h3>Blood Group Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="bloodGroup">Blood Group</label>
+                        <select id="bloodGroup">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bilirubinInputs" class="test-section" style="display: none;">
+                <h3>Bilirubin Test Parameters</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="totalBilirubin">Total Bilirubin (mg/dL)</label>
+                        <input type="number" id="totalBilirubin" step="0.1" min="0" max="50"
+                            oninput="calculateIndirectBilirubin()">
+                    </div>
+                    <div class="form-group">
+                        <label for="directBilirubin">Direct Bilirubin (mg/dL)</label>
+                        <input type="number" id="directBilirubin" step="0.1" min="0" max="50"
+                            oninput="calculateIndirectBilirubin()">
+                    </div>
+                    <div class="form-group">
+                        <label for="indirectBilirubin">Indirect Bilirubin (mg/dL)</label>
+                        <input type="number" id="indirectBilirubin" step="0.1" min="0" max="50" readonly
+                            style="background-color: #f5f5f5;">
+                    </div>
+                </div>
+            </div>
+
+            <div id="crpInputs" class="test-section" style="display: none;">
+                <h3>CRP Test Parameter</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="crp">CRP (mg/L)</label>
+                        <input type="number" id="crp" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="cost-section">
+            <div class="cost-info">
+                <h3>Cost Information</h3>
+                <div class="cost-row">
+                    <div class="cost-input">
+                        <label for="testCost">Test Cost (₹)</label>
+                        <input type="number" id="testCost" placeholder="Enter price in rupees">
+                    </div>
+                    <div class="payment-options">
+                        <label>Payment Mode (Select one)</label>
+                        <div class="payment-option">
+                            <input type="checkbox" id="paymentCash" checked>
+                            <label for="paymentCash">Cash</label>
+                        </div>
+                        <div class="payment-option">
+                            <input type="checkbox" id="paymentOnline">
+                            <label for="paymentOnline">Online</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="tube-options">
+                    <label>Tube Used (Select one)</label>
+                    <div class="tube-option">
+                        <input type="checkbox" id="tubePurple" checked>
+                        <label for="tubePurple">Purple (EDTA)</label>
+                    </div>
+                    <div class="tube-option">
+                        <input type="checkbox" id="tubeRed">
+                        <label for="tubeRed">Red (Plain)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="today-total">
+                <div class="section-header">
+                    <h3>Today's Collection</h3>
+                    <button onclick="toggleCollection()" id="toggleBtn">✖ Show</button>
+                </div>
+                <div id="collectionContent" class="blurred">
+                    <div class="total-row">
+                        <div class="total-item">
+                            <div class="today-total-amount" id="todayTotal">₹0</div>
+                            <p>Total ₹</p>
+                        </div>
+                        <div class="total-item">
+                            <div class="today-total-amount1" id="todayCashTotal">₹0</div>
+                            <p>Today's Cash</p>
+                        </div>
+                        <div class="total-item">
+                            <div class="today-total-amount2" id="todayOnlineTotal">₹0</div>
+                            <p>Today's Online</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button id="generateReport">Generate Report</button>
+            <button id="updateReport" style="display: none;">Update Report</button>
+            <button id="printReport">Print Report</button>
+            <button id="savePDF">Save as PDF</button>
+            <button id="editReport" style="display: none;">Edit Report</button>
+            <button id="newReport">New Report</button>
+            <button id="viewHistory">View History</button>
+            <button id="statisticsBtn">Statistics</button>
+        </div>
+
+        <div class="test-stats">
+            <h3>Test Statistics</h3>
+            <div class="stats-grid">
+                <div class="stats-box1">
+                    <h4>Today's Tests</h4>
+                    <p id="todayCBC">CBC: 0</p>
+                    <p id="todayESR">ESR: 0</p>
+                    <p id="todayTyphoid">Typhoid: 0</p>
+                    <p id="todayDengue">Dengue: 0</p>
+                    <p id="todayMalaria">Malaria: 0</p>
+                    <p id="todayWidal">Widal: 0</p>
+                    <p id="todayBloodGroup">Blood Group: 0</p>
+                    <p id="todayBilirubin">Bilirubin: 0</p>
+                    <p id="todayCRP">CRP: 0</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="reportOutput" class="report-output"></div>
+    </div>
+
+    <div id="historyModal" class="history-modal">
+        <div class="history-content">
+            <span class="close-history">&times;</span>
+            <h2>Report History</h2>
+
+            <div class="enhanced-search-section">
+                <input type="text" id="searchHistory" placeholder="Search by name, patient ID, date, or doctor...">
+                <button id="clearSearch">Clear</button>
+                <button id="advancedSearchBtn" class="advanced-search-btn">Advanced Search</button>
+            </div>
+
+            <div class="quick-filters">
+                <button class="quick-filter-btn" data-days="1">Today</button>
+                <button class="quick-filter-btn" data-days="7">Last 7 Days</button>
+                <button class="quick-filter-btn" data-days="30">Last 30 Days</button>
+                <button class="quick-filter-btn" data-test="cbc">CBC Tests</button>
+                <button class="quick-filter-btn" data-test="typhi">Typhoid Tests</button>
+                <button class="quick-filter-btn" data-test="crp">CRP Tests</button>
+                <button class="quick-filter-btn" data-payment="Cash">Cash Payments</button>
+                <button class="quick-filter-btn" data-payment="Online">Online Payments</button>
+            </div>
+
+            <div id="searchSummary" class="search-summary" style="display: none;">
+                <strong>Active Filters:</strong>
+                <div class="active-filters" id="activeFilters"></div>
+            </div>
+
+            <p>Click on a report to view it</p>
+            <div id="historyList" class="history-list"></div>
+        </div>
+    </div>
+
+    <div id="statisticsModal" class="statistics-modal">
+        <div class="statistics-content">
+            <span class="close-statistics">&times;</span>
+            <h2>Test Statistics and Monthly Collection</h2>
+            <div id="statisticsContent"></div>
+            <div style="text-align: center; margin-top: 0px;">
+                <button id="updateTubeInventory" class="update-tube-btn">Update Inventory</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Search Modal -->
+    <div id="advancedSearchModal" class="advanced-search-modal">
+        <div class="advanced-search-content">
+            <span class="close-advanced-search">&times;</span>
+            <h2>Advanced Search</h2>
+
+            <div class="search-filters">
+                <div class="filter-group">
+                    <label for="searchDateFrom">Date From</label>
+                    <input type="date" id="searchDateFrom">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchDateTo">Date To</label>
+                    <input type="date" id="searchDateTo">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchTestType">Test Type</label>
+                    <select id="searchTestType">
+                        <option value="">All Tests</option>
+                        <option value="cbc">CBC</option>
+                        <option value="esr">ESR</option>
+                        <option value="typhi">Typhoid</option>
+                        <option value="dengue">Dengue</option>
+                        <option value="malaria">Malaria</option>
+                        <option value="widal">Widal</option>
+                        <option value="bloodGroup">Blood Group</option>
+                        <option value="bilirubin">Bilirubin</option>
+                        <option value="crp">CRP</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchPaymentMode">Payment Mode</label>
+                    <select id="searchPaymentMode">
+                        <option value="">All Modes</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchMinCost">Minimum Cost (₹)</label>
+                    <input type="number" id="searchMinCost" placeholder="0">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchMaxCost">Maximum Cost (₹)</label>
+                    <input type="number" id="searchMaxCost" placeholder="No limit">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchGender">Gender</label>
+                    <select id="searchGender">
+                        <option value="">All Genders</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchAgeFrom">Age From</label>
+                    <input type="number" id="searchAgeFrom" placeholder="0" min="0" max="120">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchAgeTo">Age To</label>
+                    <input type="number" id="searchAgeTo" placeholder="120" min="0" max="120">
+                </div>
+            </div>
+
+            <div class="search-actions">
+                <button id="applyAdvancedSearch" class="btn-primary">Apply Filters</button>
+                <button id="resetAdvancedSearch" class="btn-secondary">Reset Filters</button>
+                <button id="closeAdvancedSearch" class="btn-secondary">Cancel</button>
+            </div>
+
+            <div class="search-results-info">
+                <p id="searchResultsCount">Showing all reports</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Predefined password for inventory
+        const INVENTORYUPDATE_PASSWORD = '9211';
+
+        // Predefined password for history access
+        const HISTORY_PASSWORD = 'admin1';
+
+        // predefined password for inventory access
+        const INVENTORY_PASSWORD = 'admin1';
+
+        // Predefined password for collection access
+        const COLLECTION_PASSWORD = 'admin1';
+
+        // Global variables
+        let isEditing = false;
+        let currentEditingId = null;
+
+        // Function to get today's date in YYYY-MM-DD format
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Function to get current month name
+        function getCurrentMonthName() {
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            return months[new Date().getMonth()];
+        }
+
+        // Function to check for duplicate patients
+        function checkDuplicatePatient(patientName, patientAge, patientGender, tests) {
+            try {
+                const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+                const now = new Date();
+                const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000); // 30 minutes ago
+
+                // Get recent reports for this patient (last 10 reports or last 30 minutes)
+                const recentReports = history
+                    .filter(item => {
+                        const reportTime = new Date(item.timestamp || item.reportedDate);
+                        return (
+                            item.patientName.toLowerCase() === patientName.toLowerCase() &&
+                            item.patientAge === patientAge &&
+                            item.patientGender === patientGender &&
+                            (reportTime > thirtyMinutesAgo || history.length - history.slice().reverse().findIndex(r => r === item) <= 10)
+                        );
+                    })
+                    .slice(0, 10); // Take only last 10 reports
+
+                if (recentReports.length === 0) {
+                    return null; // No recent reports found
+                }
+
+                // Check if any recent report has exactly the same tests
+                for (const report of recentReports) {
+                    if (report.tests && areTestsIdentical(report.tests, tests)) {
+                        return {
+                            isDuplicate: true,
+                            existingReport: report,
+                            message: `This patient already had the same tests done recently (${formatTimeDifference(report.timestamp || report.reportedDate)}).`
+                        };
+                    }
+                }
+
+                return {
+                    isDuplicate: false,
+                    message: "Different tests detected - allowing new report generation."
+                };
+
+            } catch (error) {
+                console.error('Error checking duplicate patient:', error);
+                return null; // If error occurs, allow generation to proceed
+            }
+        }
+
+        // Helper function to check if tests are identical
+        function areTestsIdentical(tests1, tests2) {
+            const testTypes = ['cbc', 'esr', 'typhi', 'dengue', 'malaria', 'widal', 'bloodGroup', 'bilirubin', 'crp'];
+
+            for (const testType of testTypes) {
+                if (tests1[testType] !== tests2[testType]) {
+                    return false; // Tests are different
+                }
+            }
+            return true; // All tests are identical
+        }
+
+        // Helper function to format time difference
+        function formatTimeDifference(timestamp) {
+            const reportTime = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - reportTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+
+            if (diffMins < 60) {
+                return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+            } else if (diffHours < 24) {
+                return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+            } else {
+                const diffDays = Math.floor(diffHours / 24);
+                return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+            }
+        }
+
+        // Helper function to format date for display
+        function formatDisplayDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Function to generate patient ID
+        function generatePatientId() {
+            const currentDate = new Date();
+            const currentMonth = currentDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+            const currentYear = currentDate.getFullYear();
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+
+            let maxSerial = 0;
+            history.forEach(item => {
+                if (item.patientId && item.patientId.startsWith(`${currentMonth}-${currentYear}-`)) {
+                    const serialStr = item.patientId.split('-')[2];
+                    const serial = parseInt(serialStr);
+                    if (!isNaN(serial) && serial > maxSerial) {
+                        maxSerial = serial;
+                    }
+                }
+            });
+
+            const nextSerial = maxSerial + 1;
+            return `${currentMonth}-${currentYear}-${nextSerial.toString().padStart(4, '0')}`;
+        }
+
+        // Function to check if patient ID already exists
+        function isPatientIdExists(patientId, excludeId = null) {
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            return history.some(item => {
+                if (excludeId && item.id === excludeId) return false;
+                return item.patientId === patientId;
+            });
+        }
+
+        // Function to validate patient ID uniqueness
+        function validatePatientId() {
+            const patientId = document.getElementById('patientId').value;
+            const warningElement = document.getElementById('patientIdWarning');
+
+            if (isPatientIdExists(patientId, currentEditingId)) {
+                warningElement.style.display = 'block';
+                return false;
+            } else {
+                warningElement.style.display = 'none';
+                return true;
+            }
+        }
+
+        // Function to get today's report count
+        function getTodayReportCount() {
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            const today = getTodayDate();
+            return history.filter(item => item.reportedDate === today && item.tests && typeof item.tests === 'object').length;
+        }
+
+        // Function to get tube counts from localStorage
+        function getTubeCounts() {
+            return {
+                purple: parseInt(localStorage.getItem('purpleTubeCount') || '0'),
+                red: parseInt(localStorage.getItem('redTubeCount') || '0')
+            };
+        }
+
+        // Function to update tube counts display (now dynamic in statistics)
+        function updateTubeCountsDisplay() {
+            // Handled dynamically in statistics modal
+        }
+
+        // Function to set tube counts in localStorage
+        function setTubeCounts(purple, red) {
+            localStorage.setItem('purpleTubeCount', purple.toString());
+            localStorage.setItem('redTubeCount', red.toString());
+            updateTubeCountsDisplay();
+        }
+
+        // Function to decrement tube inventory based on selection
+        function decrementTube(tubeUsed) {
+            const tubeCounts = getTubeCounts();
+            if (tubeUsed === 'Purple') {
+                if (tubeCounts.purple > 0) {
+                    setTubeCounts(tubeCounts.purple - 1, tubeCounts.red);
+                } else {
+                    alert('Warning: No purple (EDTA) tubes left in inventory!');
+                }
+            } else if (tubeUsed === 'Red') {
+                if (tubeCounts.red > 0) {
+                    setTubeCounts(tubeCounts.purple, tubeCounts.red - 1);
+                } else {
+                    alert('Warning: No red (plain) tubes left in inventory!');
+                }
+            }
+        }
+
+        // Function to increment tube inventory
+        function incrementTube(tubeUsed) {
+            const tubeCounts = getTubeCounts();
+            if (tubeUsed === 'Purple') {
+                setTubeCounts(tubeCounts.purple + 1, tubeCounts.red);
+            } else if (tubeUsed === 'Red') {
+                setTubeCounts(tubeCounts.purple, tubeCounts.red + 1);
+            }
+        }
+
+        // Function to get kit counts from localStorage
+        function getKitCounts() {
+            return {
+                typhoid: parseInt(localStorage.getItem('typhoidKitCount') || '0'),
+                malaria: parseInt(localStorage.getItem('malariaKitCount') || '0')
+            };
+        }
+
+        // Function to set kit counts in localStorage
+        function setKitCounts(typhoid, malaria) {
+            localStorage.setItem('typhoidKitCount', typhoid.toString());
+            localStorage.setItem('malariaKitCount', malaria.toString());
+            updateKitCountsDisplay();
+        }
+
+        // Function to update kit counts display (dynamic in statistics)
+        function updateKitCountsDisplay() {
+            // Handled dynamically in statistics modal
+        }
+
+        // Function to decrement kit inventory based on tests done
+        function decrementKits(tests) {
+            const kitCounts = getKitCounts();
+            let updated = false;
+
+            if (tests.typhi && kitCounts.typhoid > 0) {
+                kitCounts.typhoid--;
+                updated = true;
+            } else if (tests.typhi && kitCounts.typhoid <= 0) {
+                alert('⚠️ WARNING: No Typhoid test kits left in inventory!');
+            }
+
+            if (tests.malaria && kitCounts.malaria > 0) {
+                kitCounts.malaria--;
+                updated = true;
+            } else if (tests.malaria && kitCounts.malaria <= 0) {
+                alert('⚠️ WARNING: No Malaria test kits left in inventory!');
+            }
+
+            if (updated) {
+                setKitCounts(kitCounts.typhoid, kitCounts.malaria);
+            }
+        }
+
+        // Function to increment kit inventory (when report is deleted or edited)
+        function incrementKits(tests) {
+            const kitCounts = getKitCounts();
+            let updated = false;
+
+            if (tests.typhi) {
+                kitCounts.typhoid++;
+                updated = true;
+            }
+
+            if (tests.malaria) {
+                kitCounts.malaria++;
+                updated = true;
+            }
+
+            if (updated) {
+                setKitCounts(kitCounts.typhoid, kitCounts.malaria);
+            }
+        }
+
+        // Function to adjust kits for editing (compare old and new tests)
+        function adjustKitsForEdit(oldTests, newTests) {
+            // Decrement for newly added tests
+            if (!oldTests.typhi && newTests.typhi) {
+                decrementKits({ typhi: true });
+            }
+            if (!oldTests.malaria && newTests.malaria) {
+                decrementKits({ malaria: true });
+            }
+            // Increment for removed tests
+            if (oldTests.typhi && !newTests.typhi) {
+                incrementKits({ typhi: true });
+            }
+            if (oldTests.malaria && !newTests.malaria) {
+                incrementKits({ malaria: true });
+            }
+        }
+
+        // Function to initialize kit inventory if not set
+        function initializeKitInventory() {
+            const kitCounts = getKitCounts();
+            if (kitCounts.typhoid === 0 && kitCounts.malaria === 0) {
+                const typhoidCount = prompt('Enter initial number of Typhoid test kits:', '50');
+                const malariaCount = prompt('Enter initial number of Malaria test kits:', '50');
+
+                if (typhoidCount !== null && !isNaN(parseInt(typhoidCount))) {
+                    kitCounts.typhoid = parseInt(typhoidCount);
+                }
+                if (malariaCount !== null && !isNaN(parseInt(malariaCount))) {
+                    kitCounts.malaria = parseInt(malariaCount);
+                }
+
+                setKitCounts(kitCounts.typhoid, kitCounts.malaria);
+            }
+        }
+
+        // Function to toggle between Generate and Update button
+        function toggleGenerateUpdateButton(isEditMode = false, reportId = null) {
+            const generateBtn = document.getElementById('generateReport');
+            const updateBtn = document.getElementById('updateReport');
+
+            if (isEditMode) {
+                generateBtn.style.display = 'none';
+                updateBtn.style.display = 'block';
+                isEditing = true;
+                currentEditingId = reportId;
+            } else {
+                generateBtn.style.display = 'block';
+                updateBtn.style.display = 'none';
+                isEditing = false;
+                currentEditingId = null;
+            }
+        }
+
+        // Bilirubin calculation function
+        function calculateIndirectBilirubin() {
+            const total = parseFloat(document.getElementById('totalBilirubin').value) || 0;
+            const direct = parseFloat(document.getElementById('directBilirubin').value) || 0;
+            const indirect = total - direct;
+
+            document.getElementById('indirectBilirubin').value = indirect >= 0 ? indirect.toFixed(2) : '';
+        }
+
+        // CBC Parameters auto-calculation function
+        function calculateCBCParameters() {
+            const hemoglobin = parseFloat(document.getElementById('hemoglobin').value) || 0;
+            const tlc = parseFloat(document.getElementById('tlc').value) || 0;
+            const neutrophils = parseFloat(document.getElementById('neutrophils').value) || 0;
+            const lymphocytes = parseFloat(document.getElementById('lymphocytes').value) || 0;
+            const mid = parseFloat(document.getElementById('mid').value) || 0;
+            const rbcCount = parseFloat(document.getElementById('rbcCount').value) || 0;
+            const mcv = parseFloat(document.getElementById('mcv').value) || 0;
+            let pcv = parseFloat(document.getElementById('pcv').value) || 0;
+
+            // 1. Calculate Absolute Counts
+            if (tlc > 0) {
+                if (neutrophils > 0) {
+                    document.getElementById('absoluteNeutrophils').value = Math.round((tlc * neutrophils) / 100);
+                } else {
+                    document.getElementById('absoluteNeutrophils').value = '';
+                }
+
+                if (lymphocytes > 0) {
+                    document.getElementById('absoluteLymphocytes').value = Math.round((tlc * lymphocytes) / 100);
+                } else {
+                    document.getElementById('absoluteLymphocytes').value = '';
+                }
+
+                if (mid > 0) {
+                    document.getElementById('absoluteMid').value = Math.round((tlc * mid) / 100);
+                } else {
+                    document.getElementById('absoluteMid').value = '';
+                }
+            }
+
+            // 2. Auto-calculate PCV if RBC & MCV are available
+            if (rbcCount > 0 && mcv > 0) {
+                pcv = (rbcCount * mcv) / 10;
+                document.getElementById('pcv').value = pcv.toFixed(1);
+            }
+
+            // 3. Calculate MCH (pg)
+            if (hemoglobin > 0 && rbcCount > 0) {
+                const mch = (hemoglobin / rbcCount) * 10;
+                document.getElementById('mch').value = mch.toFixed(1);
+            } else {
+                document.getElementById('mch').value = '';
+            }
+
+            // 4. Calculate MCHC (g/dL)
+            if (hemoglobin > 0 && pcv > 0) {
+                const mchc = (hemoglobin / pcv) * 100;
+                document.getElementById('mchc').value = mchc.toFixed(1);
+            } else {
+                document.getElementById('mchc').value = '';
+            }
+        }
+
+        // Auto-update Patient Title based on Age and Gender
+        function autoUpdatePatientTitle() {
+            const ageInput = document.getElementById('patientAge').value.trim();
+            const ageVal = parseFloat(ageInput);
+            const ageUnit = document.getElementById('patientAgeUnit').value;
+            const gender = document.getElementById('patientGender').value;
+            const titleSelect = document.getElementById('patientTitle');
+
+            if (isNaN(ageVal) || ageVal < 0) return;
+
+            if (ageUnit === 'Days' || ageUnit === 'Months' || (ageUnit === 'Yrs' && ageVal < 1)) {
+                titleSelect.value = 'Baby';
+            } else if (ageUnit === 'Yrs') {
+                if (ageVal <= 12) {
+                    if (gender === 'Male') titleSelect.value = 'Master';
+                    else if (gender === 'Female') titleSelect.value = 'Baby';
+                } else if (ageVal >= 13 && ageVal <= 17) {
+                    if (gender === 'Male') titleSelect.value = 'Mr.';
+                    else if (gender === 'Female') titleSelect.value = 'Miss';
+                } else if (ageVal >= 18) {
+                    if (gender === 'Male') titleSelect.value = 'Mr.';
+                    else if (gender === 'Female') titleSelect.value = 'Mrs.';
+                }
+            }
+        }
+
+        // Function to toggle test inputs visibility
+        function toggleTestInputs() {
+            document.getElementById('cbcInputs').style.display = document.getElementById('testCBC').checked ? 'block' : 'none';
+            document.getElementById('esrInputs').style.display = document.getElementById('testESR').checked ? 'block' : 'none';
+            document.getElementById('typhiInputs').style.display = document.getElementById('testTyphi').checked ? 'block' : 'none';
+            document.getElementById('dengueInputs').style.display = document.getElementById('testDengue').checked ? 'block' : 'none';
+            document.getElementById('malariaInputs').style.display = document.getElementById('testMalaria').checked ? 'block' : 'none';
+            document.getElementById('widalInputs').style.display = document.getElementById('testWidal').checked ? 'block' : 'none';
+            document.getElementById('bloodGroupInputs').style.display = document.getElementById('testBloodGroup').checked ? 'block' : 'none';
+            document.getElementById('bilirubinInputs').style.display = document.getElementById('testBilirubin').checked ? 'block' : 'none';
+            document.getElementById('crpInputs').style.display = document.getElementById('testCRP').checked ? 'block' : 'none';
+
+            // Show/hide sub-type options based on results
+            const isTyphiPositive = document.getElementById('typhiResult').value === 'Positive';
+            document.getElementById('typhiSubtypeContainer').style.display = (document.getElementById('testTyphi').checked && isTyphiPositive) ? 'block' : 'none';
+
+            const isMalariaPositive = document.getElementById('malariaResult').value === 'Positive';
+            document.getElementById('malariaSubtypeContainer').style.display = (document.getElementById('testMalaria').checked && isMalariaPositive) ? 'block' : 'none';
+        }
+
+        // Function to update suggested cost
+        function updateSuggestedCost() {
+            const prices = {
+                cbc: 200,
+                esr: 100,
+                typhi: 100,
+                dengue: 400,
+                malaria: 100,
+                widal: 100,
+                bloodGroup: 100,
+                bilirubin: 200,
+                crp: 250
+            };
+
+            const cbc = document.getElementById('testCBC').checked;
+            const esr = document.getElementById('testESR').checked;
+            const typhi = document.getElementById('testTyphi').checked;
+            const dengue = document.getElementById('testDengue').checked;
+            const malaria = document.getElementById('testMalaria').checked;
+            const widal = document.getElementById('testWidal').checked;
+            const bloodGroup = document.getElementById('testBloodGroup').checked;
+            const bilirubin = document.getElementById('testBilirubin').checked;
+            const crp = document.getElementById('testCRP').checked;
+
+            const isCombo1 = cbc && typhi && malaria && !esr && !dengue && !widal && !bloodGroup;
+            const isCombo2 = cbc && widal && malaria && !esr && !typhi && !dengue && !bloodGroup;
+            const isCombo3 = cbc && typhi && !malaria && !esr && !widal && !dengue && !bloodGroup;
+            const isCombo4 = cbc && widal && !malaria && !esr && !typhi && !dengue && !bloodGroup;
+            const isCombo5 = cbc && malaria && !widal && !esr && !typhi && !dengue && !bloodGroup;
+
+            let total;
+            if (isCombo1 || isCombo2) {
+                total = 300;
+            } else if (isCombo3 || isCombo4 || isCombo5) {
+                total = 250;
+            } else {
+                total = 0;
+                if (cbc) total += prices.cbc;
+                if (esr) total += prices.esr;
+                if (typhi) total += prices.typhi;
+                if (dengue) total += prices.dengue;
+                if (malaria) total += prices.malaria;
+                if (widal) total += prices.widal;
+                if (bloodGroup) total += prices.bloodGroup;
+                if (bilirubin) total += prices.bilirubin;
+                if (crp) total += prices.crp;
+            }
+
+            document.getElementById('testCost').value = total;
+        }
+
+        // Function to update today's total
+        function updateTodayTotal() {
+            const todayTotal = getTodayTotal();
+            const todayCashTotal = getTodayCashTotal();
+            const todayOnlineTotal = getTodayOnlineTotal();
+            document.getElementById('todayTotal').innerText = `₹${todayTotal}`;
+            document.getElementById('todayCashTotal').innerText = `₹${todayCashTotal}`;
+            document.getElementById('todayOnlineTotal').innerText = `₹${todayOnlineTotal}`;
+        }
+
+        function getTodayTotal() {
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            const today = getTodayDate();
+            let total = 0;
+            history.forEach(item => {
+                if (item.reportedDate === today && item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {
+                    total += parseFloat(item.testCost);
+                }
+            });
+            return total;
+        }
+
+        function getTodayCashTotal() {
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            const today = getTodayDate();
+            let total = 0;
+            history.forEach(item => {
+                if (item.reportedDate === today && item.paymentMode === 'Cash' && item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {
+                    total += parseFloat(item.testCost);
+                }
+            });
+            return total;
+        }
+
+        function getTodayOnlineTotal() {
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            const today = getTodayDate();
+            let total = 0;
+            history.forEach(item => {
+                if (item.reportedDate === today && item.paymentMode === 'Online' && item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {
+                    total += parseFloat(item.testCost);
+                }
+            });
+            return total;
+        }
+
+        function showAdvancedSearch() {
+            document.getElementById('advancedSearchModal').style.display = 'block';
+        }
+
+        function applyAdvancedSearch() {
+            const filters = {
+                dateFrom: document.getElementById('searchDateFrom').value,
+                dateTo: document.getElementById('searchDateTo').value,
+                testType: document.getElementById('searchTestType').value,
+                paymentMode: document.getElementById('searchPaymentMode').value,
+                minCost: document.getElementById('searchMinCost').value,
+                maxCost: document.getElementById('searchMaxCost').value,
+                gender: document.getElementById('searchGender').value,
+                ageFrom: document.getElementById('searchAgeFrom').value,
+                ageTo: document.getElementById('searchAgeTo').value
+            };
+
+            loadHistory(filters);
+            document.getElementById('advancedSearchModal').style.display = 'none';
+        }
+
+        function resetAdvancedSearch() {
+            document.getElementById('searchDateFrom').value = '';
+            document.getElementById('searchDateTo').value = '';
+            document.getElementById('searchTestType').value = '';
+            document.getElementById('searchPaymentMode').value = '';
+            document.getElementById('searchMinCost').value = '';
+            document.getElementById('searchMaxCost').value = '';
+            document.getElementById('searchGender').value = '';
+            document.getElementById('searchAgeFrom').value = '';
+            document.getElementById('searchAgeTo').value = '';
+        }
+
+        function closeAdvancedSearch() {
+            document.getElementById('advancedSearchModal').style.display = 'none';
+        }
+
+        function saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, existingId = null) {
+            let history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            let globalSerial = parseInt(localStorage.getItem('globalHistorySerial') || '0');
+            const patientId = document.getElementById('patientId').value;
+            const collectionDate = document.getElementById('collectionDate').value;
+            const receivedDate = document.getElementById('receivedDate').value;
+            const reportedDate = document.getElementById('reportedDate').value;
+            const referredBy = document.getElementById('referredBy').value || 'Not specified';
+
+            const existingReportIndex = history.findIndex(item => item.id === existingId);
+            const previousTests = existingReportIndex !== -1 ? history[existingReportIndex].tests : null;
+            const previousTube = existingReportIndex !== -1 ? history[existingReportIndex].tubeUsed : null;
+
+            // Handle inventory adjustments
+            if (existingReportIndex === -1) {
+                // New report: decrement tube and kits
+                decrementTube(tubeUsed);
+                decrementKits(tests);
+            } else {
+                // Editing: adjust tube if changed
+                if (previousTube !== tubeUsed) {
+                    incrementTube(previousTube);
+                    decrementTube(tubeUsed);
+                }
+                // Adjust kits if tests changed
+                if (previousTests) {
+                    adjustKitsForEdit(previousTests, tests);
+                }
+            }
+
+            // Get test parameters
+            let testParameters = {};
+            if (tests.cbc) {
+                testParameters.cbc = {
+                    hemoglobin: document.getElementById('hemoglobin').value,
+                    tlc: document.getElementById('tlc').value,
+                    neutrophils: document.getElementById('neutrophils').value,
+                    lymphocytes: document.getElementById('lymphocytes').value,
+                    mid: document.getElementById('mid').value,
+                    absoluteNeutrophils: document.getElementById('absoluteNeutrophils').value,
+                    absoluteLymphocytes: document.getElementById('absoluteLymphocytes').value,
+                    absoluteMid: document.getElementById('absoluteMid').value,
+                    //eosinophils: document.getElementById('eosinophils').value,
+                    //monocytes: document.getElementById('monocytes').value,
+                    //basophils: document.getElementById('basophils').value,
+                    rbcCount: document.getElementById('rbcCount').value,
+                    pcv: document.getElementById('pcv').value,
+                    mcv: document.getElementById('mcv').value,
+                    mch: document.getElementById('mch').value,
+                    mchc: document.getElementById('mchc').value,
+                    platelet: document.getElementById('platelet').value
+                };
+            }
+            if (tests.esr) testParameters.esr = { esr: document.getElementById('esr').value };
+            if (tests.typhi) {
+                testParameters.typhi = {
+                    typhiResult: document.getElementById('typhiResult').value,
+                    typhiSubtype: document.getElementById('typhiSubtype').value
+                };
+            }
+            if (tests.dengue) testParameters.dengue = { dengueResult: document.getElementById('dengueResult').value };
+            if (tests.malaria) {
+                testParameters.malaria = {
+                    malariaResult: document.getElementById('malariaResult').value,
+                    malariaSubtype: document.getElementById('malariaSubtype').value
+                };
+            }
+            if (tests.widal) {
+                testParameters.widal = {
+                    oAntigen: document.getElementById('oAntigen').value,
+                    hAntigen: document.getElementById('hAntigen').value,
+                    ahAntigen: document.getElementById('ahAntigen').value,
+                    bhAntigen: document.getElementById('bhAntigen').value
+                };
+            }
+            if (tests.bloodGroup) testParameters.bloodGroup = { bloodGroup: document.getElementById('bloodGroup').value };
+
+            if (tests.bilirubin) {
+                testParameters.bilirubin = {
+                    totalBilirubin: document.getElementById('totalBilirubin').value,
+                    directBilirubin: document.getElementById('directBilirubin').value,
+                    indirectBilirubin: document.getElementById('indirectBilirubin').value
+                };
+            }
+
+            if (tests.crp) {
+                testParameters.crp = {
+                    crp: document.getElementById('crp').value
+                };
+            }
+
+            const historyItem = {
+                serial: existingReportIndex === -1 ? ++globalSerial : history[existingReportIndex].serial,
+                id: existingReportIndex === -1 ? Date.now() : existingId,
+                patientName,
+                patientAge,
+                patientGender,
+                patientId,
+                collectionDate,
+                receivedDate,
+                reportedDate,
+                referredBy,
+                testCost: testCost || 'Not specified',
+                paymentMode,
+                tubeUsed,
+                reportHTML,
+                tests,
+                testParameters,
+                timestamp: new Date().toLocaleString()
+            };
+
+            if (existingReportIndex === -1) {
+                history.unshift(historyItem);
+                localStorage.setItem('globalHistorySerial', globalSerial.toString());
+            } else {
+                history[existingReportIndex] = historyItem;
+            }
+
+            // Limit history to 500 reports to prevent storage issues
+            if (history.length > 10000) {
+                history = history.slice(0, 10000);
+            }
+
+            localStorage.setItem('labReportsHistory', JSON.stringify(history));
+
+            // Debug: Check if report was saved
+            console.log('Report saved to history:', historyItem);
+            console.log('Total reports in history:', history.length);
+        }
+
+        // Password protection for Today's Collection
+        function toggleCollection() {
+            const content = document.getElementById('collectionContent');
+            const btn = document.getElementById('toggleBtn');
+
+            if (content.classList.contains('blurred')) {
+                const password = prompt('Enter password to view collection:');
+                if (password === COLLECTION_PASSWORD) {
+                    content.classList.remove('blurred');
+                    btn.textContent = '✔ Hide';
+                } else if (password !== null) {
+                    alert('Incorrect password');
+                }
+            } else {
+                content.classList.add('blurred');
+                btn.textContent = '✖ Show';
+            }
+        }
+
+        // Set initial values on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = getTodayDate();
+            document.getElementById('collectionDate').value = today;
+            document.getElementById('receivedDate').value = today;
+            document.getElementById('reportedDate').value = today;
+            document.getElementById('referredBy').value = 'SELF';
+
+            let patientId = sessionStorage.getItem('currentPatientId');
+            if (!patientId) {
+                patientId = generatePatientId();
+                sessionStorage.setItem('currentPatientId', patientId);
+            }
+            document.getElementById('patientId').value = patientId;
+
+            // Add event listener for patient ID validation
+            document.getElementById('patientId').addEventListener('input', validatePatientId);
+
+            initializeKitInventory();
+
+            toggleTestInputs();
+            updateSuggestedCost();
+            updateTodayTotal();
+            updateTodayReportCount();
+            updateTestStats();
+            updateTubeCountsDisplay();
+            updateKitCountsDisplay();
+
+            // Initialize tube counts if not set
+            const tubeCounts = getTubeCounts();
+            if (tubeCounts.purple === 0 && tubeCounts.red === 0) {
+                const purpleCount = prompt('Enter initial number of Purple (EDTA) tubes:', '100');
+                const redCount = prompt('Enter initial number of Red (Plain) tubes:', '100');
+                if (purpleCount !== null && !isNaN(parseInt(purpleCount))) {
+                    tubeCounts.purple = parseInt(purpleCount);
+                }
+                if (redCount !== null && !isNaN(parseInt(redCount))) {
+                    tubeCounts.red = parseInt(redCount);
+                }
+                setTubeCounts(tubeCounts.purple, tubeCounts.red);
+            }
+
+            // Initialize global serial number if not exists
+            if (!localStorage.getItem('globalHistorySerial')) {
+                localStorage.setItem('globalHistorySerial', '0');
+            }
+
+            // Checkbox event listeners for mutual exclusivity
+            const cashCheckbox = document.getElementById('paymentCash');
+            const onlineCheckbox = document.getElementById('paymentOnline');
+            cashCheckbox.addEventListener('change', function () {
+                if (this.checked) onlineCheckbox.checked = false;
+            });
+            onlineCheckbox.addEventListener('change', function () {
+                if (this.checked) cashCheckbox.checked = false;
+            });
+
+            const purpleTubeCheckbox = document.getElementById('tubePurple');
+            const redTubeCheckbox = document.getElementById('tubeRed');
+            purpleTubeCheckbox.addEventListener('change', function () {
+                if (this.checked) redTubeCheckbox.checked = false;
+            });
+            redTubeCheckbox.addEventListener('change', function () {
+                if (this.checked) purpleTubeCheckbox.checked = false;
+            });
+
+            // Test checkbox event listeners
+            document.querySelectorAll('.test-option input').forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    toggleTestInputs();
+                    updateSuggestedCost();
+                });
+            });
+
+            // Result select dropdown change event listeners
+            document.getElementById('typhiResult').addEventListener('change', toggleTestInputs);
+            document.getElementById('malariaResult').addEventListener('change', toggleTestInputs);
+
+            document.getElementById('generateReport').addEventListener('click', generateReport);
+            document.getElementById('updateReport').addEventListener('click', updateReport);
+
+            document.getElementById('printReport').addEventListener('click', function () {
+                if (this.classList.contains('enabled')) {
+                    window.print();
+                }
+            });
+
+            document.getElementById('savePDF').addEventListener('click', function () {
+                if (this.classList.contains('enabled')) {
+                    saveAsPDF();
+                }
+            });
+
+            document.getElementById('editReport').addEventListener('click', function () {
+                if (this.classList.contains('enabled')) {
+                    document.getElementById('reportOutput').style.display = 'none';
+                    document.querySelector('.test-inputs').style.display = 'block';
+                    document.querySelector('.patient-info').style.display = 'grid';
+                    document.querySelector('.test-selection').style.display = 'block';
+                    document.querySelector('.cost-section').style.display = 'flex';
+                    document.querySelector('.test-stats').style.display = 'block';
+                    this.classList.remove('enabled');
+                    document.getElementById('printReport').classList.remove('enabled');
+                    document.getElementById('savePDF').classList.remove('enabled');
+                }
+            });
+
+            document.getElementById('newReport').addEventListener('click', function () {
+                if (isEditing) {
+                    if (!confirm('You are currently editing a report. Creating a new report will discard your changes. Continue?')) {
+                        return;
+                    }
+                }
+
+                sessionStorage.removeItem('currentPatientId');
+                document.getElementById('patientTitle').value = 'Mr.';
+                document.getElementById('patientName').value = '';
+                document.getElementById('patientAge').value = '';
+                document.getElementById('patientAgeUnit').value = 'Yrs';
+                document.getElementById('patientGender').value = '';
+                document.getElementById('referredBy').value = 'SELF';
+                document.getElementById('testCost').value = '';
+                document.getElementById('paymentCash').checked = true;
+                document.getElementById('paymentOnline').checked = false;
+                document.getElementById('tubePurple').checked = true;
+                document.getElementById('tubeRed').checked = false;
+
+                const newPatientId = generatePatientId();
+                sessionStorage.setItem('currentPatientId', newPatientId);
+                document.getElementById('patientId').value = newPatientId;
+
+                const today = getTodayDate();
+                document.getElementById('collectionDate').value = today;
+                document.getElementById('receivedDate').value = today;
+                document.getElementById('reportedDate').value = today;
+
+                document.querySelectorAll('.test-option input').forEach(checkbox => {
+                    checkbox.checked = checkbox.id === 'testCBC' || checkbox.id === 'testTyphi' || checkbox.id === 'testMalaria';
+                });
+                toggleTestInputs();
+                updateSuggestedCost();
+
+                document.querySelectorAll('.test-inputs input, .test-inputs select').forEach(input => {
+                    if (input.type !== 'checkbox') input.value = '';
+                });
+
+                document.getElementById('reportOutput').style.display = 'none';
+                document.querySelector('.patient-info').style.display = 'grid';
+                document.querySelector('.test-selection').style.display = 'block';
+                document.querySelector('.test-inputs').style.display = 'block';
+                document.querySelector('.cost-section').style.display = 'flex';
+                document.querySelector('.test-stats').style.display = 'block';
+
+                document.getElementById('printReport').classList.remove('enabled');
+                document.getElementById('savePDF').classList.remove('enabled');
+                document.getElementById('editReport').classList.remove('enabled');
+
+                toggleGenerateUpdateButton(false);
+                validatePatientId();
+                updateTodayReportCount();
+                updateTestStats();
+            });
+
+            document.getElementById('viewHistory').addEventListener('click', function () {
+                const password = prompt('Please enter the password to view report history:');
+                if (password === HISTORY_PASSWORD) {
+                    showHistory();
+                } else if (password !== null) {
+                    alert('Incorrect password. Please try again.');
+                }
+            });
+
+            document.getElementById('statisticsBtn').addEventListener('click', showStatistics);
+
+            document.getElementById('updateTubeInventory').addEventListener('click', updateTubeInventoryWithPassword);
+
+
+            document.getElementById('advancedSearchBtn').addEventListener('click', showAdvancedSearch);
+            document.getElementById('applyAdvancedSearch').addEventListener('click', applyAdvancedSearch);
+            document.getElementById('resetAdvancedSearch').addEventListener('click', resetAdvancedSearch);
+            document.getElementById('closeAdvancedSearch').addEventListener('click', closeAdvancedSearch);
+            document.querySelector('.close-advanced-search').addEventListener('click', closeAdvancedSearch);
+
+
+            document.querySelector('.close-history').addEventListener('click', function () {
+                document.getElementById('historyModal').style.display = 'none';
+            });
+
+            document.querySelector('.close-statistics').addEventListener('click', function () {
+                document.getElementById('statisticsModal').style.display = 'none';
+            });
+
+            window.addEventListener('click', function (event) {
+                if (event.target === document.getElementById('historyModal')) {
+                    document.getElementById('historyModal').style.display = 'none';
+                }
+                if (event.target === document.getElementById('statisticsModal')) {
+                    document.getElementById('statisticsModal').style.display = 'none';
+                }
+
+                if (event.target === document.getElementById('advancedSearchModal')) {
+                    closeAdvancedSearch();
+                }
+
+            });
+
+            setupSearchFunctionality();
+
+        });
+
+        function generateReport() {
+            // Check for duplicate patient ID first
+            if (!validatePatientId()) {
+                if (!confirm('This Patient ID already exists! Are you sure you want to create a duplicate report?')) {
+                    return;
+                }
+            }
+
+            const patientTitle = document.getElementById('patientTitle') ? document.getElementById('patientTitle').value : '';
+            const rawName = document.getElementById('patientName').value.trim();
+            const patientName = (patientTitle && !rawName.toLowerCase().startsWith(patientTitle.toLowerCase()))
+                ? `${patientTitle} ${rawName}`
+                : rawName;
+
+            const ageVal = document.getElementById('patientAge').value.trim();
+            const ageUnit = document.getElementById('patientAgeUnit') ? document.getElementById('patientAgeUnit').value : 'Yrs';
+            const patientAge = ageVal ? `${ageVal} ${ageUnit}` : '';
+            const patientGender = document.getElementById('patientGender').value;
+            const paymentCash = document.getElementById('paymentCash').checked;
+            const paymentOnline = document.getElementById('paymentOnline').checked;
+            const tubePurple = document.getElementById('tubePurple').checked;
+
+            // Basic validation
+            if (!rawName || !ageVal || !patientGender) {
+                alert('Please fill in all required patient information fields.');
+                return;
+            }
+
+            if (!paymentCash && !paymentOnline) {
+                alert('Please select a payment mode (Cash or Online).');
+                return;
+            }
+
+            const paymentMode = paymentCash ? 'Cash' : 'Online';
+            const tubeUsed = tubePurple ? 'Purple' : 'Red';
+
+            const tests = {
+                cbc: document.getElementById('testCBC').checked,
+                esr: document.getElementById('testESR').checked,
+                typhi: document.getElementById('testTyphi').checked,
+                dengue: document.getElementById('testDengue').checked,
+                malaria: document.getElementById('testMalaria').checked,
+                widal: document.getElementById('testWidal').checked,
+                bloodGroup: document.getElementById('testBloodGroup').checked,
+                bilirubin: document.getElementById('testBilirubin').checked,
+                crp: document.getElementById('testCRP').checked
+            };
+
+            if (!Object.values(tests).includes(true)) {
+                alert('Please select at least one test.');
+                return;
+            }
+            // Check for duplicate patient with same tests
+            const duplicateCheck = checkDuplicatePatient(patientName, patientAge, patientGender, tests);
+
+            if (duplicateCheck && duplicateCheck.isDuplicate) {
+                const confirmed = confirm(
+                    `DUPLICATE PATIENT WARNING!\n\n` +
+                    `Patient: ${patientName} (${patientAge}, ${patientGender})\n` +
+                    `${duplicateCheck.message}\n\n` +
+                    `Existing Report: #${duplicateCheck.existingReport.serial} from ${formatDisplayDate(duplicateCheck.existingReport.reportedDate)}\n\n` +
+                    `Are you sure you want to generate the same tests again?`
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+            }
+
+
+            const testCost = document.getElementById('testCost').value;
+
+            // Generate report HTML
+            const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
+
+            // Display report
+            document.getElementById('reportOutput').innerHTML = reportHTML;
+            document.getElementById('reportOutput').style.display = 'block';
+
+            document.querySelector('.test-inputs').style.display = 'none';
+            document.querySelector('.patient-info').style.display = 'none';
+            document.querySelector('.test-selection').style.display = 'none';
+            document.querySelector('.cost-section').style.display = 'none';
+            document.querySelector('.test-stats').style.display = 'none';
+
+            document.getElementById('printReport').classList.add('enabled');
+            document.getElementById('savePDF').classList.add('enabled');
+            document.getElementById('editReport').classList.add('enabled');
+
+            // Save to history
+            saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, null);
+            updateTodayTotal();
+            updateTodayReportCount();
+            updateTestStats();
+        }
+
+        function updateReport() {
+            if (!currentEditingId) return;
+
+            const patientTitle = document.getElementById('patientTitle') ? document.getElementById('patientTitle').value : '';
+            const rawName = document.getElementById('patientName').value.trim();
+            const patientName = (patientTitle && !rawName.toLowerCase().startsWith(patientTitle.toLowerCase()))
+                ? `${patientTitle} ${rawName}`
+                : rawName;
+
+            const ageVal = document.getElementById('patientAge').value.trim();
+            const ageUnit = document.getElementById('patientAgeUnit') ? document.getElementById('patientAgeUnit').value : 'Yrs';
+            const patientAge = ageVal ? `${ageVal} ${ageUnit}` : '';
+            const patientGender = document.getElementById('patientGender').value;
+            const paymentCash = document.getElementById('paymentCash').checked;
+            const paymentOnline = document.getElementById('paymentOnline').checked;
+            const tubePurple = document.getElementById('tubePurple').checked;
+
+            if (!rawName || !ageVal || !patientGender) {
+                alert('Please fill in all required patient information fields.');
+                return;
+            }
+
+            if (!paymentCash && !paymentOnline) {
+                alert('Please select a payment mode (Cash or Online).');
+                return;
+            }
+
+            const paymentMode = paymentCash ? 'Cash' : 'Online';
+            const tubeUsed = tubePurple ? 'Purple' : 'Red';
+
+
+            const tests = {
+                cbc: document.getElementById('testCBC').checked,
+                esr: document.getElementById('testESR').checked,
+                typhi: document.getElementById('testTyphi').checked,
+                dengue: document.getElementById('testDengue').checked,
+                malaria: document.getElementById('testMalaria').checked,
+                widal: document.getElementById('testWidal').checked,
+                bloodGroup: document.getElementById('testBloodGroup').checked,
+                bilirubin: document.getElementById('testBilirubin').checked,
+                crp: document.getElementById('testCRP').checked
+            };
+
+            if (!Object.values(tests).includes(true)) {
+                alert('Please select at least one test.');
+                return;
+            }
+
+            const testCost = document.getElementById('testCost').value;
+
+            // Generate updated report HTML
+            const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
+
+            // Display updated report
+            document.getElementById('reportOutput').innerHTML = reportHTML;
+            document.getElementById('reportOutput').style.display = 'block';
+
+            document.querySelector('.test-inputs').style.display = 'none';
+            document.querySelector('.patient-info').style.display = 'none';
+            document.querySelector('.test-selection').style.display = 'none';
+            document.querySelector('.cost-section').style.display = 'none';
+            document.querySelector('.test-stats').style.display = 'none';
+
+            document.getElementById('printReport').classList.add('enabled');
+            document.getElementById('savePDF').classList.add('enabled');
+            document.getElementById('editReport').classList.add('enabled');
+
+            // Update in history
+            saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, currentEditingId);
+            updateTodayTotal();
+            updateTodayReportCount();
+            updateTestStats();
+
+            // Switch back to generate mode
+            toggleGenerateUpdateButton(false);
+        }
+
+        function createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed) {
+            let reportHTML = `
+                <div class="report-header">
+                    <h2>-</h2>
+                </div>
+                <div class="report-patient-info">
+                    <div><strong>Patient Name:</strong> ${patientName}</div>
+                    <div><strong>Age:</strong> ${patientAge}</div>
+                    <div><strong>Gender:</strong> ${patientGender}</div>
+                    <div><strong>Patient ID:</strong> ${document.getElementById('patientId').value}</div>
+                    <div><strong>Collection Date:</strong> ${document.getElementById('collectionDate').value}</div>
+                    <div><strong>Received Date:</strong> ${document.getElementById('receivedDate').value}</div>
+                    <div><strong>Reported Date:</strong> ${document.getElementById('reportedDate').value}</div>
+                    <div><strong>Referred By:</strong> ${document.getElementById('referredBy').value.trim() || 'SELF'}</div>
+                    <div class="no-print"><strong>Payment Mode:</strong> ${paymentMode}</div>
+                    <div class="no-print"><strong>Tube Used:</strong> ${tubeUsed}</div>
+                </div>
+            `;
+
+            if (tests.cbc) {
+                reportHTML += `
+                    <div class="report-test-section">
+                        <h3>COMPLETE BLOOD COUNT</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>INVESTIGATION</th>
+                                    <th>RESULT</th>
+                                    <th>UNIT</th>
+                                    <th>REFERENCE RANGE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                const cbcParams = [
+                    { id: 'hemoglobin', name: 'Hemoglobin', unit: 'g/dL', maleRef: '13.5-17.5', femaleRef: '12.0-15.0' },
+                    { id: 'tlc', name: 'Total Leucocyte Count', unit: 'cells/cumm', ref: '4000-11000' },
+                    { id: 'neutrophils', name: 'Neutrophils', unit: '%', ref: '40-75' },
+                    { id: 'lymphocytes', name: 'Lymphocytes', unit: '%', ref: '20-40' },
+                    { id: 'mid', name: 'Mid', unit: '%', ref: '3-9' },
+                    { id: 'absoluteNeutrophils', name: 'Absolute Neutrophils', unit: 'cells/cumm', ref: '2000-7000' },
+                    { id: 'absoluteLymphocytes', name: 'Absolute Lymphocytes', unit: 'cells/cumm', ref: '1000-3500' },
+                    { id: 'absoluteMid', name: 'Absolute Mid', unit: 'cells/cumm', ref: '200-800' },
+                    //{id: 'eosinophils', name: 'Eosinophils', unit: '%', ref: '1-7'},
+                    //{id: 'monocytes', name: 'Monocytes', unit: '%', ref: '2-10'},
+                    //{id: 'basophils', name: 'Basophils', unit: '%', ref: '0-2'},
+                    { id: 'rbcCount', name: 'RBC Count', unit: 'million/cumm', maleRef: '4.5-5.5', femaleRef: '4.0-5.0' },
+                    { id: 'pcv', name: 'PCV', unit: '%', maleRef: '40-50', femaleRef: '40-50' },
+                    { id: 'mcv', name: 'MCV', unit: 'fL', ref: '80-100' },
+                    { id: 'mch', name: 'MCH', unit: 'pg', ref: '27-32' },
+                    { id: 'mchc', name: 'MCHC', unit: 'g/dL', ref: '31.5-36' },
+                    { id: 'platelet', name: 'Platelet Count', unit: 'lakhs/cumm', ref: '1.50-4.50' }
+                ];
+                cbcParams.forEach(param => {
+                    const value = document.getElementById(param.id).value || '';
+                    if (value) {
+                        let refRange = param.ref || (patientGender === 'Male' ? param.maleRef : param.femaleRef);
+                        let isAbnormal = false;
+                        if (param.ref) {
+                            const [min, max] = param.ref.split('-').map(Number);
+                            isAbnormal = value < min || value > max;
+                        } else if (param.maleRef && param.femaleRef) {
+                            const range = patientGender === 'Male' ? param.maleRef : param.femaleRef;
+                            const [min, max] = range.split('-').map(Number);
+                            isAbnormal = value < min || value > max;
+                        }
+                        reportHTML += `
+                            <tr>
+                                <td>${param.name}</td>
+                                <td class="${isAbnormal ? 'abnormal' : ''}">${value}</td>
+                                <td>${param.unit}</td>
+                                <td>${refRange}</td>
+                            </tr>
+                        `;
+                    }
+                });
+                reportHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            if (tests.esr) {
+                const esrValue = document.getElementById('esr').value || '';
+                if (esrValue) {
+                    const isAbnormal = esrValue > 20;
+                    reportHTML += `
+                        <div class="report-test-section">
+                            <h3>HEMATOLOGY</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>INVESTIGATION</th>
+                                        <th>RESULT</th>
+                                        <th>UNIT</th>
+                                        <th>REFERENCE RANGE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>ESR</td>
+                                        <td class="${isAbnormal ? 'abnormal' : ''}">${esrValue}</td>
+                                        <td>mm/hr</td>
+                                        <td>0-20</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            }
+
+            if (tests.widal) {
+                reportHTML += `
+                    <div class="report-test-section">
+                        <h3>SEROLOGY</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>INVESTIGATION</th>
+                                    <th>RESULT</th>
+                                    <th>REFERENCE RANGE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                const widalParams = [
+                    { id: 'oAntigen', name: 'O Antigen' },
+                    { id: 'hAntigen', name: 'H Antigen' },
+                    { id: 'ahAntigen', name: 'AH Antigen' },
+                    { id: 'bhAntigen', name: 'BH Antigen' }
+                ];
+                widalParams.forEach(param => {
+                    const value = document.getElementById(param.id).value || '';
+                    if (value) {
+                        const isPositive = value.includes('1:160') || value.includes('1:320') ||
+                            value.includes('1:640') || value.includes('1:1280');
+                        reportHTML += `
+                            <tr>
+                                <td>${param.name}</td>
+                                <td class="${isPositive ? 'positive' : ''}">${value}</td>
+                                <td>&lt; 1:80</td>
+                            </tr>
+                        `;
+                    }
+                });
+                reportHTML += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            if (tests.bloodGroup) {
+                const bloodGroupValue = document.getElementById('bloodGroup').value || '';
+                if (bloodGroupValue) {
+                    reportHTML += `
+                        <div class="report-test-section">
+                            <h3>BLOOD GROUP</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>INVESTIGATION</th>
+                                        <th>RESULT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Blood Group</td>
+                                        <td>${bloodGroupValue}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            }
+
+            if (tests.bilirubin) {
+                const totalBilirubin = document.getElementById('totalBilirubin').value || '';
+                const directBilirubin = document.getElementById('directBilirubin').value || '';
+                const indirectBilirubin = document.getElementById('indirectBilirubin').value || '';
+
+                if (totalBilirubin || directBilirubin || indirectBilirubin) {
+                    reportHTML += `
+                        <div class="report-test-section">
+                            <h3>BIOCHEMISTRY</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>INVESTIGATION</th>
+                                        <th>RESULT</th>
+                                        <th>UNIT</th>
+                                        <th>REFERENCE RANGE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+
+                    if (totalBilirubin) {
+                        const isAbnormalTotal = totalBilirubin > 1.2;
+                        reportHTML += `
+                            <tr>
+                                <td>Total Bilirubin</td>
+                                <td class="${isAbnormalTotal ? 'abnormal' : ''}">${totalBilirubin}</td>
+                                <td>mg/dL</td>
+                                <td>0.3-1.2</td>
+                            </tr>
+                        `;
+                    }
+
+                    if (directBilirubin) {
+                        const isAbnormalDirect = directBilirubin > 0.3;
+                        reportHTML += `
+                            <tr>
+                                <td>Direct Bilirubin</td>
+                                <td class="${isAbnormalDirect ? 'abnormal' : ''}">${directBilirubin}</td>
+                                <td>mg/dL</td>
+                                <td>0.1-0.3</td>
+                            </tr>
+                        `;
+                    }
+
+                    if (indirectBilirubin) {
+                        const isAbnormalIndirect = indirectBilirubin > 0.8;
+                        reportHTML += `
+                            <tr>
+                                <td>Indirect Bilirubin</td>
+                                <td class="${isAbnormalIndirect ? 'abnormal' : ''}">${indirectBilirubin}</td>
+                                <td>mg/dL</td>
+                                <td>0.2-0.8</td>
+                            </tr>
+                        `;
+                    }
+
+                    reportHTML += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            }
+
+            if (tests.crp) {
+                const crpValue = document.getElementById('crp').value || '';
+                if (crpValue) {
+                    let statusClass = '';
+                    let refRange = '';
+                    const numValue = parseFloat(crpValue);
+                    if (numValue < 10) {
+                        statusClass = 'normal';
+                        refRange = '<10 (Normal)';
+                    } else if (numValue < 20) {
+                        statusClass = 'elevated';
+                        refRange = '10-20 (Elevated)';
+                    } else if (numValue < 50) {
+                        statusClass = 'high';
+                        refRange = '20-50 (High)';
+                    } else {
+                        statusClass = 'veryhigh';
+                        refRange = '>50 (Very High)';
+                    }
+                    reportHTML += `
+                        <div class="report-test-section">
+                            <h3>CRP Test</h3>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>INVESTIGATION</th>
+                                        <th>RESULT</th>
+                                        <th>UNIT</th>
+                                        <th>REFERENCE RANGE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>CRP</td>
+                                        <td class="${statusClass}">${crpValue}</td>
+                                        <td>mg/L</td>
+                                        <td>${refRange}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            }
+
+            const otherTests = [
+                { id: 'typhi', name: 'Typhoid', resultId: 'typhiResult' },
+                { id: 'dengue', name: 'Dengue', resultId: 'dengueResult' },
+                { id: 'malaria', name: 'Malaria Parasite', resultId: 'malariaResult' }
+            ];
+
+            let otherTestsHTML = '';
+            otherTests.forEach(test => {
+                if (tests[test.id]) {
+                    const result = document.getElementById(test.resultId).value || '';
+                    let displayResult = result;
+                    if (result === 'Positive') {
+                        if (test.id === 'typhi') {
+                            const subtype = document.getElementById('typhiSubtype').value;
+                            const subtypeText = subtype === 'Both' ? 'IgM and IgG' : subtype;
+                            displayResult = `Positive (${subtypeText})`;
+                        } else if (test.id === 'malaria') {
+                            const subtype = document.getElementById('malariaSubtype').value;
+                            const subtypeText = subtype === 'Both' ? 'Pf and Pv' : subtype;
+                            displayResult = `Positive (${subtypeText})`;
+                        }
+                    }
+                    otherTestsHTML += `
+                        <tr>
+                            <td>${test.name}</td>
+                            <td class="${result === 'Positive' ? 'positive' : ''}">${displayResult}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (otherTestsHTML) {
+                reportHTML += `
+                    <div class="report-test-section">
+                        <h3>OTHER TESTS</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>INVESTIGATION</th>
+                                    <th>RESULT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${otherTestsHTML}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            return reportHTML;
+        }
+
+        function saveAsPDF() {
+            const element = document.getElementById('reportOutput');
+            const opt = {
+                margin: 10,
+                filename: `lab_report_${document.getElementById('patientId').value}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        // Global variables for history management
+        let currentFilters = {
+            searchTerm: '',
+            dateFrom: '',
+            dateTo: '',
+            testType: '',
+            paymentMode: '',
+            minCost: '',
+            maxCost: '',
+            gender: '',
+            ageFrom: '',
+            ageTo: ''
+        };
+
+        // Function to load history with filters
+        function loadHistory(filters = null) {
+            if (filters) {
+                currentFilters = { ...currentFilters, ...filters };
+            }
+
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            const historyList = document.getElementById('historyList');
+
+            let filteredHistory = applyAdvancedFilters(history, currentFilters);
+
+            // Calculate test statistics for the search results
+            const searchStats = calculateSearchStatistics(filteredHistory, currentFilters);
+
+            updateSearchSummary(filteredHistory.length, history.length, searchStats);
+
+            if (filteredHistory.length === 0) {
+                historyList.innerHTML = '<p class="no-results">No reports found matching your criteria</p>';
+                return;
+            }
+
+            historyList.innerHTML = '';
+            filteredHistory.forEach(item => {
+                const testCount = item.tests && typeof item.tests === 'object'
+                    ? Object.values(item.tests).filter(test => test === true).length
+                    : 0;
+
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div style="flex: 1;">
+                        <strong>#${item.serial} - ${item.patientName}</strong> (${item.patientAge}, ${item.patientGender}) - 
+                        ${item.patientId} - ${formatDisplayDate(item.reportedDate)} - Tests: ${testCount}
+                        ${item.testCost && item.testCost !== 'Not specified' ? `<span class="history-cost">₹${item.testCost} (${item.paymentMode})</span>` : ''}
+                        ${item.tubeUsed ? `<span style="margin-left: 10px; font-size: 12px; color: #666;">Tube: ${item.tubeUsed}</span>` : ''}
+                    </div>
+                    <div>
+                        ${item.testCost && item.testCost !== 'Not specified' ? `<button class="edit-cost" data-id="${item.id}">Edit Cost</button>` : ''}
+                        <button class="edit-report" data-id="${item.id}">Edit Report</button>
+                        <button class="delete-report" data-id="${item.id}">Delete</button>
+                    </div>
+                `;
+
+                historyItem.addEventListener('click', function (e) {
+                    if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report')) {
+                        showReport(item);
+                    }
+                });
+
+                historyList.appendChild(historyItem);
+            });
+
+            addHistoryItemEventListeners();
+        }
+
+        // Function to apply advanced filters
+        function applyAdvancedFilters(history, filters) {
+            return history.filter(item => {
+                // Text search
+                if (filters.searchTerm) {
+                    const searchLower = filters.searchTerm.toLowerCase();
+                    const matchesSearch =
+                        item.patientName.toLowerCase().includes(searchLower) ||
+                        item.patientId.toLowerCase().includes(searchLower) ||
+                        (item.referredBy && item.referredBy.toLowerCase().includes(searchLower)) ||
+                        item.collectionDate.includes(filters.searchTerm) ||
+                        item.reportedDate.includes(filters.searchTerm);
+                    if (!matchesSearch) return false;
+                }
+
+                // Date range filter
+                if (filters.dateFrom && item.reportedDate < filters.dateFrom) return false;
+                if (filters.dateTo && item.reportedDate > filters.dateTo) return false;
+
+                // Test type filter
+                if (filters.testType && (!item.tests || !item.tests[filters.testType])) return false;
+
+                // Payment mode filter
+                if (filters.paymentMode && item.paymentMode !== filters.paymentMode) return false;
+
+                // Cost range filter
+                if (filters.minCost && item.testCost && item.testCost !== 'Not specified') {
+                    const cost = parseFloat(item.testCost);
+                    if (cost < parseFloat(filters.minCost)) return false;
+                }
+                if (filters.maxCost && item.testCost && item.testCost !== 'Not specified') {
+                    const cost = parseFloat(item.testCost);
+                    if (cost > parseFloat(filters.maxCost)) return false;
+                }
+
+                // Gender filter
+                if (filters.gender && item.patientGender !== filters.gender) return false;
+
+                // Age range filter
+                if (filters.ageFrom && parseInt(item.patientAge) < parseInt(filters.ageFrom)) return false;
+                if (filters.ageTo && parseInt(item.patientAge) > parseInt(filters.ageTo)) return false;
+
+                return true;
+            });
+        }
+
+        // Function to update search summary
+        function updateSearchSummary(filteredCount, totalCount, searchStats) {
+            try {
+                const summaryElement = document.getElementById('searchSummary');
+                const activeFiltersElement = document.getElementById('activeFilters');
+
+                const activeFilters = getActiveFilters();
+
+                if (activeFilters.length > 0 || filteredCount < totalCount) {
+                    summaryElement.style.display = 'block';
+                    activeFiltersElement.innerHTML = '';
+
+                    // Display active filters
+                    activeFilters.forEach(filter => {
+                        const filterTag = document.createElement('span');
+                        filterTag.className = 'filter-tag';
+                        filterTag.innerHTML = `
+                            ${filter.label}: ${filter.value}
+                            <span class="remove-filter" data-filter="${filter.key}">&times;</span>
+                        `;
+                        activeFiltersElement.appendChild(filterTag);
+                    });
+
+                    // Display search statistics
+                    const statsHTML = `
+                        <div class="search-statistics">
+                            <h4>Search Results Summary</h4>
+                            <div class="stats-overview">
+                                <div class="stat-main">
+                                    <span class="stat-number">${searchStats.totalReports}</span>
+                                    <span class="stat-label">Total Reports</span>
+                                </div>
+                                <div class="stat-main">
+                                    <span class="stat-number">${searchStats.totalTests}</span>
+                                    <span class="stat-label">Total Tests</span>
+                                </div>
+                                <div class="stat-main">
+                                    <span class="stat-number">₹${searchStats.totalCollection.toFixed(2)}</span>
+                                    <span class="stat-label">Total Collection</span>
+                                </div>
+                            </div>
+                            
+                            <div class="test-breakdown">
+                                <h5>Test Breakdown:</h5>
+                                <div class="test-stats-list">
+                                    ${searchStats.testBreakdown.cbc > 0 ? `<div class="test-stat"><span>CBC:</span> <strong>${searchStats.testBreakdown.cbc}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.esr > 0 ? `<div class="test-stat"><span>ESR:</span> <strong>${searchStats.testBreakdown.esr}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.typhi > 0 ? `<div class="test-stat"><span>Typhoid:</span> <strong>${searchStats.testBreakdown.typhi}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.dengue > 0 ? `<div class="test-stat"><span>Dengue:</span> <strong>${searchStats.testBreakdown.dengue}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.malaria > 0 ? `<div class="test-stat"><span>Malaria:</span> <strong>${searchStats.testBreakdown.malaria}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.widal > 0 ? `<div class="test-stat"><span>Widal:</span> <strong>${searchStats.testBreakdown.widal}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.bloodGroup > 0 ? `<div class="test-stat"><span>Blood Group:</span> <strong>${searchStats.testBreakdown.bloodGroup}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.bilirubin > 0 ? `<div class="test-stat"><span>Bilirubin:</span> <strong>${searchStats.testBreakdown.bilirubin}</strong></div>` : ''}
+                                    ${searchStats.testBreakdown.crp > 0 ? `<div class="test-stat"><span>CRP:</span> <strong>${searchStats.testBreakdown.crp}</strong></div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    const statsElement = document.createElement('div');
+                    statsElement.innerHTML = statsHTML;
+                    activeFiltersElement.appendChild(statsElement);
+
+                    // Add event listeners to remove buttons
+                    document.querySelectorAll('.remove-filter').forEach(btn => {
+                        btn.addEventListener('click', function (e) {
+                            e.stopPropagation();
+                            removeFilter(this.dataset.filter);
+                        });
+                    });
+                } else {
+                    summaryElement.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error updating search summary:', error);
+            }
+        }
+
+        // Helper function to get active filters
+        function getActiveFilters() {
+            const activeFilters = [];
+
+            if (currentFilters.searchTerm) {
+                activeFilters.push({ key: 'searchTerm', label: 'Search', value: currentFilters.searchTerm });
+            }
+            if (currentFilters.dateFrom) {
+                activeFilters.push({ key: 'dateFrom', label: 'From Date', value: formatDisplayDate(currentFilters.dateFrom) });
+            }
+            if (currentFilters.dateTo) {
+                activeFilters.push({ key: 'dateTo', label: 'To Date', value: formatDisplayDate(currentFilters.dateTo) });
+            }
+            if (currentFilters.testType) {
+                activeFilters.push({ key: 'testType', label: 'Test Type', value: currentFilters.testType });
+            }
+            if (currentFilters.paymentMode) {
+                activeFilters.push({ key: 'paymentMode', label: 'Payment', value: currentFilters.paymentMode });
+            }
+            if (currentFilters.minCost) {
+                activeFilters.push({ key: 'minCost', label: 'Min Cost', value: `₹${currentFilters.minCost}` });
+            }
+            if (currentFilters.maxCost) {
+                activeFilters.push({ key: 'maxCost', label: 'Max Cost', value: `₹${currentFilters.maxCost}` });
+            }
+            if (currentFilters.gender) {
+                activeFilters.push({ key: 'gender', label: 'Gender', value: currentFilters.gender });
+            }
+            if (currentFilters.ageFrom) {
+                activeFilters.push({ key: 'ageFrom', label: 'Min Age', value: currentFilters.ageFrom });
+            }
+            if (currentFilters.ageTo) {
+                activeFilters.push({ key: 'ageTo', label: 'Max Age', value: currentFilters.ageTo });
+            }
+
+            return activeFilters;
+        }
+
+        // Helper function to remove a specific filter
+        function removeFilter(filterKey) {
+            currentFilters[filterKey] = '';
+            loadHistory();
+
+            // Also clear the corresponding input field in advanced search modal
+            const inputField = document.getElementById(`search${filterKey.charAt(0).toUpperCase() + filterKey.slice(1)}`);
+            if (inputField) inputField.value = '';
+        }
+
+        // Function to show report in view mode
+        function showReport(item) {
+            document.getElementById('reportOutput').innerHTML = item.reportHTML;
+            document.getElementById('reportOutput').style.display = 'block';
+            document.querySelector('.test-inputs').style.display = 'none';
+            document.querySelector('.patient-info').style.display = 'none';
+            document.querySelector('.test-selection').style.display = 'none';
+            document.querySelector('.cost-section').style.display = 'none';
+            document.querySelector('.test-stats').style.display = 'none';
+            document.getElementById('printReport').classList.add('enabled');
+            document.getElementById('savePDF').classList.add('enabled');
+            document.getElementById('editReport').classList.add('enabled');
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        // Function to setup quick filters 
+        function setupQuickFilters() {
+            // Clear any existing event listeners first
+            const quickFilterButtons = document.querySelectorAll('.quick-filter-btn');
+            quickFilterButtons.forEach(btn => {
+                btn.replaceWith(btn.cloneNode(true));
+            });
+
+            // Date-based quick filters
+            document.querySelectorAll('.quick-filter-btn[data-days]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const days = parseInt(this.dataset.days);
+                    const today = new Date();
+                    const startDate = new Date(today);
+                    startDate.setDate(today.getDate() - days + 1);
+
+                    const filters = {
+                        dateFrom: startDate.toISOString().split('T')[0],
+                        dateTo: today.toISOString().split('T')[0],
+                        searchTerm: '' // Clear text search
+                    };
+
+                    // Clear other filters
+                    currentFilters = { ...currentFilters, ...filters };
+
+                    loadHistory(filters);
+                    setActiveQuickFilter(this);
+                });
+            });
+
+            // Test-based quick filters
+            document.querySelectorAll('.quick-filter-btn[data-test]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const filters = {
+                        testType: this.dataset.test,
+                        searchTerm: '' // Clear text search
+                    };
+
+                    // Clear other filters
+                    currentFilters = { ...currentFilters, ...filters };
+
+                    loadHistory(filters);
+                    setActiveQuickFilter(this);
+                });
+            });
+
+            // Payment-based quick filters
+            document.querySelectorAll('.quick-filter-btn[data-payment]').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const filters = {
+                        paymentMode: this.dataset.payment,
+                        searchTerm: ''
+                    };
+
+                    // Clear other filters
+                    currentFilters = { ...currentFilters, ...filters };
+
+                    loadHistory(filters);
+                    setActiveQuickFilter(this);
+                });
+            });
+        }
+
+        function setActiveQuickFilter(activeBtn) {
+            document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            activeBtn.classList.add('active');
+        }
+
+        // Update the existing search functionality
+        function setupSearchFunctionality() {
+            const searchInput = document.getElementById('searchHistory');
+            const clearSearchBtn = document.getElementById('clearSearch');
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    const searchTerm = this.value.trim();
+                    const filters = {
+                        searchTerm: searchTerm,
+                        dateFrom: '',
+                        dateTo: '',
+                        testType: '',
+                        paymentMode: '',
+                        minCost: '',
+                        maxCost: '',
+                        gender: '',
+                        ageFrom: '',
+                        ageTo: ''
+                    };
+
+                    // Clear other quick filters when searching
+                    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+
+                    loadHistory(filters);
+                });
+            }
+
+            if (clearSearchBtn) {
+                clearSearchBtn.addEventListener('click', function () {
+                    if (document.getElementById('searchHistory')) {
+                        document.getElementById('searchHistory').value = '';
+                    }
+                    currentFilters = {
+                        searchTerm: '',
+                        dateFrom: '',
+                        dateTo: '',
+                        testType: '',
+                        paymentMode: '',
+                        minCost: '',
+                        maxCost: '',
+                        gender: '',
+                        ageFrom: '',
+                        ageTo: ''
+                    };
+                    loadHistory();
+                    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                });
+            }
+        }
+
+        // Function to show history modal
+        function showHistory() {
+            loadHistory();
+            document.getElementById('historyModal').style.display = 'block';
+
+            // Set up quick filters after a short delay to ensure DOM is ready
+            setTimeout(() => {
+                setupQuickFilters();
+            }, 100);
+        }
+
+        // Existing functions for history items
+        function addHistoryItemEventListeners() {
+            document.querySelectorAll('.edit-cost').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const id = this.dataset.id;
+                    editReportCost(id);
+                });
+            });
+
+            document.querySelectorAll('.edit-report').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.dataset.id);
+                    loadReportForEditing(id);
+                });
+            });
+
+            document.querySelectorAll('.delete-report').forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    deleteReport(this.dataset.id);
+                });
+            });
+        }
+
+        function editReportCost(id) {
+            const newCost = prompt('Enter new cost in rupees:', '');
+            if (newCost !== null && !isNaN(parseFloat(newCost)) && newCost.trim() !== '') {
+                let history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+                const index = history.findIndex(item => item.id === parseInt(id));
+                if (index !== -1) {
+                    history[index].testCost = newCost;
+                    localStorage.setItem('labReportsHistory', JSON.stringify(history));
+                    loadHistory();
+                    updateTodayTotal();
+                    updateTodayReportCount();
+                    updateTestStats();
+                }
+            } else if (newCost !== null) {
+                alert('Please enter a valid number for the cost.');
+            }
+        }
+
+        function loadReportForEditing(id) {
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            const item = history.find(item => item.id === id);
+            if (item) {
+                // Load patient info
+                let nameToLoad = item.patientName || '';
+                const titles = ['Mr.', 'Mrs.', 'Miss', 'Master', 'Baby', 'B/O'];
+                const matchingTitle = titles.find(t => nameToLoad.startsWith(t + ' '));
+                if (matchingTitle) {
+                    document.getElementById('patientTitle').value = matchingTitle;
+                    nameToLoad = nameToLoad.substring(matchingTitle.length + 1).trim();
+                }
+                document.getElementById('patientName').value = nameToLoad;
+
+                let ageStr = (item.patientAge || '').toString().trim();
+                const ageUnitMatch = ageStr.match(/(Yrs|Months|Days)/i);
+                if (ageUnitMatch) {
+                    const matchedUnit = ageUnitMatch[0].toLowerCase();
+                    if (matchedUnit.startsWith('month')) {
+                        document.getElementById('patientAgeUnit').value = 'Months';
+                    } else if (matchedUnit.startsWith('day')) {
+                        document.getElementById('patientAgeUnit').value = 'Days';
+                    } else {
+                        document.getElementById('patientAgeUnit').value = 'Yrs';
+                    }
+                    document.getElementById('patientAge').value = ageStr.replace(/(Yrs|Months|Days)/i, '').trim();
+                } else {
+                    document.getElementById('patientAge').value = ageStr;
+                    document.getElementById('patientAgeUnit').value = 'Yrs';
+                }
+
+                document.getElementById('patientGender').value = item.patientGender;
+                document.getElementById('patientId').value = item.patientId;
+                document.getElementById('collectionDate').value = item.collectionDate;
+                document.getElementById('receivedDate').value = item.receivedDate || item.collectionDate;
+                document.getElementById('reportedDate').value = item.reportedDate;
+                document.getElementById('referredBy').value = item.referredBy && item.referredBy !== 'Not specified' ? item.referredBy : 'SELF';
+                document.getElementById('testCost').value = item.testCost !== 'Not specified' ? item.testCost : '';
+                document.getElementById('paymentCash').checked = item.paymentMode === 'Cash';
+                document.getElementById('paymentOnline').checked = item.paymentMode === 'Online';
+                document.getElementById('tubePurple').checked = item.tubeUsed === 'Purple';
+                document.getElementById('tubeRed').checked = item.tubeUsed === 'Red';
+
+                // Load tests
+                for (const test in item.tests) {
+                    const checkboxId = `test${test.charAt(0).toUpperCase() + test.slice(1)}`;
+                    const checkbox = document.getElementById(checkboxId);
+                    if (checkbox) checkbox.checked = item.tests[test];
+                }
+                toggleTestInputs();
+                updateSuggestedCost();
+
+                // Load test parameters
+                if (item.testParameters) {
+                    for (const test in item.testParameters) {
+                        for (const param in item.testParameters[test]) {
+                            const input = document.getElementById(param);
+                            if (input) input.value = item.testParameters[test][param] || '';
+                        }
+                    }
+                }
+
+                // Switch to edit mode
+                document.getElementById('historyModal').style.display = 'none';
+                document.getElementById('reportOutput').style.display = 'none';
+                document.querySelector('.patient-info').style.display = 'grid';
+                document.querySelector('.test-selection').style.display = 'block';
+                document.querySelector('.test-inputs').style.display = 'block';
+                document.querySelector('.cost-section').style.display = 'flex';
+                document.querySelector('.test-stats').style.display = 'block';
+                document.getElementById('printReport').classList.remove('enabled');
+                document.getElementById('savePDF').classList.remove('enabled');
+                document.getElementById('editReport').classList.remove('enabled');
+
+                // Show update button instead of generate
+                toggleGenerateUpdateButton(true, id);
+                validatePatientId();
+            }
+        }
+
+        function deleteReport(id) {
+            if (confirm('Are you sure you want to delete this report? This action cannot be undone.')) {
+                let history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+                const itemIndex = history.findIndex(item => item.id === parseInt(id));
+
+                if (itemIndex !== -1) {
+                    const item = history[itemIndex];
+
+                    // Restore tube inventory
+                    if (item.tubeUsed) {
+                        incrementTube(item.tubeUsed);
+                    }
+
+                    // Restore kit inventory 
+                    if (item.tests) {
+                        incrementKits(item.tests);
+                    }
+
+                    history = history.filter(item => item.id !== parseInt(id));
+                    localStorage.setItem('labReportsHistory', JSON.stringify(history));
+                    loadHistory();
+                    updateTodayTotal();
+                    updateTodayReportCount();
+                    updateTestStats();
+                }
+            }
+        }
+
+        function calculateSearchStatistics(filteredHistory, filters) {
+            try {
+                const stats = {
+                    totalReports: filteredHistory.length,
+                    totalTests: 0,
+                    testBreakdown: {
+                        cbc: 0,
+                        esr: 0,
+                        typhi: 0,
+                        dengue: 0,
+                        malaria: 0,
+                        widal: 0,
+                        bloodGroup: 0,
+                        bilirubin: 0,
+                        crp: 0
+                    },
+                    totalCollection: 0,
+                    paymentBreakdown: {
+                        Cash: 0,
+                        Online: 0
+                    },
+                    dateRange: filters.dateFrom && filters.dateTo ?
+                        `${formatDisplayDate(filters.dateFrom)} to ${formatDisplayDate(filters.dateTo)}` :
+                        'All dates'
+                };
+
+                filteredHistory.forEach(item => {
+                    // Count tests
+                    if (item.tests && typeof item.tests === 'object') {
+                        Object.keys(item.tests).forEach(test => {
+                            if (item.tests[test]) {
+                                stats.totalTests++;
+                                if (stats.testBreakdown[test] !== undefined) {
+                                    stats.testBreakdown[test]++;
+                                }
+                            }
+                        });
+                    }
+
+                    // Calculate collection
+                    if (item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {
+                        stats.totalCollection += parseFloat(item.testCost);
+                    }
+
+                    // Payment breakdown
+                    if (item.paymentMode && stats.paymentBreakdown[item.paymentMode] !== undefined) {
+                        stats.paymentBreakdown[item.paymentMode]++;
+                    }
+                });
+
+                return stats;
+            } catch (error) {
+                console.error('Error calculating search statistics:', error);
+                return {
+                    totalReports: 0,
+                    totalTests: 0,
+                    testBreakdown: {},
+                    totalCollection: 0,
+                    paymentBreakdown: {},
+                    dateRange: 'Error calculating statistics'
+                };
+            }
+        }
+
+        // Function to get monthly test statistics
+        function getMonthlyTestStats() {
+            const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+            const currentYear = new Date().getFullYear();
+            const currentMonth = new Date().getMonth() + 1;
+            let totalTests = 0;
+            let totalReports = 0;
+            const testCounts = {
+                cbc: 0,
+                esr: 0,
+                typhi: 0,
+                dengue: 0,
+                malaria: 0,
+                widal: 0,
+                bloodGroup: 0,
+                bilirubin: 0,
+                crp: 0
+            };
+            const todayCounts = { ...testCounts };
+            const today = getTodayDate();
+
+            history.forEach(item => {
+                if (item.tests && typeof item.tests === 'object') {
+                    const reportYear = parseInt(item.reportedDate.split('-')[0]);
+                    const reportMonth = parseInt(item.reportedDate.split('-')[1]);
+                    if (reportYear === currentYear && reportMonth === currentMonth) {
+                        totalReports++;
+                        for (const test in item.tests) {
+                            if (item.tests[test]) {
+                                totalTests++;
+                                testCounts[test]++;
+                                if (item.reportedDate === today) {
+                                    todayCounts[test]++;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            return { totalTests, totalReports, testCounts, todayCounts };
+        }
+
+        // Function to update test statistics display
+        function updateTestStats() {
+            const { todayCounts } = getMonthlyTestStats();
+            document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
+            document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
+            document.getElementById('todayTyphoid').innerText = `Typhoid: ${todayCounts.typhi}`;
+            document.getElementById('todayDengue').innerText = `Dengue: ${todayCounts.dengue}`;
+            document.getElementById('todayMalaria').innerText = `Malaria: ${todayCounts.malaria}`;
+            document.getElementById('todayWidal').innerText = `Widal: ${todayCounts.widal}`;
+            document.getElementById('todayBloodGroup').innerText = `Blood Group: ${todayCounts.bloodGroup}`;
+            document.getElementById('todayBilirubin').innerText = `Bilirubin: ${todayCounts.bilirubin}`;
+            document.getElementById('todayCRP').innerText = `CRP: ${todayCounts.crp}`;
+
+            hideZeroTodayTests();
+        }
+
+        // Function to hide today's test elements with value <= 0
+        function hideZeroTodayTests() {
+            const todayTestElements = [
+                'todayCBC', 'todayESR', 'todayTyphoid', 'todayDengue', 'todayMalaria', 'todayWidal', 'todayBloodGroup', 'todayBilirubin', 'todayCRP'
+            ];
+
+            todayTestElements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const count = parseInt(el.innerText.split(':')[1].trim());
+                    el.style.display = count > 0 ? '' : 'none';
+                }
+            });
+        }
+
+        // Function to update today's report count display
+        function updateTodayReportCount() {
+            const reportCount = getTodayReportCount();
+            const displayElement = document.getElementById('todayTestCount');
+            if (displayElement) {
+                displayElement.innerText = reportCount.toString().padStart(2, '0');
+                displayElement.style.display = 'none';
+                setTimeout(() => {
+                    displayElement.style.display = 'flex';
+                }, 0);
+            }
+        }
+
+        // Function to show statistics modal
+        function showStatistics() {
+            const password = prompt('Please enter the password to view statistics:');
+            if (password === INVENTORY_PASSWORD) {
+                updateTestStats();
+
+                const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                const currentMonthName = getCurrentMonthName();
+
+                // Calculate monthly collection
+                let monthlyCollection = 0;
+                let monthlyCash = 0;
+                let monthlyOnline = 0;
+                let monthlyReports = 0;
+
+                // Test counts
+                const testCounts = {
+                    cbc: 0,
+                    esr: 0,
+                    typhi: 0,
+                    dengue: 0,
+                    malaria: 0,
+                    widal: 0,
+                    bloodGroup: 0,
+                    bilirubin: 0,
+                    crp: 0
+                };
+
+                // Tube usage
+                let purpleTubeUsage = 0;
+                let redTubeUsage = 0;
+
+                history.forEach(item => {
+                    if (item.tests && typeof item.tests === 'object') {
+                        const reportYear = parseInt(item.reportedDate.split('-')[0]);
+                        const reportMonth = parseInt(item.reportedDate.split('-')[1]);
+
+                        if (reportYear === currentYear && reportMonth === currentMonth) {
+                            monthlyReports++;
+
+                            // Calculate collection
+                            if (item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {
+                                monthlyCollection += parseFloat(item.testCost);
+                                if (item.paymentMode === 'Cash') {
+                                    monthlyCash += parseFloat(item.testCost);
+                                } else if (item.paymentMode === 'Online') {
+                                    monthlyOnline += parseFloat(item.testCost);
+                                }
+                            }
+
+                            // Count tests
+                            for (const test in item.tests) {
+                                if (item.tests[test]) {
+                                    if (testCounts[test] !== undefined) testCounts[test]++;
+                                }
+                            }
+
+                            // Count tube usage
+                            if (item.tubeUsed === 'Purple') {
+                                purpleTubeUsage++;
+                            } else if (item.tubeUsed === 'Red') {
+                                redTubeUsage++;
+                            }
+                        }
+                    }
+                });
+
+                // Get current tube inventory
+                const tubeCounts = getTubeCounts();
+                const kitCounts = getKitCounts();
+
+                // Generate statistics HTML with dynamic counts
+                const statsHTML = `
+                    <div class="stats-summary">
+                        <h3>${currentMonthName} ${currentYear} Collection Summary</h3>
+                        <table class="stats-table">
+                            <tr>
+                                <th>Total Collection</th>
+                                <td>₹${monthlyCollection.toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <th>Cash Collection</th>
+                                <td>₹${monthlyCash.toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <th>Online Collection</th>
+                                <td>₹${monthlyOnline.toFixed(2)}</td>
+                            </tr>
+                            <tr>
+                                <th>Total Reports</th>
+                                <td>${monthlyReports}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="stats-summary">
+                        <h3>Test Statistics for ${currentMonthName}</h3>
+                        <table class="stats-table">
+                            <tr>
+                                <th>CBC Tests</th>
+                                <td>${testCounts.cbc}</td>
+                            </tr>
+                            <tr>
+                                <th>ESR Tests</th>
+                                <td>${testCounts.esr}</td>
+                            </tr>
+                            <tr>
+                                <th>Typhoid Tests</th>
+                                <td>${testCounts.typhi}</td>
+                            </tr>
+                            <tr>
+                                <th>Dengue Tests</th>
+                                <td>${testCounts.dengue}</td>
+                            </tr>
+                            <tr>
+                                <th>Malaria Tests</th>
+                                <td>${testCounts.malaria}</td>
+                            </tr>
+                            <tr>
+                                <th>Widal Tests</th>
+                                <td>${testCounts.widal}</td>
+                            </tr>
+                            <tr>
+                                <th>Blood Group Tests</th>
+                                <td>${testCounts.bloodGroup}</td>
+                            </tr>
+                            <tr>
+                                <th>Bilirubin Tests</th>
+                                <td>${testCounts.bilirubin}</td>
+                            </tr>
+                            <tr>
+                                <th>CRP Tests</th>
+                                <td>${testCounts.crp}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="stats-summary">
+                        <h3>Tube Usage and Inventory</h3>
+                        <table class="stats-table">
+                            <tr>
+                                <th>Purple Tubes Used This Month</th>
+                                <td>${purpleTubeUsage}</td>
+                            </tr>
+                            <tr>
+                                <th>Red Tubes Used This Month</th>
+                                <td>${redTubeUsage}</td>
+                            </tr>
+                            <tr>
+                                <th>Purple Tubes Remaining</th>
+                                <td>${tubeCounts.purple}</td>
+                            </tr>
+                            <tr>
+                                <th>Red Tubes Remaining</th>
+                                <td>${tubeCounts.red}</td>
+                            </tr>
+                            <tr>
+                                <th>Typhoid Kits Remaining</th>
+                                <td>${kitCounts.typhoid}</td>
+                            </tr>
+                            <tr>
+                                <th>Malaria Kits Remaining</th>
+                                <td>${kitCounts.malaria}</td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
+
+                document.getElementById('statisticsContent').innerHTML = statsHTML;
+                document.getElementById('statisticsModal').style.display = 'block';
+            } else if (password !== null) {
+                alert('Incorrect password. Please try again.');
+            }
+        }
+
+        // Function to update tube inventory with password protection
+        function updateTubeInventoryWithPassword() {
+            const password = prompt('Please enter the password to update inventory:');
+            if (password === INVENTORYUPDATE_PASSWORD) {
+                const tubeCounts = getTubeCounts();
+                const kitCounts = getKitCounts();
+
+                const purpleCount = prompt('Enter new number of Purple (EDTA) tubes:', tubeCounts.purple);
+                const redCount = prompt('Enter new number of Red (Plain) tubes:', tubeCounts.red);
+                const typhoidCount = prompt('Enter new number of Typhoid test kits:', kitCounts.typhoid);
+                const malariaCount = prompt('Enter new number of Malaria test kits:', kitCounts.malaria);
+
+                if (purpleCount !== null && !isNaN(parseInt(purpleCount))) {
+                    tubeCounts.purple = parseInt(purpleCount);
+                }
+                if (redCount !== null && !isNaN(parseInt(redCount))) {
+                    tubeCounts.red = parseInt(redCount);
+                }
+                if (typhoidCount !== null && !isNaN(parseInt(typhoidCount))) {
+                    kitCounts.typhoid = parseInt(typhoidCount);
+                }
+                if (malariaCount !== null && !isNaN(parseInt(malariaCount))) {
+                    kitCounts.malaria = parseInt(malariaCount);
+                }
+
+                setTubeCounts(tubeCounts.purple, tubeCounts.red);
+                setKitCounts(kitCounts.typhoid, kitCounts.malaria);
+                updateTubeCountsDisplay();
+                updateKitCountsDisplay();
+                alert('Inventory updated successfully!');
+            } else if (password !== null) {
+                alert('Incorrect password. Please try again.');
+            }
+        }
+    </script>
+    <style>
+        /* Full CSS remains the same as provided, no changes needed for bugs */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: white;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3cc4ad;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background-color: #3cc4ad;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #3cc4ad;
+            font-size: 45px;
+        }
+
+        .today-report-count {
+            width: 80px;
+            height: 80px;
+            background-color: #3cc4ad;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            margin-left: 15px;
+            vertical-align: middle;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .patient-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-bottom: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 5px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c7db1;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .required:after {
+            content: " *";
+            color: red;
+        }
+
+        .patient-id-warning {
+            font-size: 12px;
+            margin-top: 2px;
+            display: block;
+        }
+
+        .test-selection {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+        }
+
+        .test-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .test-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .test-option input {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .test-inputs {
+            margin: 10px 0;
+        }
+
+        .test-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        .test-section h3 {
+            color: #2c7db1;
+            margin-bottom: 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .test-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 5px;
+        }
+
+        .cost-section {
+            margin: 15px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background: linear-gradient(to bottom, #fff7f7, #ffffff);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .cost-info,
+        .today-total {
+            flex: 1;
+            min-width: 280px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .cost-info {
+            border-left: 4px solid #2c7db1;
+        }
+
+        .today-total {
+            border-left: 4px solid #28a745;
+        }
+
+        .cost-info h3,
+        .today-total h3 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 20px;
+        }
+
+        .today-total-amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .today-total-amount1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #de64f7;
+            margin-bottom: 10px;
+        }
+
+        .today-total-amount2 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #7a90f5;
+            margin-bottom: 10px;
+        }
+
+        .today-total p {
+            color: #555;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .payment-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-option input {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .cost-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .cost-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .total-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .total-item {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #generateReport,
+        #updateReport {
+            background-color: #2c7db1;
+            color: white;
+        }
+
+        #generateReport:hover,
+        #updateReport:hover {
+            background-color: #1c5d8a;
+        }
+
+        #printReport {
+            background-color: #28a745;
+            color: white;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #printReport.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        #printReport.enabled:hover {
+            background-color: #218838;
+        }
+
+        #savePDF {
+            background-color: #6f42c1;
+            color: white;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #savePDF.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        #savePDF.enabled:hover {
+            background-color: #5a359c;
+        }
+
+        #editReport {
+            background-color: #ffc107;
+            color: #333;
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #editReport.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        #editReport.enabled:hover {
+            background-color: #e0a800;
+        }
+
+        #newReport {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        #newReport:hover {
+            background-color: #138496;
+        }
+
+        #viewHistory {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        #viewHistory:hover {
+            background-color: #5a6268;
+        }
+
+        #statisticsBtn {
+            background-color: #e83e8c;
+            color: white;
+        }
+
+        #statisticsBtn:hover {
+            background-color: #d91a72;
+        }
+
+        .report-output {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            display: none;
+        }
+
+        .report-header {
+            text-align: center;
+            margin-bottom: 0px;
+        }
+
+        .report-header h2 {
+            color: #dadddd;
+            font-size: 10px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .report-patient-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 1px;
+            font-size: 16px;
+        }
+
+        .report-test-section {
+            margin-bottom: 3px;
+        }
+
+        .report-test-section h3 {
+            text-align: center;
+            color: #626263;
+            margin-bottom: 3px;
+            padding-bottom: 3px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1px;
+        }
+
+        th,
+        td {
+            padding: 6px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #ecedeef5;
+            font-weight: 600;
+        }
+
+        .abnormal {
+            color: red;
+        }
+
+        .positive {
+            color: red;
+        }
+
+        .normal {
+            color: green;
+        }
+
+        .elevated {
+            color: orange;
+        }
+
+        .high {
+            color: red;
+        }
+
+        .veryhigh {
+            color: darkred;
+            font-weight: bold;
+        }
+
+        .history-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow: auto;
+        }
+
+        .history-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 900px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .close-history {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .search-section {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-section input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .search-section button {
+            padding: 8px 15px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-section button:hover {
+            background-color: #5a6268;
+        }
+
+        .history-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .history-item:hover {
+            background-color: #f0f8ff;
+        }
+
+        .history-cost {
+            color: #c41e3a;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .edit-cost,
+        .delete-report,
+        .edit-report {
+            margin-left: 10px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .edit-cost {
+            background-color: #ffc107;
+        }
+
+        .edit-cost:hover {
+            background-color: #e0a800;
+        }
+
+        .delete-report {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .delete-report:hover {
+            background-color: #c82333;
+        }
+
+        .edit-report {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .edit-report:hover {
+            background-color: #218838;
+        }
+
+        .test-stats {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background: linear-gradient(to bottom, #f0f8ff, #ffffff);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .test-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .test-stat span {
+            color: #333;
+        }
+
+        .test-stat strong {
+            color: #007bff;
+        }
+
+        .test-stats h3 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .stats-box {
+            display: none;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            border-left: 4px solid #2c7db1;
+        }
+
+        .stats-box1 {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            border-left: 4px solid #2c7db1;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .stats-box h4,
+        .stats-box1 h4 {
+            color: #2c7db1;
+            margin-bottom: 10px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .stats-box p,
+        .stats-box1 p {
+            margin: 5px 10px;
+            font-size: 14px;
+            min-width: 100px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+
+        .stats-box1 p {
+            display: block;
+            /* Ensure they are visible */
+        }
+
+        #todayCBC {
+            color: #d81b60;
+            background-color: rgba(216, 27, 96, 0.1);
+        }
+
+        #todayESR {
+            color: #1e88e5;
+            background-color: rgba(30, 136, 229, 0.1);
+        }
+
+        #todayTyphoid {
+            color: #43a047;
+            background-color: rgba(67, 160, 71, 0.1);
+        }
+
+        #todayDengue {
+            color: #fb8c00;
+            background-color: rgba(251, 140, 0, 0.1);
+        }
+
+        #todayMalaria {
+            color: #8e24aa;
+            background-color: rgba(142, 36, 170, 0.1);
+        }
+
+        #todayWidal {
+            color: #00897b;
+            background-color: rgba(0, 137, 123, 0.1);
+        }
+
+        #todayBloodGroup {
+            color: #e53935;
+            background-color: rgba(229, 57, 53, 0.1);
+        }
+
+        #todayBilirubin {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+        }
+
+        #todayCRP {
+            color: #ff1744;
+            background-color: rgba(255, 23, 68, 0.1);
+        }
+
+        .stats-overview {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .stat-main {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+
+        .current-month {
+            color: #c5c4c4;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .tube-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .tube-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .tube-option input {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .tube-inventory {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #6f42c1;
+        }
+
+        .tube-inventory h4 {
+            color: #6f42c1;
+            margin-bottom: 5px;
+        }
+
+        .tube-counts {
+            display: flex;
+            gap: 15px;
+        }
+
+        .tube-count {
+            padding: 5px 10px;
+            background-color: #fff;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+        }
+
+        .update-tube-btn {
+            padding: 10px 20px;
+            background-color: #6f42c1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .update-tube-btn:hover {
+            background-color: #5a359c;
+        }
+
+        /* Test Kit Inventory Styles */
+        .kit-counts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .kit-count {
+            padding: 8px 12px;
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #856404;
+        }
+
+        .kit-count.warning {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .kit-count span {
+            font-weight: bold;
+            float: right;
+        }
+
+        /* Statistics Modal Styles */
+
+        .statistics-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow: auto;
+        }
+
+        .statistics-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 900px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .close-statistics {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .no-print {
+            display: none;
+        }
+
+        .stats-summary {
+            margin: 20px 0;
+        }
+
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+
+        .stats-table th,
+        .stats-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .stats-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+
+        /* Advanced Search Styles */
+        .advanced-search-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            overflow: auto;
+        }
+
+        .advanced-search-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 10px;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close-advanced-search {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-advanced-search:hover {
+            color: #000;
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #2c7db1;
+            font-size: 14px;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background-color: #2c7db1;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background-color: #1c5d8a;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .search-results-info {
+            text-align: center;
+            padding: 15px;
+            background-color: #e9f7fe;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+
+        #searchResultsCount {
+            font-weight: 600;
+            color: #2c7db1;
+            margin: 0;
+        }
+
+        .advanced-search-btn {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .advanced-search-btn:hover {
+            background-color: #138496;
+        }
+
+        .search-summary {
+            background: #e8f4fd;
+            border: 1px solid #b6d7e8;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .search-summary .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .filter-tag .remove-filter {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Enhanced history search section */
+        .enhanced-search-section {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .enhanced-search-section input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .quick-filter-btn {
+            background-color: #e9ecef;
+            border: 1px solid #dee2e6;
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .quick-filter-btn:hover {
+            background-color: #dee2e6;
+        }
+
+        .quick-filter-btn.active {
+            background-color: #2c7db1;
+            color: white;
+            border-color: #2c7db1;
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-header h4 {
+            margin: 0;
+            color: white;
+        }
+
+        .sync-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            background: #28a745;
+        }
+
+        .sync-status.syncing {
+            background: #ffc107;
+            color: black;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .report-output,
+            .report-output * {
+                visibility: visible;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .report-output {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border: none;
+            }
+
+            .buttons,
+            .container>*:not(.report-output) {
+                display: none !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 0.5cm;
+            }
+
+            body {
+                width: 21cm;
+                height: 29.7cm;
+                font-size: 12pt;
+            }
+
+            .report-output {
+                width: 100%;
+                padding: 25px;
+                padding-top: 150px;
+            }
+
+            table {
+                font-size: 12pt;
+            }
+
+            th,
+            td {
+                padding: 2px 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .patient-info {
+                grid-template-columns: 1fr;
+            }
+
+            .test-options {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .cost-section {
+                flex-direction: column;
+            }
+
+            .cost-row,
+            .total-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .today-report-count {
+                margin-top: 10px;
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-box1 {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .stats-box1 p {
+                min-width: 90px;
+            }
+
+            .advanced-search-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+
+            .search-filters {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .search-actions {
+                flex-direction: column;
+            }
+
+            .enhanced-search-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .test-options {
+                grid-template-columns: 1fr;
+            }
+
+            .test-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .history-content,
+            .statistics-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .stats-box1 {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats-box1 p {
+                min-width: 80px;
+            }
+        }
+
+
+        /* ===== ERROR HANDLING & SEARCH STATISTICS STYLES ===== */
+        /* Add these at the END of css/style.css */
+
+        /* Search Statistics Styles */
+        /* Enhanced Search Statistics Styles */
+        .search-statistics {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .search-statistics h4 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .search-statistics h5 {
+            margin: 15px 0 8px 0;
+            color: #555;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .stat-item {
+            padding: 8px 12px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
+        }
+
+        .stat-item strong {
+            color: #333;
+        }
+
+        .test-breakdown,
+        .payment-breakdown {
+            margin-top: 15px;
+        }
+
+        .test-breakdown h5 {
+            margin: 0 0 10px 0;
+            color: #555;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .test-stats-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+        }
+
+        .test-stats-grid,
+        .payment-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+
+        .test-stat-item,
+        .payment-stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .test-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .test-count,
+        .payment-count {
+            font-weight: bold;
+            color: #007bff;
+            background: #e3f2fd;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .no-tests {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 10px;
+            grid-column: 1 / -1;
+        }
+
+        /* Filter Tags */
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            background: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 16px;
+            margin: 4px 8px 4px 0;
+            font-size: 12px;
+            gap: 6px;
+        }
+
+        .remove-filter {
+            cursor: pointer;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .remove-filter:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Quick Filter Active State */
+        .quick-filter-btn.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        /* Error Notification Styles */
+        .user-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 10000;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease;
+        }
+
+        .user-notification.success {
+            background: #4CAF50;
+        }
+
+        .user-notification.error {
+            background: #f44336;
+        }
+
+        .user-notification.warning {
+            background: #ff9800;
+        }
+
+        .user-notification.info {
+            background: #2196F3;
+        }
+
+        .user-notification button {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Validation Styles */
+        .input-error {
+            border-color: #f44336 !important;
+            background-color: #ffebee !important;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        /* Today's Collection Blur */
+        .blurred {
+            filter: blur(5px);
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-header button {
+            background: #f3f3f3;
+            color: rgb(212, 212, 212);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Bilirubin input styling */
+        input[readonly] {
+            background-color: #f5f5f5 !important;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .test-fields .form-group {
+            margin-bottom: 15px;
+        }
+
+        .test-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+    </style>
+</body>
+
+</html>
