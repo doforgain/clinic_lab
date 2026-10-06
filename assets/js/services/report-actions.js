@@ -7,6 +7,7 @@ import { formatDisplayDate } from '../utils/date-helpers.js';
 import { validatePatientId } from '../utils/patient-id.js';
 import { updateTodayTotal } from '../calculators/cost-calculator.js';
 import { updateTodayReportCount, updateTestStats } from './stats-service.js';
+import { formatCBCDecimalInputs, calculateCBCParameters } from '../calculators/cbc-calculator.js';
 
 function readFormTests() {
   return {
@@ -53,6 +54,10 @@ export function generateReport() {
   const tubeUsed = tubePurple ? 'Purple' : 'Red';
   const tests = readFormTests();
   if (!Object.values(tests).includes(true)) { alert('Please select at least one test.'); return; }
+  if (tests.cbc) {
+    formatCBCDecimalInputs();
+    calculateCBCParameters();
+  }
   const duplicateCheck = checkDuplicatePatient(patientName, patientAge, patientGender, tests);
   if (duplicateCheck && duplicateCheck.isDuplicate) {
     const confirmed = confirm(`DUPLICATE PATIENT WARNING!\n\nPatient: ${patientName} (${patientAge}, ${patientGender})\n${duplicateCheck.message}\n\nExisting Report: #${duplicateCheck.existingReport.serial} from ${formatDisplayDate(duplicateCheck.existingReport.reportedDate)}\n\nAre you sure you want to generate the same tests again?`);
@@ -79,6 +84,10 @@ export function updateReport() {
   const tubeUsed = tubePurple ? 'Purple' : 'Red';
   const tests = readFormTests();
   if (!Object.values(tests).includes(true)) { alert('Please select at least one test.'); return; }
+  if (tests.cbc) {
+    formatCBCDecimalInputs();
+    calculateCBCParameters();
+  }
   const testCost = document.getElementById('testCost').value;
   const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
   showGeneratedReport(reportHTML);

@@ -1,5 +1,6 @@
 /* Extracted from index.html L1673-2013. Template logic identical; ranges via config/test-constants.js */
 import { CBC_PARAMS, WIDAL_PARAMS, WIDAL_CUTOFF, OTHER_TESTS, ESR_REF, BILIRUBIN_REF, crpTier, refRangeFor, isAbnormalByRange, isWidalPositive } from '../config/test-constants.js';
+import { CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from '../calculators/cbc-calculator.js';
 
 export function createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed) {
   let reportHTML = `
@@ -20,8 +21,13 @@ export function createReportHTML(patientName, patientAge, patientGender, tests, 
   if (tests.cbc) {
     let rows = '';
     CBC_PARAMS.forEach(param => {
-      const value = document.getElementById(param.id).value || '';
+      let value = document.getElementById(param.id).value || '';
       if (value) {
+        if (param.id === 'platelet') {
+          value = formatPlateletValue(value);
+        } else if (CBC_DECIMAL_FIELD_IDS.includes(param.id)) {
+          value = formatPointValue(value);
+        }
         const refRange = refRangeFor(param, patientGender);
         const isAbnormal = isAbnormalByRange(value, refRange);
         rows += `<tr><td>${param.name}</td><td class="${isAbnormal ? 'abnormal' : ''}">${value}</td><td>${param.unit}</td><td>${refRange}</td></tr>`;

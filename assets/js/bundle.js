@@ -402,6 +402,70 @@
 
   /* ===== Module: assets/js/calculators/cbc-calculator.js ===== */
   /* Extracted from index.html L898-959. Pure cores + legacy DOM wrappers (identical behaviour). */
+  const CBC_DECIMAL_FIELD_IDS = [
+    'hemoglobin',
+    'neutrophils',
+    'lymphocytes',
+    'mid',
+    'rbcCount',
+    'mcv',
+    'pcv',
+    'mch',
+    'mchc'
+  ];
+
+  function formatPointValue(val) {
+    if (val === null || val === undefined) return '';
+    const str = String(val).trim();
+    if (str === '') return '';
+    const num = parseFloat(str);
+    if (isNaN(num)) return str;
+    if (!str.includes('.')) {
+      return num.toFixed(1);
+    }
+    if (str.endsWith('.')) {
+      return str + '0';
+    }
+    return str;
+  }
+
+  function formatPlateletValue(val) {
+    if (val === null || val === undefined) return '';
+    const str = String(val).trim();
+    if (str === '') return '';
+    const num = parseFloat(str);
+    if (isNaN(num)) return str;
+
+    // If user already wrote decimal value (e.g. 1.45, 0.83, 2.5), leave it as is
+    if (str.includes('.')) {
+      if (str.endsWith('.')) return str + '0';
+      return str;
+    }
+
+    // If user typed without decimal (e.g. 145 -> 1.45, 83 -> 0.83, 250 -> 2.50)
+    if (num >= 10000) {
+      return (num / 100000).toFixed(2);
+    } else if (num >= 10) {
+      return (num / 100).toFixed(2);
+    } else if (num > 0) {
+      return num.toFixed(2);
+    }
+    return str;
+  }
+
+  function formatCBCDecimalInputs() {
+    CBC_DECIMAL_FIELD_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value !== '') {
+        el.value = formatPointValue(el.value);
+      }
+    });
+    const plateletEl = document.getElementById('platelet');
+    if (plateletEl && plateletEl.value !== '') {
+      plateletEl.value = formatPlateletValue(plateletEl.value);
+    }
+  }
+
   // Pure: total - direct
   function calcIndirectBilirubin(total, direct) {
   const t = parseFloat(total) || 0;
@@ -934,8 +998,13 @@
   if (tests.cbc) {
     let rows = '';
     CBC_PARAMS.forEach(param => {
-      const value = document.getElementById(param.id).value || '';
+      let value = document.getElementById(param.id).value || '';
       if (value) {
+        if (param.id === 'platelet') {
+          value = formatPlateletValue(value);
+        } else if (CBC_DECIMAL_FIELD_IDS.includes(param.id)) {
+          value = formatPointValue(value);
+        }
         const refRange = refRangeFor(param, patientGender);
         const isAbnormal = isAbnormalByRange(value, refRange);
         rows += `<tr><td>${param.name}</td><td class="${isAbnormal ? 'abnormal' : ''}">${value}</td><td>${param.unit}</td><td>${refRange}</td></tr>`;
@@ -1040,13 +1109,20 @@
   let testParameters = {};
   if (tests.cbc) {
     testParameters.cbc = {
-      hemoglobin: document.getElementById('hemoglobin').value, tlc: document.getElementById('tlc').value,
-      neutrophils: document.getElementById('neutrophils').value, lymphocytes: document.getElementById('lymphocytes').value,
-      mid: document.getElementById('mid').value, absoluteNeutrophils: document.getElementById('absoluteNeutrophils').value,
-      absoluteLymphocytes: document.getElementById('absoluteLymphocytes').value, absoluteMid: document.getElementById('absoluteMid').value,
-      rbcCount: document.getElementById('rbcCount').value, pcv: document.getElementById('pcv').value,
-      mcv: document.getElementById('mcv').value, mch: document.getElementById('mch').value,
-      mchc: document.getElementById('mchc').value, platelet: document.getElementById('platelet').value
+      hemoglobin: formatPointValue(document.getElementById('hemoglobin').value),
+      tlc: document.getElementById('tlc').value,
+      neutrophils: formatPointValue(document.getElementById('neutrophils').value),
+      lymphocytes: formatPointValue(document.getElementById('lymphocytes').value),
+      mid: formatPointValue(document.getElementById('mid').value),
+      absoluteNeutrophils: document.getElementById('absoluteNeutrophils').value,
+      absoluteLymphocytes: document.getElementById('absoluteLymphocytes').value,
+      absoluteMid: document.getElementById('absoluteMid').value,
+      rbcCount: formatPointValue(document.getElementById('rbcCount').value),
+      pcv: formatPointValue(document.getElementById('pcv').value),
+      mcv: formatPointValue(document.getElementById('mcv').value),
+      mch: formatPointValue(document.getElementById('mch').value),
+      mchc: formatPointValue(document.getElementById('mchc').value),
+      platelet: formatPlateletValue(document.getElementById('platelet').value)
     };
   }
   if (tests.esr) testParameters.esr = { esr: document.getElementById('esr').value };
@@ -1175,6 +1251,10 @@
       }
     }
   }
+  if (item.tests && item.tests.cbc) {
+    formatCBCDecimalInputs();
+    calculateCBCParameters();
+  }
   document.getElementById('historyModal').style.display = 'none';
   document.getElementById('reportOutput').style.display = 'none';
   document.querySelector('.patient-info').style.display = 'grid';
@@ -1249,6 +1329,10 @@
   const tubeUsed = tubePurple ? 'Purple' : 'Red';
   const tests = readFormTests();
   if (!Object.values(tests).includes(true)) { alert('Please select at least one test.'); return; }
+  if (tests.cbc) {
+    formatCBCDecimalInputs();
+    calculateCBCParameters();
+  }
   const duplicateCheck = checkDuplicatePatient(patientName, patientAge, patientGender, tests);
   if (duplicateCheck && duplicateCheck.isDuplicate) {
     const confirmed = confirm(`DUPLICATE PATIENT WARNING!\n\nPatient: ${patientName} (${patientAge}, ${patientGender})\n${duplicateCheck.message}\n\nExisting Report: #${duplicateCheck.existingReport.serial} from ${formatDisplayDate(duplicateCheck.existingReport.reportedDate)}\n\nAre you sure you want to generate the same tests again?`);
@@ -1274,6 +1358,10 @@
   const tubeUsed = tubePurple ? 'Purple' : 'Red';
   const tests = readFormTests();
   if (!Object.values(tests).includes(true)) { alert('Please select at least one test.'); return; }
+  if (tests.cbc) {
+    formatCBCDecimalInputs();
+    calculateCBCParameters();
+  }
   const testCost = document.getElementById('testCost').value;
   const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
   showGeneratedReport(reportHTML);
@@ -1434,6 +1522,29 @@
   ['hemoglobin','tlc','neutrophils','lymphocytes','mid','rbcCount','mcv','pcv'].forEach(id => {
     document.getElementById(id).addEventListener('input', calculateCBCParameters);
   });
+  CBC_DECIMAL_FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const applyFormat = () => {
+        if (el.value !== '') {
+          el.value = formatPointValue(el.value);
+          calculateCBCParameters();
+        }
+      };
+      el.addEventListener('blur', applyFormat);
+      el.addEventListener('change', applyFormat);
+    }
+  });
+  const plateletEl = document.getElementById('platelet');
+  if (plateletEl) {
+    const applyPlateletFormat = () => {
+      if (plateletEl.value !== '') {
+        plateletEl.value = formatPlateletValue(plateletEl.value);
+      }
+    };
+    plateletEl.addEventListener('blur', applyPlateletFormat);
+    plateletEl.addEventListener('change', applyPlateletFormat);
+  }
   ['totalBilirubin','directBilirubin'].forEach(id => {
     document.getElementById(id).addEventListener('input', calculateIndirectBilirubin);
   });

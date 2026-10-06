@@ -6,7 +6,7 @@ import { generatePatientId, validatePatientId } from './utils/patient-id.js';
 import { getAppState, toggleGenerateUpdateButton } from './state/app-state.js';
 import { STORAGE_KEYS, SESSION_KEYS } from './state/storage.js';
 import { getTubeCounts, setTubeCounts, initializeKitInventory, updateTubeCountsDisplay, updateKitCountsDisplay } from './state/inventory-state.js';
-import { calculateCBCParameters, calculateIndirectBilirubin } from './calculators/cbc-calculator.js';
+import { calculateCBCParameters, calculateIndirectBilirubin, CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from './calculators/cbc-calculator.js';
 import { updateTodayTotal, toggleCollection } from './calculators/cost-calculator.js';
 import { updateSuggestedCost } from './config/pricing-config.js';
 import { HISTORY_PASSWORD } from './config/auth-config.js';
@@ -65,6 +65,29 @@ function bindCalculatorInputs() {
   ['hemoglobin','tlc','neutrophils','lymphocytes','mid','rbcCount','mcv','pcv'].forEach(id => {
     document.getElementById(id).addEventListener('input', calculateCBCParameters);
   });
+  CBC_DECIMAL_FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      const applyFormat = () => {
+        if (el.value !== '') {
+          el.value = formatPointValue(el.value);
+          calculateCBCParameters();
+        }
+      };
+      el.addEventListener('blur', applyFormat);
+      el.addEventListener('change', applyFormat);
+    }
+  });
+  const plateletEl = document.getElementById('platelet');
+  if (plateletEl) {
+    const applyPlateletFormat = () => {
+      if (plateletEl.value !== '') {
+        plateletEl.value = formatPlateletValue(plateletEl.value);
+      }
+    };
+    plateletEl.addEventListener('blur', applyPlateletFormat);
+    plateletEl.addEventListener('change', applyPlateletFormat);
+  }
   ['totalBilirubin','directBilirubin'].forEach(id => {
     document.getElementById(id).addEventListener('input', calculateIndirectBilirubin);
   });

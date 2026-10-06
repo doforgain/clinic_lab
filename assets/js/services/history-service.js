@@ -11,6 +11,7 @@ import { updateTodayReportCount, updateTestStats } from './stats-service.js';
 import { validatePatientId } from '../utils/patient-id.js';
 import { updateSuggestedCost } from '../config/pricing-config.js';
 import { toggleTestInputs, showReport } from '../ui/form-ui.js';
+import { formatPointValue, formatPlateletValue, formatCBCDecimalInputs, calculateCBCParameters } from '../calculators/cbc-calculator.js';
 
 // Fixed checkbox map (v2 §6 bugfix): legacy `test${Cap}` produced testCbc/testEsr (broken).
 export const TEST_CHECKBOX_MAP = {
@@ -39,13 +40,20 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   let testParameters = {};
   if (tests.cbc) {
     testParameters.cbc = {
-      hemoglobin: document.getElementById('hemoglobin').value, tlc: document.getElementById('tlc').value,
-      neutrophils: document.getElementById('neutrophils').value, lymphocytes: document.getElementById('lymphocytes').value,
-      mid: document.getElementById('mid').value, absoluteNeutrophils: document.getElementById('absoluteNeutrophils').value,
-      absoluteLymphocytes: document.getElementById('absoluteLymphocytes').value, absoluteMid: document.getElementById('absoluteMid').value,
-      rbcCount: document.getElementById('rbcCount').value, pcv: document.getElementById('pcv').value,
-      mcv: document.getElementById('mcv').value, mch: document.getElementById('mch').value,
-      mchc: document.getElementById('mchc').value, platelet: document.getElementById('platelet').value
+      hemoglobin: formatPointValue(document.getElementById('hemoglobin').value),
+      tlc: document.getElementById('tlc').value,
+      neutrophils: formatPointValue(document.getElementById('neutrophils').value),
+      lymphocytes: formatPointValue(document.getElementById('lymphocytes').value),
+      mid: formatPointValue(document.getElementById('mid').value),
+      absoluteNeutrophils: document.getElementById('absoluteNeutrophils').value,
+      absoluteLymphocytes: document.getElementById('absoluteLymphocytes').value,
+      absoluteMid: document.getElementById('absoluteMid').value,
+      rbcCount: formatPointValue(document.getElementById('rbcCount').value),
+      pcv: formatPointValue(document.getElementById('pcv').value),
+      mcv: formatPointValue(document.getElementById('mcv').value),
+      mch: formatPointValue(document.getElementById('mch').value),
+      mchc: formatPointValue(document.getElementById('mchc').value),
+      platelet: formatPlateletValue(document.getElementById('platelet').value)
     };
   }
   if (tests.esr) testParameters.esr = { esr: document.getElementById('esr').value };
@@ -178,6 +186,10 @@ export function loadReportForEditing(id) {
         if (input) input.value = item.testParameters[test][param] || '';
       }
     }
+  }
+  if (item.tests && item.tests.cbc) {
+    formatCBCDecimalInputs();
+    calculateCBCParameters();
   }
   document.getElementById('historyModal').style.display = 'none';
   document.getElementById('reportOutput').style.display = 'none';
