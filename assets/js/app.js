@@ -17,7 +17,7 @@ import { showHistory, openHistoryPasswordModal, closeHistoryPasswordModal, submi
 import { showAdvancedSearch, applyAdvancedSearch, resetAdvancedSearch, closeAdvancedSearch, setupSearchFunctionality, setLoadHistoryHook } from './services/search-service.js';
 import { loadHistory } from './services/history-service.js';
 import { updateTestStats, updateTodayReportCount, showStatistics, openStatisticsPasswordModal, closeStatisticsPasswordModal, submitStatisticsPassword } from './services/stats-service.js';
-import { updateTubeInventoryWithPassword } from './services/inventory-service.js';
+import { updateTubeInventoryWithPassword, openInventoryPasswordModal, closeInventoryPasswordModal, submitInventoryPassword, openUpdateInventoryModal, closeUpdateInventoryModal, saveInventoryChanges } from './services/inventory-service.js';
 
 function initDates() {
   const today = getTodayDate();
@@ -236,6 +236,40 @@ function bindModals() {
     closeStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
   }
 
+  // Inventory Password Modal bindings
+  const invPassForm = document.getElementById('inventoryPasswordForm');
+  if (invPassForm) {
+    invPassForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      submitInventoryPassword();
+    });
+  }
+  const cancelInvPassBtn = document.getElementById('cancelInventoryPassword');
+  if (cancelInvPassBtn) {
+    cancelInvPassBtn.addEventListener('click', closeInventoryPasswordModal);
+  }
+  const closeInvPassBtn = document.getElementById('closeInventoryPassword');
+  if (closeInvPassBtn) {
+    closeInvPassBtn.addEventListener('click', closeInventoryPasswordModal);
+  }
+
+  // Update Inventory Quantities Form bindings
+  const updateInvForm = document.getElementById('updateInventoryForm');
+  if (updateInvForm) {
+    updateInvForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      saveInventoryChanges();
+    });
+  }
+  const cancelUpdateInvBtn = document.getElementById('cancelUpdateInventory');
+  if (cancelUpdateInvBtn) {
+    cancelUpdateInvBtn.addEventListener('click', closeUpdateInventoryModal);
+  }
+  const closeUpdateInvBtn = document.getElementById('closeUpdateInventory');
+  if (closeUpdateInvBtn) {
+    closeUpdateInvBtn.addEventListener('click', closeUpdateInventoryModal);
+  }
+
   window.addEventListener('click', function (event) {
     if (event.target === document.getElementById('historyModal')) document.getElementById('historyModal').style.display = 'none';
     if (event.target === document.getElementById('statisticsModal')) document.getElementById('statisticsModal').style.display = 'none';
@@ -243,6 +277,8 @@ function bindModals() {
     if (event.target === document.getElementById('collectionPasswordModal')) closeCollectionPasswordModal();
     if (event.target === document.getElementById('historyPasswordModal')) closeHistoryPasswordModal();
     if (event.target === document.getElementById('statisticsPasswordModal')) closeStatisticsPasswordModal();
+    if (event.target === document.getElementById('inventoryPasswordModal')) closeInventoryPasswordModal();
+    if (event.target === document.getElementById('updateInventoryModal')) closeUpdateInventoryModal();
   });
 
   window.addEventListener('keydown', function (e) {
@@ -250,6 +286,8 @@ function bindModals() {
       closeCollectionPasswordModal();
       closeHistoryPasswordModal();
       closeStatisticsPasswordModal();
+      closeInventoryPasswordModal();
+      closeUpdateInventoryModal();
     }
   });
 }

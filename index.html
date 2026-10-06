@@ -618,9 +618,69 @@
         </div>
     </div>
 
+    <!-- Inventory Password Modal -->
+    <div id="inventoryPasswordModal" class="auth-password-modal">
+        <div class="auth-password-content">
+            <span class="close-auth-password" id="closeInventoryPassword">&times;</span>
+            <div class="auth-modal-header">
+                <div class="auth-lock-icon">📦</div>
+                <h3>Inventory Management</h3>
+                <p>Enter the security password to update stock quantities.</p>
+            </div>
+            <form id="inventoryPasswordForm">
+                <div class="password-input-wrapper">
+                    <input type="password" id="inventoryPasswordInput" placeholder="Enter password" autocomplete="off">
+                </div>
+                <div id="inventoryPasswordError" class="modal-error-message">Incorrect password. Please try again.</div>
+                <div class="auth-modal-buttons">
+                    <button type="button" id="cancelInventoryPassword" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="submitInventoryPassword" class="btn-unlock">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Inventory Quantities Modal -->
+    <div id="updateInventoryModal" class="inventory-edit-modal">
+        <div class="inventory-edit-content">
+            <span class="close-inventory-edit" id="closeUpdateInventory">&times;</span>
+            <div class="inventory-edit-header">
+                <div class="inventory-edit-icon">📦</div>
+                <h3>Update Stock Quantities</h3>
+                <p>Adjust current stock levels for collection tubes and test kits.</p>
+            </div>
+            <form id="updateInventoryForm">
+                <div class="inventory-form-grid">
+                    <div class="inventory-field-group">
+                        <label for="invPurpleTubes">🟣 Purple (EDTA) Tubes</label>
+                        <input type="number" id="invPurpleTubes" min="0" required placeholder="Quantity">
+                    </div>
+                    <div class="inventory-field-group">
+                        <label for="invRedTubes">🔴 Red (Plain) Tubes</label>
+                        <input type="number" id="invRedTubes" min="0" required placeholder="Quantity">
+                    </div>
+                    <div class="inventory-field-group">
+                        <label for="invTyphoidKits">🧪 Typhoid Test Kits</label>
+                        <input type="number" id="invTyphoidKits" min="0" required placeholder="Quantity">
+                    </div>
+                    <div class="inventory-field-group">
+                        <label for="invMalariaKits">🦟 Malaria Test Kits</label>
+                        <input type="number" id="invMalariaKits" min="0" required placeholder="Quantity">
+                    </div>
+                </div>
+                <div id="inventoryEditError" class="modal-error-message">Please enter valid positive numbers for all quantities.</div>
+                <div class="inventory-edit-buttons">
+                    <button type="button" id="cancelUpdateInventory" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="saveUpdateInventory" class="btn-save">Save Inventory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="assets/js/bundle.js"></script>
 </body>
 
 </html>
+
 

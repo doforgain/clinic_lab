@@ -1485,27 +1485,108 @@
   }
 
   /* ===== Module: assets/js/services/inventory-service.js ===== */
-  /* Extracted from index.html L2900-2932. */
-  function updateTubeInventoryWithPassword() {
-  const password = prompt('Please enter the password to update inventory:');
-  if (password === INVENTORYUPDATE_PASSWORD) {
+  /* Extracted from index.html L2900-2932 — refactored to clean UI modals. */
+  function openInventoryPasswordModal() {
+    const modal = document.getElementById('inventoryPasswordModal');
+    const input = document.getElementById('inventoryPasswordInput');
+    const error = document.getElementById('inventoryPasswordError');
+    if (modal) {
+      modal.style.display = 'flex';
+      if (error) error.style.display = 'none';
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 50);
+      }
+    }
+  }
+
+  function closeInventoryPasswordModal() {
+    const modal = document.getElementById('inventoryPasswordModal');
+    const input = document.getElementById('inventoryPasswordInput');
+    const error = document.getElementById('inventoryPasswordError');
+    if (modal) modal.style.display = 'none';
+    if (input) input.value = '';
+    if (error) error.style.display = 'none';
+  }
+
+  function submitInventoryPassword() {
+    const input = document.getElementById('inventoryPasswordInput');
+    const error = document.getElementById('inventoryPasswordError');
+    if (input && input.value === INVENTORYUPDATE_PASSWORD) {
+      closeInventoryPasswordModal();
+      openUpdateInventoryModal();
+    } else {
+      if (error) error.style.display = 'block';
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  }
+
+  function openUpdateInventoryModal() {
+    const modal = document.getElementById('updateInventoryModal');
+    const error = document.getElementById('inventoryEditError');
     const tubeCounts = getTubeCounts();
     const kitCounts = getKitCounts();
-    const purpleCount = prompt('Enter new number of Purple (EDTA) tubes:', tubeCounts.purple);
-    const redCount = prompt('Enter new number of Red (Plain) tubes:', tubeCounts.red);
-    const typhoidCount = prompt('Enter new number of Typhoid test kits:', kitCounts.typhoid);
-    const malariaCount = prompt('Enter new number of Malaria test kits:', kitCounts.malaria);
-    if (purpleCount !== null && !isNaN(parseInt(purpleCount))) tubeCounts.purple = parseInt(purpleCount);
-    if (redCount !== null && !isNaN(parseInt(redCount))) tubeCounts.red = parseInt(redCount);
-    if (typhoidCount !== null && !isNaN(parseInt(typhoidCount))) kitCounts.typhoid = parseInt(typhoidCount);
-    if (malariaCount !== null && !isNaN(parseInt(malariaCount))) kitCounts.malaria = parseInt(malariaCount);
-    setTubeCounts(tubeCounts.purple, tubeCounts.red);
-    setKitCounts(kitCounts.typhoid, kitCounts.malaria);
-    updateTubeCountsDisplay(); updateKitCountsDisplay();
-    alert('Inventory updated successfully!');
-  } else if (password !== null) {
-    alert('Incorrect password. Please try again.');
+
+    const purpleInput = document.getElementById('invPurpleTubes');
+    const redInput = document.getElementById('invRedTubes');
+    const typhoidInput = document.getElementById('invTyphoidKits');
+    const malariaInput = document.getElementById('invMalariaKits');
+
+    if (purpleInput) purpleInput.value = tubeCounts.purple;
+    if (redInput) redInput.value = tubeCounts.red;
+    if (typhoidInput) typhoidInput.value = kitCounts.typhoid;
+    if (malariaInput) malariaInput.value = kitCounts.malaria;
+
+    if (error) error.style.display = 'none';
+    if (modal) {
+      modal.style.display = 'flex';
+      if (purpleInput) setTimeout(() => purpleInput.focus(), 50);
+    }
   }
+
+  function closeUpdateInventoryModal() {
+    const modal = document.getElementById('updateInventoryModal');
+    const error = document.getElementById('inventoryEditError');
+    if (modal) modal.style.display = 'none';
+    if (error) error.style.display = 'none';
+  }
+
+  function saveInventoryChanges() {
+    const error = document.getElementById('inventoryEditError');
+    const purpleVal = parseInt(document.getElementById('invPurpleTubes')?.value);
+    const redVal = parseInt(document.getElementById('invRedTubes')?.value);
+    const typhoidVal = parseInt(document.getElementById('invTyphoidKits')?.value);
+    const malariaVal = parseInt(document.getElementById('invMalariaKits')?.value);
+
+    if (isNaN(purpleVal) || purpleVal < 0 ||
+        isNaN(redVal) || redVal < 0 ||
+        isNaN(typhoidVal) || typhoidVal < 0 ||
+        isNaN(malariaVal) || malariaVal < 0) {
+      if (error) {
+        error.textContent = 'Please enter valid positive numbers for all inventory quantities.';
+        error.style.display = 'block';
+      }
+      return;
+    }
+
+    setTubeCounts(purpleVal, redVal);
+    setKitCounts(typhoidVal, malariaVal);
+    updateTubeCountsDisplay();
+    updateKitCountsDisplay();
+
+    const statsModal = document.getElementById('statisticsModal');
+    if (statsModal && statsModal.style.display === 'block') {
+      renderStatistics();
+    }
+
+    closeUpdateInventoryModal();
+  }
+
+  function updateTubeInventoryWithPassword() {
+    openInventoryPasswordModal();
   }
 
   /* ===== Module: assets/js/ui/form-ui.js ===== */
@@ -1804,6 +1885,40 @@
       closeStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
     }
 
+    // Inventory Password Modal bindings
+    const invPassForm = document.getElementById('inventoryPasswordForm');
+    if (invPassForm) {
+      invPassForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitInventoryPassword();
+      });
+    }
+    const cancelInvPassBtn = document.getElementById('cancelInventoryPassword');
+    if (cancelInvPassBtn) {
+      cancelInvPassBtn.addEventListener('click', closeInventoryPasswordModal);
+    }
+    const closeInvPassBtn = document.getElementById('closeInventoryPassword');
+    if (closeInvPassBtn) {
+      closeInvPassBtn.addEventListener('click', closeInventoryPasswordModal);
+    }
+
+    // Update Inventory Quantities Form bindings
+    const updateInvForm = document.getElementById('updateInventoryForm');
+    if (updateInvForm) {
+      updateInvForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        saveInventoryChanges();
+      });
+    }
+    const cancelUpdateInvBtn = document.getElementById('cancelUpdateInventory');
+    if (cancelUpdateInvBtn) {
+      cancelUpdateInvBtn.addEventListener('click', closeUpdateInventoryModal);
+    }
+    const closeUpdateInvBtn = document.getElementById('closeUpdateInventory');
+    if (closeUpdateInvBtn) {
+      closeUpdateInvBtn.addEventListener('click', closeUpdateInventoryModal);
+    }
+
     window.addEventListener('click', function (event) {
       if (event.target === document.getElementById('historyModal')) document.getElementById('historyModal').style.display = 'none';
       if (event.target === document.getElementById('statisticsModal')) document.getElementById('statisticsModal').style.display = 'none';
@@ -1811,6 +1926,8 @@
       if (event.target === document.getElementById('collectionPasswordModal')) closeCollectionPasswordModal();
       if (event.target === document.getElementById('historyPasswordModal')) closeHistoryPasswordModal();
       if (event.target === document.getElementById('statisticsPasswordModal')) closeStatisticsPasswordModal();
+      if (event.target === document.getElementById('inventoryPasswordModal')) closeInventoryPasswordModal();
+      if (event.target === document.getElementById('updateInventoryModal')) closeUpdateInventoryModal();
     });
 
     window.addEventListener('keydown', function (e) {
@@ -1818,6 +1935,8 @@
         closeCollectionPasswordModal();
         closeHistoryPasswordModal();
         closeStatisticsPasswordModal();
+        closeInventoryPasswordModal();
+        closeUpdateInventoryModal();
       }
     });
   }
