@@ -7,16 +7,16 @@ import { getAppState, toggleGenerateUpdateButton } from './state/app-state.js';
 import { STORAGE_KEYS, SESSION_KEYS } from './state/storage.js';
 import { getTubeCounts, setTubeCounts, initializeKitInventory, updateTubeCountsDisplay, updateKitCountsDisplay } from './state/inventory-state.js';
 import { calculateCBCParameters, calculateIndirectBilirubin, CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from './calculators/cbc-calculator.js';
-import { updateTodayTotal, toggleCollection } from './calculators/cost-calculator.js';
+import { updateTodayTotal, toggleCollection, submitCollectionPassword, closeCollectionPasswordModal } from './calculators/cost-calculator.js';
 import { updateSuggestedCost } from './config/pricing-config.js';
 import { HISTORY_PASSWORD } from './config/auth-config.js';
 import { autoUpdatePatientTitle, toggleTestInputs, bindMutualExclusivity, bindTestCheckboxes } from './ui/form-ui.js';
 import { generateReport, updateReport } from './services/report-actions.js';
 import { saveAsPDF } from './services/pdf-service.js';
-import { showHistory } from './services/history-service.js';
+import { showHistory, openHistoryPasswordModal, closeHistoryPasswordModal, submitHistoryPassword } from './services/history-service.js';
 import { showAdvancedSearch, applyAdvancedSearch, resetAdvancedSearch, closeAdvancedSearch, setupSearchFunctionality, setLoadHistoryHook } from './services/search-service.js';
 import { loadHistory } from './services/history-service.js';
-import { updateTestStats, updateTodayReportCount, showStatistics } from './services/stats-service.js';
+import { updateTestStats, updateTodayReportCount, showStatistics, openStatisticsPasswordModal, closeStatisticsPasswordModal, submitStatisticsPassword } from './services/stats-service.js';
 import { updateTubeInventoryWithPassword } from './services/inventory-service.js';
 
 function initDates() {
@@ -170,12 +170,8 @@ function handleNewReport() {
 }
 
 function bindModals() {
-  document.getElementById('viewHistory').addEventListener('click', function () {
-    const password = prompt('Please enter the password to view report history:');
-    if (password === HISTORY_PASSWORD) showHistory();
-    else if (password !== null) alert('Incorrect password. Please try again.');
-  });
-  document.getElementById('statisticsBtn').addEventListener('click', showStatistics);
+  document.getElementById('viewHistory').addEventListener('click', openHistoryPasswordModal);
+  document.getElementById('statisticsBtn').addEventListener('click', openStatisticsPasswordModal);
   document.getElementById('updateTubeInventory').addEventListener('click', updateTubeInventoryWithPassword);
   document.getElementById('advancedSearchBtn').addEventListener('click', showAdvancedSearch);
   document.getElementById('applyAdvancedSearch').addEventListener('click', applyAdvancedSearch);
@@ -188,10 +184,73 @@ function bindModals() {
   document.querySelector('.close-statistics').addEventListener('click', function () {
     document.getElementById('statisticsModal').style.display = 'none';
   });
+
+  // Collection Password Modal bindings
+  const collectionPassForm = document.getElementById('collectionPasswordForm');
+  if (collectionPassForm) {
+    collectionPassForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      submitCollectionPassword();
+    });
+  }
+  const cancelCollectionPassBtn = document.getElementById('cancelCollectionPassword');
+  if (cancelCollectionPassBtn) {
+    cancelCollectionPassBtn.addEventListener('click', closeCollectionPasswordModal);
+  }
+  const closeCollectionPassBtn = document.getElementById('closeCollectionPassword');
+  if (closeCollectionPassBtn) {
+    closeCollectionPassBtn.addEventListener('click', closeCollectionPasswordModal);
+  }
+
+  // History Password Modal bindings
+  const historyPassForm = document.getElementById('historyPasswordForm');
+  if (historyPassForm) {
+    historyPassForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      submitHistoryPassword();
+    });
+  }
+  const cancelHistoryPassBtn = document.getElementById('cancelHistoryPassword');
+  if (cancelHistoryPassBtn) {
+    cancelHistoryPassBtn.addEventListener('click', closeHistoryPasswordModal);
+  }
+  const closeHistoryPassBtn = document.getElementById('closeHistoryPassword');
+  if (closeHistoryPassBtn) {
+    closeHistoryPassBtn.addEventListener('click', closeHistoryPasswordModal);
+  }
+
+  // Statistics Password Modal bindings
+  const statsPassForm = document.getElementById('statisticsPasswordForm');
+  if (statsPassForm) {
+    statsPassForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      submitStatisticsPassword();
+    });
+  }
+  const cancelStatsPassBtn = document.getElementById('cancelStatisticsPassword');
+  if (cancelStatsPassBtn) {
+    cancelStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
+  }
+  const closeStatsPassBtn = document.getElementById('closeStatisticsPassword');
+  if (closeStatsPassBtn) {
+    closeStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
+  }
+
   window.addEventListener('click', function (event) {
     if (event.target === document.getElementById('historyModal')) document.getElementById('historyModal').style.display = 'none';
     if (event.target === document.getElementById('statisticsModal')) document.getElementById('statisticsModal').style.display = 'none';
     if (event.target === document.getElementById('advancedSearchModal')) closeAdvancedSearch();
+    if (event.target === document.getElementById('collectionPasswordModal')) closeCollectionPasswordModal();
+    if (event.target === document.getElementById('historyPasswordModal')) closeHistoryPasswordModal();
+    if (event.target === document.getElementById('statisticsPasswordModal')) closeStatisticsPasswordModal();
+  });
+
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closeCollectionPasswordModal();
+      closeHistoryPasswordModal();
+      closeStatisticsPasswordModal();
+    }
   });
 }
 

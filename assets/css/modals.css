@@ -300,4 +300,169 @@
             }
         }
 
+        /* Security & Password Modals */
+        .collection-password-modal,
+        .auth-password-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1050;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .collection-password-content,
+        .auth-password-content {
+            background: #ffffff;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+            position: relative;
+            box-sizing: border-box;
+            animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPopIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .close-collection-password,
+        .close-auth-password {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #888;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .close-collection-password:hover,
+        .close-auth-password:hover {
+            color: #222;
+        }
+
+        .collection-modal-header,
+        .auth-modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .collection-lock-icon,
+        .auth-lock-icon {
+            font-size: 34px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        .collection-modal-header h3,
+        .auth-modal-header h3 {
+            margin: 0 0 6px 0;
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .collection-modal-header p,
+        .auth-modal-header p {
+            margin: 0;
+            color: #666;
+            font-size: 13.5px;
+            line-height: 1.4;
+        }
+
+        .password-input-wrapper {
+            margin-bottom: 10px;
+        }
+
+        .password-input-wrapper input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .password-input-wrapper input:focus {
+            border-color: #2c7db1;
+            box-shadow: 0 0 0 3px rgba(44, 125, 177, 0.18);
+        }
+
+        .modal-error-message {
+            display: none;
+            color: #d9534f;
+            background: #fdf2f2;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            padding: 7px 12px;
+            font-size: 13px;
+            margin-bottom: 14px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .collection-modal-buttons,
+        .auth-modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 18px;
+        }
+
+        .collection-modal-buttons button,
+        .auth-modal-buttons button {
+            padding: 9px 20px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .collection-modal-buttons .btn-cancel,
+        .auth-modal-buttons .btn-cancel {
+            background: #f3f3f3;
+            color: #555;
+            border: 1px solid #ddd;
+        }
+
+        .collection-modal-buttons .btn-cancel:hover,
+        .auth-modal-buttons .btn-cancel:hover {
+            background: #e4e4e4;
+            color: #333;
+        }
+
+        .collection-modal-buttons .btn-unlock,
+        .auth-modal-buttons .btn-unlock {
+            background: #2c7db1;
+            color: white;
+            border: none;
+        }
+
+        .collection-modal-buttons .btn-unlock:hover,
+        .auth-modal-buttons .btn-unlock:hover {
+            background: #1c5d8a;
+        }
+
+
+
 

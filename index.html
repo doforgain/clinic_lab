@@ -552,8 +552,75 @@
         </div>
     </div>
 
+    <!-- Collection Password Modal -->
+    <div id="collectionPasswordModal" class="collection-password-modal">
+        <div class="collection-password-content">
+            <span class="close-collection-password" id="closeCollectionPassword">&times;</span>
+            <div class="collection-modal-header">
+                <div class="collection-lock-icon">🔒</div>
+                <h3>Today's Collection</h3>
+                <p>Enter the security password to view today's collection amounts.</p>
+            </div>
+            <form id="collectionPasswordForm">
+                <div class="password-input-wrapper">
+                    <input type="password" id="collectionPasswordInput" placeholder="Enter password" autocomplete="off">
+                </div>
+                <div id="collectionPasswordError" class="modal-error-message">Incorrect password. Please try again.</div>
+                <div class="collection-modal-buttons">
+                    <button type="button" id="cancelCollectionPassword" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="submitCollectionPassword" class="btn-unlock">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- History Password Modal -->
+    <div id="historyPasswordModal" class="auth-password-modal">
+        <div class="auth-password-content">
+            <span class="close-auth-password" id="closeHistoryPassword">&times;</span>
+            <div class="auth-modal-header">
+                <div class="auth-lock-icon">📋</div>
+                <h3>Report History</h3>
+                <p>Enter the security password to view report history.</p>
+            </div>
+            <form id="historyPasswordForm">
+                <div class="password-input-wrapper">
+                    <input type="password" id="historyPasswordInput" placeholder="Enter password" autocomplete="off">
+                </div>
+                <div id="historyPasswordError" class="modal-error-message">Incorrect password. Please try again.</div>
+                <div class="auth-modal-buttons">
+                    <button type="button" id="cancelHistoryPassword" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="submitHistoryPassword" class="btn-unlock">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistics Password Modal -->
+    <div id="statisticsPasswordModal" class="auth-password-modal">
+        <div class="auth-password-content">
+            <span class="close-auth-password" id="closeStatisticsPassword">&times;</span>
+            <div class="auth-modal-header">
+                <div class="auth-lock-icon">📊</div>
+                <h3>Test Statistics</h3>
+                <p>Enter the security password to view statistics and analytics.</p>
+            </div>
+            <form id="statisticsPasswordForm">
+                <div class="password-input-wrapper">
+                    <input type="password" id="statisticsPasswordInput" placeholder="Enter password" autocomplete="off">
+                </div>
+                <div id="statisticsPasswordError" class="modal-error-message">Incorrect password. Please try again.</div>
+                <div class="auth-modal-buttons">
+                    <button type="button" id="cancelStatisticsPassword" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="submitStatisticsPassword" class="btn-unlock">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="assets/js/bundle.js"></script>
 </body>
 
 </html>
+

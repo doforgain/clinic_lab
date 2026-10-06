@@ -12,6 +12,7 @@ import { validatePatientId } from '../utils/patient-id.js';
 import { updateSuggestedCost } from '../config/pricing-config.js';
 import { toggleTestInputs, showReport } from '../ui/form-ui.js';
 import { formatPointValue, formatPlateletValue, formatCBCDecimalInputs, calculateCBCParameters } from '../calculators/cbc-calculator.js';
+import { HISTORY_PASSWORD } from '../config/auth-config.js';
 
 // Fixed checkbox map (v2 §6 bugfix): legacy `test${Cap}` produced testCbc/testEsr (broken).
 export const TEST_CHECKBOX_MAP = {
@@ -109,6 +110,45 @@ export function loadHistory(filters = null) {
     historyList.appendChild(historyItem);
   });
   addHistoryItemEventListeners();
+}
+
+// Password modal controls for Report History
+export function openHistoryPasswordModal() {
+  const modal = document.getElementById('historyPasswordModal');
+  const input = document.getElementById('historyPasswordInput');
+  const error = document.getElementById('historyPasswordError');
+  if (modal) {
+    modal.style.display = 'flex';
+    if (error) error.style.display = 'none';
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 50);
+    }
+  }
+}
+
+export function closeHistoryPasswordModal() {
+  const modal = document.getElementById('historyPasswordModal');
+  const input = document.getElementById('historyPasswordInput');
+  const error = document.getElementById('historyPasswordError');
+  if (modal) modal.style.display = 'none';
+  if (input) input.value = '';
+  if (error) error.style.display = 'none';
+}
+
+export function submitHistoryPassword() {
+  const input = document.getElementById('historyPasswordInput');
+  const error = document.getElementById('historyPasswordError');
+  if (input && input.value === HISTORY_PASSWORD) {
+    closeHistoryPasswordModal();
+    showHistory();
+  } else {
+    if (error) error.style.display = 'block';
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
 }
 
 // L2409

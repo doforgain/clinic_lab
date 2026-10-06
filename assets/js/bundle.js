@@ -563,22 +563,59 @@
   document.getElementById('todayCashTotal').innerText = `₹${getTodayCashTotal()}`;
   document.getElementById('todayOnlineTotal').innerText = `₹${getTodayOnlineTotal()}`;
   }
-  // L1272 — password gate for Today's Collection blur (v1 unmapped, fixed here)
-  function toggleCollection() {
-  const content = document.getElementById('collectionContent');
-  const btn = document.getElementById('toggleBtn');
-  if (content.classList.contains('blurred')) {
-    const password = prompt('Enter password to view collection:');
-    if (password === COLLECTION_PASSWORD) {
-      content.classList.remove('blurred');
-      btn.textContent = '✔ Hide';
-    } else if (password !== null) {
-      alert('Incorrect password');
+  // Password modal controls for Today's Collection
+  function openCollectionPasswordModal() {
+    const modal = document.getElementById('collectionPasswordModal');
+    const input = document.getElementById('collectionPasswordInput');
+    const error = document.getElementById('collectionPasswordError');
+    if (modal) {
+      modal.style.display = 'flex';
+      if (error) error.style.display = 'none';
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 50);
+      }
     }
-  } else {
-    content.classList.add('blurred');
-    btn.textContent = '✖ Show';
   }
+
+  function closeCollectionPasswordModal() {
+    const modal = document.getElementById('collectionPasswordModal');
+    const input = document.getElementById('collectionPasswordInput');
+    const error = document.getElementById('collectionPasswordError');
+    if (modal) modal.style.display = 'none';
+    if (input) input.value = '';
+    if (error) error.style.display = 'none';
+  }
+
+  function submitCollectionPassword() {
+    const input = document.getElementById('collectionPasswordInput');
+    const error = document.getElementById('collectionPasswordError');
+    const content = document.getElementById('collectionContent');
+    const btn = document.getElementById('toggleBtn');
+    
+    if (input && input.value === COLLECTION_PASSWORD) {
+      if (content) content.classList.remove('blurred');
+      if (btn) btn.textContent = '✔ Hide';
+      closeCollectionPasswordModal();
+    } else {
+      if (error) error.style.display = 'block';
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  }
+
+  // L1272 — password gate for Today's Collection blur
+  function toggleCollection() {
+    const content = document.getElementById('collectionContent');
+    const btn = document.getElementById('toggleBtn');
+    if (content && content.classList.contains('blurred')) {
+      openCollectionPasswordModal();
+    } else if (content && btn) {
+      content.classList.add('blurred');
+      btn.textContent = '✖ Show';
+    }
   }
 
   /* ===== Module: assets/js/services/duplicate-service.js ===== */
@@ -723,10 +760,46 @@
     setTimeout(() => { displayElement.style.display = 'flex'; }, 0);
   }
   }
-  // L2723 — password gate preserved
-  function showStatistics() {
-  const password = prompt('Please enter the password to view statistics:');
-  if (password === INVENTORY_PASSWORD) {
+  // Password modal controls for Statistics
+  function openStatisticsPasswordModal() {
+    const modal = document.getElementById('statisticsPasswordModal');
+    const input = document.getElementById('statisticsPasswordInput');
+    const error = document.getElementById('statisticsPasswordError');
+    if (modal) {
+      modal.style.display = 'flex';
+      if (error) error.style.display = 'none';
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 50);
+      }
+    }
+  }
+
+  function closeStatisticsPasswordModal() {
+    const modal = document.getElementById('statisticsPasswordModal');
+    const input = document.getElementById('statisticsPasswordInput');
+    const error = document.getElementById('statisticsPasswordError');
+    if (modal) modal.style.display = 'none';
+    if (input) input.value = '';
+    if (error) error.style.display = 'none';
+  }
+
+  function submitStatisticsPassword() {
+    const input = document.getElementById('statisticsPasswordInput');
+    const error = document.getElementById('statisticsPasswordError');
+    if (input && input.value === INVENTORY_PASSWORD) {
+      closeStatisticsPasswordModal();
+      renderStatistics();
+    } else {
+      if (error) error.style.display = 'block';
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  }
+
+  function renderStatistics() {
     updateTestStats();
     const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
     const currentYear = new Date().getFullYear();
@@ -775,9 +848,11 @@
       <tr><th>Typhoid Kits Remaining</th><td>${kitCounts.typhoid}</td></tr>
       <tr><th>Malaria Kits Remaining</th><td>${kitCounts.malaria}</td></tr></table></div>`;
     document.getElementById('statisticsModal').style.display = 'block';
-  } else if (password !== null) {
-    alert('Incorrect password. Please try again.');
   }
+
+  // L2723 — open password modal
+  function showStatistics() {
+    openStatisticsPasswordModal();
   }
 
   /* ===== Module: assets/js/services/search-service.js ===== */
@@ -1178,11 +1253,50 @@
   });
   addHistoryItemEventListeners();
   }
+  // Password modal controls for Report History
+  function openHistoryPasswordModal() {
+    const modal = document.getElementById('historyPasswordModal');
+    const input = document.getElementById('historyPasswordInput');
+    const error = document.getElementById('historyPasswordError');
+    if (modal) {
+      modal.style.display = 'flex';
+      if (error) error.style.display = 'none';
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 50);
+      }
+    }
+  }
+
+  function closeHistoryPasswordModal() {
+    const modal = document.getElementById('historyPasswordModal');
+    const input = document.getElementById('historyPasswordInput');
+    const error = document.getElementById('historyPasswordError');
+    if (modal) modal.style.display = 'none';
+    if (input) input.value = '';
+    if (error) error.style.display = 'none';
+  }
+
+  function submitHistoryPassword() {
+    const input = document.getElementById('historyPasswordInput');
+    const error = document.getElementById('historyPasswordError');
+    if (input && input.value === HISTORY_PASSWORD) {
+      closeHistoryPasswordModal();
+      showHistory();
+    } else {
+      if (error) error.style.display = 'block';
+      if (input) {
+        input.focus();
+        input.select();
+      }
+    }
+  }
+
   // L2409
   function showHistory() {
-  loadHistory();
-  document.getElementById('historyModal').style.display = 'block';
-  setTimeout(() => { import('./search-service.js').then(m => m.setupQuickFilters()); }, 100);
+    loadHistory();
+    document.getElementById('historyModal').style.display = 'block';
+    setTimeout(() => { import('./search-service.js').then(m => m.setupQuickFilters()); }, 100);
   }
   // L2420
   function addHistoryItemEventListeners() {
@@ -1624,29 +1738,88 @@
   updateTestStats();
   }
   function bindModals() {
-  document.getElementById('viewHistory').addEventListener('click', function () {
-    const password = prompt('Please enter the password to view report history:');
-    if (password === HISTORY_PASSWORD) showHistory();
-    else if (password !== null) alert('Incorrect password. Please try again.');
-  });
-  document.getElementById('statisticsBtn').addEventListener('click', showStatistics);
-  document.getElementById('updateTubeInventory').addEventListener('click', updateTubeInventoryWithPassword);
-  document.getElementById('advancedSearchBtn').addEventListener('click', showAdvancedSearch);
-  document.getElementById('applyAdvancedSearch').addEventListener('click', applyAdvancedSearch);
-  document.getElementById('resetAdvancedSearch').addEventListener('click', resetAdvancedSearch);
-  document.getElementById('closeAdvancedSearch').addEventListener('click', closeAdvancedSearch);
-  document.querySelector('.close-advanced-search').addEventListener('click', closeAdvancedSearch);
-  document.querySelector('.close-history').addEventListener('click', function () {
-    document.getElementById('historyModal').style.display = 'none';
-  });
-  document.querySelector('.close-statistics').addEventListener('click', function () {
-    document.getElementById('statisticsModal').style.display = 'none';
-  });
-  window.addEventListener('click', function (event) {
-    if (event.target === document.getElementById('historyModal')) document.getElementById('historyModal').style.display = 'none';
-    if (event.target === document.getElementById('statisticsModal')) document.getElementById('statisticsModal').style.display = 'none';
-    if (event.target === document.getElementById('advancedSearchModal')) closeAdvancedSearch();
-  });
+    document.getElementById('viewHistory').addEventListener('click', openHistoryPasswordModal);
+    document.getElementById('statisticsBtn').addEventListener('click', openStatisticsPasswordModal);
+    document.getElementById('updateTubeInventory').addEventListener('click', updateTubeInventoryWithPassword);
+    document.getElementById('advancedSearchBtn').addEventListener('click', showAdvancedSearch);
+    document.getElementById('applyAdvancedSearch').addEventListener('click', applyAdvancedSearch);
+    document.getElementById('resetAdvancedSearch').addEventListener('click', resetAdvancedSearch);
+    document.getElementById('closeAdvancedSearch').addEventListener('click', closeAdvancedSearch);
+    document.querySelector('.close-advanced-search').addEventListener('click', closeAdvancedSearch);
+    document.querySelector('.close-history').addEventListener('click', function () {
+      document.getElementById('historyModal').style.display = 'none';
+    });
+    document.querySelector('.close-statistics').addEventListener('click', function () {
+      document.getElementById('statisticsModal').style.display = 'none';
+    });
+
+    // Collection Password Modal bindings
+    const collectionPassForm = document.getElementById('collectionPasswordForm');
+    if (collectionPassForm) {
+      collectionPassForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitCollectionPassword();
+      });
+    }
+    const cancelCollectionPassBtn = document.getElementById('cancelCollectionPassword');
+    if (cancelCollectionPassBtn) {
+      cancelCollectionPassBtn.addEventListener('click', closeCollectionPasswordModal);
+    }
+    const closeCollectionPassBtn = document.getElementById('closeCollectionPassword');
+    if (closeCollectionPassBtn) {
+      closeCollectionPassBtn.addEventListener('click', closeCollectionPasswordModal);
+    }
+
+    // History Password Modal bindings
+    const historyPassForm = document.getElementById('historyPasswordForm');
+    if (historyPassForm) {
+      historyPassForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitHistoryPassword();
+      });
+    }
+    const cancelHistoryPassBtn = document.getElementById('cancelHistoryPassword');
+    if (cancelHistoryPassBtn) {
+      cancelHistoryPassBtn.addEventListener('click', closeHistoryPasswordModal);
+    }
+    const closeHistoryPassBtn = document.getElementById('closeHistoryPassword');
+    if (closeHistoryPassBtn) {
+      closeHistoryPassBtn.addEventListener('click', closeHistoryPasswordModal);
+    }
+
+    // Statistics Password Modal bindings
+    const statsPassForm = document.getElementById('statisticsPasswordForm');
+    if (statsPassForm) {
+      statsPassForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        submitStatisticsPassword();
+      });
+    }
+    const cancelStatsPassBtn = document.getElementById('cancelStatisticsPassword');
+    if (cancelStatsPassBtn) {
+      cancelStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
+    }
+    const closeStatsPassBtn = document.getElementById('closeStatisticsPassword');
+    if (closeStatsPassBtn) {
+      closeStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
+    }
+
+    window.addEventListener('click', function (event) {
+      if (event.target === document.getElementById('historyModal')) document.getElementById('historyModal').style.display = 'none';
+      if (event.target === document.getElementById('statisticsModal')) document.getElementById('statisticsModal').style.display = 'none';
+      if (event.target === document.getElementById('advancedSearchModal')) closeAdvancedSearch();
+      if (event.target === document.getElementById('collectionPasswordModal')) closeCollectionPasswordModal();
+      if (event.target === document.getElementById('historyPasswordModal')) closeHistoryPasswordModal();
+      if (event.target === document.getElementById('statisticsPasswordModal')) closeStatisticsPasswordModal();
+    });
+
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        closeCollectionPasswordModal();
+        closeHistoryPasswordModal();
+        closeStatisticsPasswordModal();
+      }
+    });
   }
   document.addEventListener('DOMContentLoaded', function () {
   setLoadHistoryHook(loadHistory); // breaks search<->history cycle, preserves behaviour

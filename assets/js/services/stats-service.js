@@ -94,59 +94,98 @@ export function updateTodayReportCount() {
   }
 }
 
-// L2723 — password gate preserved
-export function showStatistics() {
-  const password = prompt('Please enter the password to view statistics:');
-  if (password === INVENTORY_PASSWORD) {
-    updateTestStats();
-    const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
-    const currentMonthName = getCurrentMonthName();
-    let monthlyCollection = 0, monthlyCash = 0, monthlyOnline = 0, monthlyReports = 0;
-    const testCounts = { cbc: 0, esr: 0, typhi: 0, dengue: 0, malaria: 0, widal: 0, bloodGroup: 0, bilirubin: 0, crp: 0 };
-    let purpleTubeUsage = 0, redTubeUsage = 0;
-    history.forEach(item => {
-      if (item.tests && typeof item.tests === 'object') {
-        const reportYear = parseInt(item.reportedDate.split('-')[0]);
-        const reportMonth = parseInt(item.reportedDate.split('-')[1]);
-        if (reportYear === currentYear && reportMonth === currentMonth) {
-          monthlyReports++;
-          if (item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {
-            monthlyCollection += parseFloat(item.testCost);
-            if (item.paymentMode === 'Cash') monthlyCash += parseFloat(item.testCost);
-            else if (item.paymentMode === 'Online') monthlyOnline += parseFloat(item.testCost);
-          }
-          for (const test in item.tests) { if (item.tests[test] && testCounts[test] !== undefined) testCounts[test]++; }
-          if (item.tubeUsed === 'Purple') purpleTubeUsage++;
-          else if (item.tubeUsed === 'Red') redTubeUsage++;
-        }
-      }
-    });
-    const tubeCounts = getTubeCounts();
-    const kitCounts = getKitCounts();
-    document.getElementById('statisticsContent').innerHTML = `
-      <div class="stats-summary"><h3>${currentMonthName} ${currentYear} Collection Summary</h3>
-      <table class="stats-table"><tr><th>Total Collection</th><td>₹${monthlyCollection.toFixed(2)}</td></tr>
-      <tr><th>Cash Collection</th><td>₹${monthlyCash.toFixed(2)}</td></tr>
-      <tr><th>Online Collection</th><td>₹${monthlyOnline.toFixed(2)}</td></tr>
-      <tr><th>Total Reports</th><td>${monthlyReports}</td></tr></table></div>
-      <div class="stats-summary"><h3>Test Statistics for ${currentMonthName}</h3>
-      <table class="stats-table">
-      <tr><th>CBC Tests</th><td>${testCounts.cbc}</td></tr><tr><th>ESR Tests</th><td>${testCounts.esr}</td></tr>
-      <tr><th>Typhoid Tests</th><td>${testCounts.typhi}</td></tr><tr><th>Dengue Tests</th><td>${testCounts.dengue}</td></tr>
-      <tr><th>Malaria Tests</th><td>${testCounts.malaria}</td></tr><tr><th>Widal Tests</th><td>${testCounts.widal}</td></tr>
-      <tr><th>Blood Group Tests</th><td>${testCounts.bloodGroup}</td></tr><tr><th>Bilirubin Tests</th><td>${testCounts.bilirubin}</td></tr>
-      <tr><th>CRP Tests</th><td>${testCounts.crp}</td></tr></table></div>
-      <div class="stats-summary"><h3>Tube Usage and Inventory</h3>
-      <table class="stats-table"><tr><th>Purple Tubes Used This Month</th><td>${purpleTubeUsage}</td></tr>
-      <tr><th>Red Tubes Used This Month</th><td>${redTubeUsage}</td></tr>
-      <tr><th>Purple Tubes Remaining</th><td>${tubeCounts.purple}</td></tr>
-      <tr><th>Red Tubes Remaining</th><td>${tubeCounts.red}</td></tr>
-      <tr><th>Typhoid Kits Remaining</th><td>${kitCounts.typhoid}</td></tr>
-      <tr><th>Malaria Kits Remaining</th><td>${kitCounts.malaria}</td></tr></table></div>`;
-    document.getElementById('statisticsModal').style.display = 'block';
-  } else if (password !== null) {
-    alert('Incorrect password. Please try again.');
+// Password modal controls for Statistics
+export function openStatisticsPasswordModal() {
+  const modal = document.getElementById('statisticsPasswordModal');
+  const input = document.getElementById('statisticsPasswordInput');
+  const error = document.getElementById('statisticsPasswordError');
+  if (modal) {
+    modal.style.display = 'flex';
+    if (error) error.style.display = 'none';
+    if (input) {
+      input.value = '';
+      setTimeout(() => input.focus(), 50);
+    }
   }
 }
+
+export function closeStatisticsPasswordModal() {
+  const modal = document.getElementById('statisticsPasswordModal');
+  const input = document.getElementById('statisticsPasswordInput');
+  const error = document.getElementById('statisticsPasswordError');
+  if (modal) modal.style.display = 'none';
+  if (input) input.value = '';
+  if (error) error.style.display = 'none';
+}
+
+export function submitStatisticsPassword() {
+  const input = document.getElementById('statisticsPasswordInput');
+  const error = document.getElementById('statisticsPasswordError');
+  if (input && input.value === INVENTORY_PASSWORD) {
+    closeStatisticsPasswordModal();
+    renderStatistics();
+  } else {
+    if (error) error.style.display = 'block';
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
+}
+
+export function renderStatistics() {
+  updateTestStats();
+  const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+  const currentMonthName = getCurrentMonthName();
+  let monthlyCollection = 0, monthlyCash = 0, monthlyOnline = 0, monthlyReports = 0;
+  const testCounts = { cbc: 0, esr: 0, typhi: 0, dengue: 0, malaria: 0, widal: 0, bloodGroup: 0, bilirubin: 0, crp: 0 };
+  let purpleTubeUsage = 0, redTubeUsage = 0;
+  history.forEach(item => {
+    if (item.tests && typeof item.tests === 'object') {
+      const reportYear = parseInt(item.reportedDate.split('-')[0]);
+      const reportMonth = parseInt(item.reportedDate.split('-')[1]);
+      if (reportYear === currentYear && reportMonth === currentMonth) {
+        monthlyReports++;
+        if (item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {
+          monthlyCollection += parseFloat(item.testCost);
+          if (item.paymentMode === 'Cash') monthlyCash += parseFloat(item.testCost);
+          else if (item.paymentMode === 'Online') monthlyOnline += parseFloat(item.testCost);
+        }
+        for (const test in item.tests) { if (item.tests[test] && testCounts[test] !== undefined) testCounts[test]++; }
+        if (item.tubeUsed === 'Purple') purpleTubeUsage++;
+        else if (item.tubeUsed === 'Red') redTubeUsage++;
+      }
+    }
+  });
+  const tubeCounts = getTubeCounts();
+  const kitCounts = getKitCounts();
+  document.getElementById('statisticsContent').innerHTML = `
+    <div class="stats-summary"><h3>${currentMonthName} ${currentYear} Collection Summary</h3>
+    <table class="stats-table"><tr><th>Total Collection</th><td>₹${monthlyCollection.toFixed(2)}</td></tr>
+    <tr><th>Cash Collection</th><td>₹${monthlyCash.toFixed(2)}</td></tr>
+    <tr><th>Online Collection</th><td>₹${monthlyOnline.toFixed(2)}</td></tr>
+    <tr><th>Total Reports</th><td>${monthlyReports}</td></tr></table></div>
+    <div class="stats-summary"><h3>Test Statistics for ${currentMonthName}</h3>
+    <table class="stats-table">
+    <tr><th>CBC Tests</th><td>${testCounts.cbc}</td></tr><tr><th>ESR Tests</th><td>${testCounts.esr}</td></tr>
+    <tr><th>Typhoid Tests</th><td>${testCounts.typhi}</td></tr><tr><th>Dengue Tests</th><td>${testCounts.dengue}</td></tr>
+    <tr><th>Malaria Tests</th><td>${testCounts.malaria}</td></tr><tr><th>Widal Tests</th><td>${testCounts.widal}</td></tr>
+    <tr><th>Blood Group Tests</th><td>${testCounts.bloodGroup}</td></tr><tr><th>Bilirubin Tests</th><td>${testCounts.bilirubin}</td></tr>
+    <tr><th>CRP Tests</th><td>${testCounts.crp}</td></tr></table></div>
+    <div class="stats-summary"><h3>Tube Usage and Inventory</h3>
+    <table class="stats-table"><tr><th>Purple Tubes Used This Month</th><td>${purpleTubeUsage}</td></tr>
+    <tr><th>Red Tubes Used This Month</th><td>${redTubeUsage}</td></tr>
+    <tr><th>Purple Tubes Remaining</th><td>${tubeCounts.purple}</td></tr>
+    <tr><th>Red Tubes Remaining</th><td>${tubeCounts.red}</td></tr>
+    <tr><th>Typhoid Kits Remaining</th><td>${kitCounts.typhoid}</td></tr>
+    <tr><th>Malaria Kits Remaining</th><td>${kitCounts.malaria}</td></tr></table></div>`;
+  document.getElementById('statisticsModal').style.display = 'block';
+}
+
+// L2723 — open password modal
+export function showStatistics() {
+  openStatisticsPasswordModal();
+}
+
