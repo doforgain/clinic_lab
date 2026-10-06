@@ -1,0 +1,168 @@
+/* Extracted from index.html L3508-3674 - parity with reference/index.legacy.html */
+        .test-stats {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background: linear-gradient(to bottom, #f0f8ff, #ffffff);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .test-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .test-stat span {
+            color: #333;
+        }
+
+        .test-stat strong {
+            color: #007bff;
+        }
+
+        .test-stats h3 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .stats-box {
+            display: none;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            border-left: 4px solid #2c7db1;
+        }
+
+        .stats-box1 {
+            display: flex;
+            flex-direction: row;
+            gap: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            border-left: 4px solid #2c7db1;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .stats-box h4,
+        .stats-box1 h4 {
+            color: #2c7db1;
+            margin-bottom: 10px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .stats-box p,
+        .stats-box1 p {
+            margin: 5px 10px;
+            font-size: 14px;
+            min-width: 100px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+
+        .stats-box1 p {
+            display: block;
+            /* Ensure they are visible */
+        }
+
+        #todayCBC {
+            color: #d81b60;
+            background-color: rgba(216, 27, 96, 0.1);
+        }
+
+        #todayESR {
+            color: #1e88e5;
+            background-color: rgba(30, 136, 229, 0.1);
+        }
+
+        #todayTyphoid {
+            color: #43a047;
+            background-color: rgba(67, 160, 71, 0.1);
+        }
+
+        #todayDengue {
+            color: #fb8c00;
+            background-color: rgba(251, 140, 0, 0.1);
+        }
+
+        #todayMalaria {
+            color: #8e24aa;
+            background-color: rgba(142, 36, 170, 0.1);
+        }
+
+        #todayWidal {
+            color: #00897b;
+            background-color: rgba(0, 137, 123, 0.1);
+        }
+
+        #todayBloodGroup {
+            color: #e53935;
+            background-color: rgba(229, 57, 53, 0.1);
+        }
+
+        #todayBilirubin {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+        }
+
+        #todayCRP {
+            color: #ff1744;
+            background-color: rgba(255, 23, 68, 0.1);
+        }
+
+        .stats-overview {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .stat-main {
+            text-align: center;
+            flex: 1;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+
+        .current-month {
+            color: #c5c4c4;
+            font-weight: bold;
+            font-size: 18px;
+        }
+

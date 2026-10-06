@@ -1,0 +1,90 @@
+/* Extracted from index.html L4120-4208 - parity with reference/index.legacy.html */
+        @media (max-width: 768px) {
+            .patient-info {
+                grid-template-columns: 1fr;
+            }
+
+            .test-options {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .cost-section {
+                flex-direction: column;
+            }
+
+            .cost-row,
+            .total-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .today-report-count {
+                margin-top: 10px;
+                margin-left: 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-box1 {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .stats-box1 p {
+                min-width: 90px;
+            }
+
+            .advanced-search-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+
+            .search-filters {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .search-actions {
+                flex-direction: column;
+            }
+
+            .enhanced-search-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .test-options {
+                grid-template-columns: 1fr;
+            }
+
+            .test-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .history-content,
+            .statistics-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .stats-box1 {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats-box1 p {
+                min-width: 80px;
+            }
+        }
+
+

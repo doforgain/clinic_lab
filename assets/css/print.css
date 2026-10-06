@@ -1,0 +1,57 @@
+/* Extracted from index.html L4064-4119 - parity with reference/index.legacy.html */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .report-output,
+            .report-output * {
+                visibility: visible;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .report-output {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border: none;
+            }
+
+            .buttons,
+            .container>*:not(.report-output) {
+                display: none !important;
+            }
+
+            @page {
+                size: A4;
+                margin: 0.5cm;
+            }
+
+            body {
+                width: 21cm;
+                height: 29.7cm;
+                font-size: 12pt;
+            }
+
+            .report-output {
+                width: 100%;
+                padding: 25px;
+                padding-top: 150px;
+            }
+
+            table {
+                font-size: 12pt;
+            }
+
+            th,
+            td {
+                padding: 2px 20px;
+            }
+        }
+

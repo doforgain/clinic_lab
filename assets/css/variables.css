@@ -1,0 +1,15 @@
+/* Design tokens - NEW in v2, not yet wired (parity first) */
+:root {
+  --brand-teal: #3cc4ad;
+  --brand-blue: #2c7db1;
+  --brand-blue-dark: #1c5d8a;
+  --danger: #c41e3a;
+  --success: #28a745;
+  --warning: #ffc107;
+  --purple: #6f42c1;
+  --ink: #333;
+  --muted: #666;
+  --line: #ddd;
+  --bg-soft: #f0f8ff;
+  --radius: 8px;
+}

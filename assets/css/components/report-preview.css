@@ -1,0 +1,85 @@
+/* Extracted from index.html L3305-3388 - parity with reference/index.legacy.html */
+        .report-output {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            display: none;
+        }
+
+        .report-header {
+            text-align: center;
+            margin-bottom: 0px;
+        }
+
+        .report-header h2 {
+            color: #dadddd;
+            font-size: 10px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .report-patient-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 1px;
+            font-size: 16px;
+        }
+
+        .report-test-section {
+            margin-bottom: 3px;
+        }
+
+        .report-test-section h3 {
+            text-align: center;
+            color: #626263;
+            margin-bottom: 3px;
+            padding-bottom: 3px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1px;
+        }
+
+        th,
+        td {
+            padding: 6px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #ecedeef5;
+            font-weight: 600;
+        }
+
+        .abnormal {
+            color: red;
+        }
+
+        .positive {
+            color: red;
+        }
+
+        .normal {
+            color: green;
+        }
+
+        .elevated {
+            color: orange;
+        }
+
+        .high {
+            color: red;
+        }
+
+        .veryhigh {
+            color: darkred;
+            font-weight: bold;
+        }
+

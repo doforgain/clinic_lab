@@ -1,0 +1,107 @@
+/* Extracted from index.html L3095-3200 - parity with reference/index.legacy.html */
+        .cost-section {
+            margin: 15px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background: linear-gradient(to bottom, #fff7f7, #ffffff);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .cost-info,
+        .today-total {
+            flex: 1;
+            min-width: 280px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .cost-info {
+            border-left: 4px solid #2c7db1;
+        }
+
+        .today-total {
+            border-left: 4px solid #28a745;
+        }
+
+        .cost-info h3,
+        .today-total h3 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            font-size: 20px;
+        }
+
+        .today-total-amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .today-total-amount1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #de64f7;
+            margin-bottom: 10px;
+        }
+
+        .today-total-amount2 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #7a90f5;
+            margin-bottom: 10px;
+        }
+
+        .today-total p {
+            color: #555;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .payment-options {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+        }
+
+        .payment-option input {
+            width: auto;
+            margin-right: 5px;
+        }
+
+        .cost-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .cost-input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .total-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .total-item {
+            flex: 1;
+            min-width: 150px;
+        }
+
