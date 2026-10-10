@@ -1213,10 +1213,10 @@ ${patientInfoHTML}
     </div>`;
 
   let tableRows = '';
+  let cbcRows = '';
 
   // 1. COMPLETE BLOOD COUNT (CBC)
   if (tests.cbc) {
-    let cbcRows = '';
     CBC_PARAMS.forEach(param => {
       let value = document.getElementById(param.id).value || '';
       if (value) {
@@ -1479,7 +1479,7 @@ ${patientInfoHTML}
     limitationItems.push('Rapid card tests have biological window periods; negative results do not completely rule out acute early infection');
   }
   if (cbcRows) {
-    limitationItems.push('For CBC, a manual Peripheral Smear (PBS) is recommended in cases of marked cytopenias or abnormal cell populations');
+    limitationItems.push('Automated analyzer values are screening counts; confirmatory testing (manual PBS) is advised for marked cytopenias or abnormal cell populations');
   }
 
   let disclaimerHTML = `
@@ -1487,15 +1487,15 @@ ${patientInfoHTML}
     <div class="compact-disclaimer-box">
       <div class="disclaimer-title">IMPORTANT LABORATORY NOTES & CLINICAL DISCLAIMER:</div>
       <p>• <strong>Methodology & Screening:</strong> ${methodologyText}</p>
-      <p>• <strong>Clinical Correlation:</strong> All findings are diagnostic screening aids and must be correlated clinically by the treating physician with patient signs and history. Test results alone do not constitute a standalone medical diagnosis.</p>`;
+      <p>• <strong>Clinical Correlation:</strong> All findings are preliminary diagnostic screening aids and must be correlated clinically by the treating physician with patient history and signs. Test results alone do not constitute a standalone medical diagnosis.</p>`;
 
   if (limitationItems.length > 0) {
     disclaimerHTML += `
-      <p>• <strong>Test Limitations:</strong> ${limitationItems.join('. ')}.</p>`;
+      <p>• <strong>Technical Limitations:</strong> ${limitationItems.join('. ')}.</p>`;
   }
 
   disclaimerHTML += `
-      <p>• <strong>Legal Protection:</strong> Results relate strictly to the received biological specimen. Not valid for medico-legal or judicial purposes.</p>
+      <p>• <strong>Legal Immunity & Specimen:</strong> Samples are not preserved after testing; results reflect specimen condition strictly at the time of processing. Any repeat testing requires fresh sample collection. The laboratory accepts no medical, legal, or financial liability for diagnostic decisions or clinical management based on this report. Not valid for medico-legal or judicial purposes.</p>
     </div>
     
     <div class="report-signatures-compact">
