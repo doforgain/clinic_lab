@@ -179,6 +179,8 @@
   const appState = {
   isEditing: false,
   currentEditingId: null,
+  lastGeneratedReportId: null,
+  currentPreviewHistoryId: null,
   currentFilters: {
     searchTerm: '',
     dateFrom: '',
@@ -197,6 +199,18 @@
   appState.isEditing = !!isEditMode;
   appState.currentEditingId = reportId;
   }
+  function setLastGeneratedReportId(id) {
+  appState.lastGeneratedReportId = id;
+  }
+  function getLastGeneratedReportId() {
+  return appState.lastGeneratedReportId;
+  }
+  function setCurrentPreviewHistoryId(id) {
+  appState.currentPreviewHistoryId = id;
+  }
+  function getCurrentPreviewHistoryId() {
+  return appState.currentPreviewHistoryId;
+  }
   function getCurrentFilters() { return appState.currentFilters; }
   function setCurrentFilters(patch) {
   Object.assign(appState.currentFilters, patch);
@@ -211,13 +225,16 @@
   function toggleGenerateUpdateButton(isEditMode = false, reportId = null) {
   const generateBtn = document.getElementById('generateReport');
   const updateBtn = document.getElementById('updateReport');
+  const isPreview = document.body.classList.contains('report-preview-active') ||
+    (document.getElementById('reportOutput') && document.getElementById('reportOutput').style.display === 'block');
+
   if (isEditMode) {
-    generateBtn.style.display = 'none';
-    updateBtn.style.display = 'block';
+    if (generateBtn) generateBtn.style.display = 'none';
+    if (updateBtn) updateBtn.style.display = isPreview ? 'none' : 'block';
     setEditing(true, reportId);
   } else {
-    generateBtn.style.display = 'block';
-    updateBtn.style.display = 'none';
+    if (generateBtn) generateBtn.style.display = isPreview ? 'none' : 'block';
+    if (updateBtn) updateBtn.style.display = 'none';
     setEditing(false, null);
   }
   }
@@ -349,6 +366,15 @@
     hour: '2-digit',
     minute: '2-digit'
   });
+  }
+
+  function formatLabDate(dateString) {
+    if (!dateString) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      const [y, m, d] = dateString.split('-');
+      return `${d}/${m}/${y}`;
+    }
+    return dateString;
   }
 
   /* ===== Module: assets/js/utils/patient-id.js ===== */
@@ -1060,7 +1086,7 @@
   const hasSerumTest = !!(tests.typhi || tests.dengue || tests.widal || tests.bilirubin || tests.crp);
   let specimenType;
   if (hasWholeBloodTest && hasSerumTest) {
-    specimenType = 'EDTA Whole Blood & Serum';
+    specimenType = 'EDTA Blood / Serum';
   } else if (hasWholeBloodTest || tubeUsed === 'Purple') {
     specimenType = 'EDTA Whole Blood';
   } else if (hasSerumTest || tubeUsed === 'Red') {
@@ -1069,20 +1095,121 @@
     specimenType = 'Whole Blood / Serum';
   }
 
-  let reportHTML = `
-    <div class="report-header"><h2>-</h2></div>
-    <div class="report-patient-info">
-      <div><strong>Patient Name:</strong> ${patientName}</div>
-      <div><strong>Age:</strong> ${patientAge}</div>
-      <div><strong>Gender:</strong> ${patientGender}</div>
-      <div><strong>Patient ID:</strong> ${document.getElementById('patientId').value}</div>
-      <div><strong>Collection Date:</strong> ${document.getElementById('collectionDate').value}</div>
-      <div><strong>Received Date:</strong> ${document.getElementById('receivedDate').value}</div>
-      <div><strong>Reported Date:</strong> ${document.getElementById('reportedDate').value}</div>
-      <div><strong>Referred By:</strong> ${document.getElementById('referredBy').value.trim() || 'SELF'}</div>
-      <div><strong>Specimen:</strong> ${specimenType}</div>
+  const patientId = document.getElementById('patientId') ? document.getElementById('patientId').value : '';
+  const rawColl = document.getElementById('collectionDate') ? document.getElementById('collectionDate').value : '';
+  const rawRecv = document.getElementById('receivedDate') ? document.getElementById('receivedDate').value : '';
+  const rawRep = document.getElementById('reportedDate') ? document.getElementById('reportedDate').value : '';
+  const collDate = formatLabDate(rawColl);
+  const recvDate = formatLabDate(rawRecv);
+  const repDate = formatLabDate(rawRep);
+  const referredBy = document.getElementById('referredBy') ? (document.getElementById('referredBy').value.trim() || 'SELF') : 'SELF';
+  const patientPhone = document.getElementById('patientPhone') ? document.getElementById('patientPhone').value.trim() : '';
+  const patientCity = document.getElementById('patientCity') ? document.getElementById('patientCity').value.trim() : '';
+  const fastingStatus = document.getElementById('fastingStatus') ? document.getElementById('fastingStatus').value.trim() : '';
+
+  let cleanPatientName = patientName;
+  let relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
+  let guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
+
+  const guardianMatch = cleanPatientName.match(/\s*\((S\/O|W\/O|D\/O|C\/O)\s+([^)]+)\)/i);
+  if (guardianMatch) {
+    if (!guardianName) {
+      relationType = guardianMatch[1].toUpperCase();
+      guardianName = guardianMatch[2].trim();
+    }
+    cleanPatientName = cleanPatientName.replace(guardianMatch[0], '').trim();
+  }
+
+  const ageGenderStr = patientAge && patientGender ? `${patientAge} / ${patientGender}` : (patientAge || patientGender || '');
+
+  let patientInfoHTML = `
+      <div><strong>Patient Name:</strong> ${cleanPatientName}</div>`;
+
+  if (guardianName) {
+    patientInfoHTML += `\n      <div><strong>${relationType}:</strong> ${guardianName}</div>`;
+  }
+
+  patientInfoHTML += `\n      <div><strong>Age / Gender:</strong> ${ageGenderStr}</div>
+      <div><strong>Patient ID:</strong> ${patientId}</div>`;
+
+  if (patientPhone) {
+    patientInfoHTML += `\n      <div><strong>Contact:</strong> ${patientPhone}</div>`;
+  }
+  if (patientCity) {
+    patientInfoHTML += `\n      <div><strong>City:</strong> ${patientCity}</div>`;
+  }
+
+  if (collDate) {
+    patientInfoHTML += `\n      <div><strong>Collection Date:</strong> ${collDate}</div>`;
+  }
+  if (recvDate) {
+    patientInfoHTML += `\n      <div><strong>Received Date:</strong> ${recvDate}</div>`;
+  }
+  if (repDate) {
+    patientInfoHTML += `\n      <div><strong>Reported Date:</strong> ${repDate}</div>`;
+  }
+  patientInfoHTML += `\n      <div><strong>Referred By:</strong> ${referredBy}</div>`;
+
+  if (fastingStatus) {
+    patientInfoHTML += `\n      <div><strong>Fasting Status:</strong> ${fastingStatus}</div>`;
+  }
+
+  patientInfoHTML += `\n      <div><strong>Specimen:</strong> ${specimenType}</div>
       <div class="no-print"><strong>Payment Mode:</strong> ${paymentMode}</div>
-      <div class="no-print"><strong>Tube Used:</strong> ${tubeUsed}</div>
+      <div class="no-print"><strong>Tube Used:</strong> ${tubeUsed}</div>`;
+
+  let reportHTML = `
+    <div class="report-header">
+      <div class="header-container">
+        <svg class="header-svg" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
+             viewBox="0 0 29700 6000"
+             style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd">
+          <defs>
+            <style type="text/css">
+              .fil9 {fill:#9D9E9E}
+              .fil8 {fill:#21846B}
+              .fil0 {fill:#0289C1}
+              .fil4 {fill:#233B9F}
+              .fil6 {fill:#591C9B}
+              .fil7 {fill:#5B7B23}
+              .fil1 {fill:#9CDA32}
+              .fil2 {fill:#A527A3}
+              .fil5 {fill:#EC3813}
+              .fil3 {fill:#FEAF0B}
+              .fnt2 {font-weight:bold;font-size:590.45px;font-family:'Calibri','Segoe UI',Arial,sans-serif}
+              .fnt1 {font-weight:bold;font-size:2357.84px;font-family:'Calibri','Segoe UI',Arial,sans-serif}
+              .fnt0 {font-weight:bold;font-size:4346.53px;font-family:'Calibri','Segoe UI',Arial,sans-serif}
+            </style>
+          </defs>
+          <g id="Layer_x0020_1">
+            <g id="_2740097163536">
+              <path class="fil0" d="M13063 3119l14 -842 835 -2 -1 -1275c-165,-17 -365,-7 -534,-8 -191,-1 -300,35 -311,228 -14,226 -19,843 11,1051 -388,7 -627,-45 -918,150 -183,123 -370,345 -366,699l1270 -1z"/>
+              <path class="fil1" d="M14107 3098c59,46 65,27 237,25 88,-1 177,0 266,0 177,0 354,-2 531,-2 356,0 718,6 1072,-1 25,-134 11,-374 11,-520 1,-191 -18,-306 -192,-326 -237,-27 -847,-13 -1099,3l12 821 -838 0z"/>
+              <path class="fil2" d="M14938 4141l-838 10 1 1282c176,5 357,2 534,3 194,0 297,-20 310,-222 16,-250 20,-835 -7,-1073z"/>
+              <path class="fil3" d="M13063 4145l12 -837c-219,-6 -444,-1 -664,-1 -755,0 -623,-146 -624,528 0,181 18,302 212,319 183,16 898,18 1064,-9z"/>
+              <path class="fil2" d="M14938 4141c312,62 713,7 928,-137 162,-109 376,-388 352,-692 -226,-21 -2018,-31 -2116,8 192,-6 683,-29 846,14l-10 807z"/>
+              <path class="fil3" d="M13911 4147l-848 -2c20,381 -51,631 150,919 154,219 375,362 699,368l-1 -1285z"/>
+              <path class="fil1" d="M14102 2272l831 5c51,-332 18,-680 -132,-909 -131,-199 -410,-394 -701,-367l2 1271z"/>
+              <polygon class="fil4" points="13063,3119 13913,3119 13912,2275 13077,2277 "/>
+              <polygon class="fil5" points="13063,4145 13911,4147 13903,3308 13075,3308 "/>
+              <path class="fil6" d="M14100 4151l838 -10 10 -807c-163,-43 -654,-20 -846,-14l-2 831z"/>
+              <polygon class="fil7" points="14107,3098 14945,3098 14933,2277 14102,2272 "/>
+            </g>
+            <g transform="matrix(0.804033 0 0 1 -11533.7 1478.3)">
+              <text x="14850" y="3000" class="fil8 fnt0">SHAMS</text>
+            </g>
+            <g transform="matrix(0.948662 0 0 1 2698.3 886.328)">
+              <text x="14850" y="3000" class="fil8 fnt1">HEALTH CARE</text>
+            </g>
+            <g transform="matrix(1.1105 0 0 1 4702.27 1416.22)">
+              <text x="14850" y="3000" class="fil9 fnt2">YOUR HEALTH, OUR PRIORITY</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="report-patient-info">
+${patientInfoHTML}
     </div>`;
 
   let tableRows = '';
@@ -1118,9 +1245,11 @@
   }
 
   // 2. HEMATOLOGY (ESR)
+  let hasEsr = false;
   if (tests.esr) {
     const esrValue = document.getElementById('esr').value || '';
     if (esrValue) {
+      hasEsr = true;
       const isAbnormal = parseFloat(esrValue) > ESR_REF.max;
       tableRows += `
         <tr class="report-section-row">
@@ -1141,6 +1270,9 @@
   }
 
   // 3. SEROLOGY & RAPID CARD TESTS (Malaria, Typhoid, Dengue)
+  let hasMalaria = false;
+  let hasTyphi = false;
+  let hasDengue = false;
   const hasRapidTests = (tests.malaria && (document.getElementById('malariaResult').value || '')) ||
                         (tests.typhi && (document.getElementById('typhiResult').value || '')) ||
                         (tests.dengue && (document.getElementById('dengueResult').value || ''));
@@ -1151,6 +1283,7 @@
     if (tests.malaria) {
       const result = document.getElementById('malariaResult').value || '';
       if (result) {
+        hasMalaria = true;
         let displayResult = result;
         if (result === 'Positive') {
           const subtype = document.getElementById('malariaSubtype').value;
@@ -1163,6 +1296,7 @@
     if (tests.typhi) {
       const result = document.getElementById('typhiResult').value || '';
       if (result) {
+        hasTyphi = true;
         let displayResult = result;
         if (result === 'Positive') {
           const subtype = document.getElementById('typhiSubtype').value;
@@ -1175,6 +1309,7 @@
     if (tests.dengue) {
       const result = document.getElementById('dengueResult').value || '';
       if (result) {
+        hasDengue = true;
         rapidRows += `<tr><td>Dengue Rapid (NS1 / IgM / IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${result}</td><td>—</td><td>Negative</td></tr>`;
       }
     }
@@ -1193,8 +1328,8 @@
   }
 
   // 4. SEROLOGY (WIDAL TEST)
+  let widalRows = '';
   if (tests.widal) {
-    let widalRows = '';
     WIDAL_PARAMS.forEach(param => {
       const value = document.getElementById(param.id).value || '';
       if (value) {
@@ -1217,11 +1352,13 @@
   }
 
   // 5. BIOCHEMISTRY (BILIRUBIN & CRP)
+  let hasBilirubin = false;
   if (tests.bilirubin) {
     const totalBilirubin = document.getElementById('totalBilirubin').value || '';
     const directBilirubin = document.getElementById('directBilirubin').value || '';
     const indirectBilirubin = document.getElementById('indirectBilirubin').value || '';
     if (totalBilirubin || directBilirubin || indirectBilirubin) {
+      hasBilirubin = true;
       let rows = '';
       if (totalBilirubin) rows += `<tr><td>Total Bilirubin</td><td class="${parseFloat(totalBilirubin) > BILIRUBIN_REF.total.max ? 'abnormal' : ''}">${totalBilirubin}</td><td>mg/dL</td><td>${BILIRUBIN_REF.total.display}</td></tr>`;
       if (directBilirubin) rows += `<tr><td>Direct Bilirubin</td><td class="${parseFloat(directBilirubin) > BILIRUBIN_REF.direct.max ? 'abnormal' : ''}">${directBilirubin}</td><td>mg/dL</td><td>${BILIRUBIN_REF.direct.display}</td></tr>`;
@@ -1239,9 +1376,11 @@
     }
   }
 
+  let hasCrp = false;
   if (tests.crp) {
     const crpValue = document.getElementById('crp').value || '';
     if (crpValue) {
+      hasCrp = true;
       const tier = crpTier(parseFloat(crpValue));
       tableRows += `
         <tr class="report-section-row">
@@ -1262,9 +1401,11 @@
   }
 
   // 6. IMMUNOHEMATOLOGY (BLOOD GROUP)
+  let hasBloodGroup = false;
   if (tests.bloodGroup) {
     const bloodGroupValue = document.getElementById('bloodGroup').value || '';
     if (bloodGroupValue) {
+      hasBloodGroup = true;
       tableRows += `
         <tr class="report-section-row">
           <td colspan="4">
@@ -1298,13 +1439,62 @@
       </tbody>
     </table>`;
 
-  reportHTML += `
+  // Dynamically assemble methodology notes only for tests present in current report
+  const methodItems = [];
+  if (cbcRows) {
+    methodItems.push('CBC performed by 3-Part Automated Hematology Analyzer');
+  }
+  if (hasEsr) {
+    methodItems.push('ESR evaluated by Westergren Method');
+  }
+  if (hasMalaria) {
+    methodItems.push('Malaria evaluated by EDTA whole blood ICT Rapid Card');
+  }
+  const serumRapid = [];
+  if (hasTyphi) serumRapid.push('Typhoid');
+  if (hasDengue) serumRapid.push('Dengue');
+  if (serumRapid.length > 0) {
+    methodItems.push(`${serumRapid.join(' and ')} evaluated by serum ICT Rapid Card`);
+  }
+  if (widalRows) {
+    methodItems.push('Widal evaluated by Slide Agglutination Method');
+  }
+  if (hasBilirubin) {
+    methodItems.push('Bilirubin evaluated by Photometric Diazo Method');
+  }
+  if (hasCrp) {
+    methodItems.push('CRP evaluated by Semi-Quantitative Latex / Turbidimetry');
+  }
+  if (hasBloodGroup) {
+    methodItems.push('Blood Group evaluated by Slide Hemagglutination');
+  }
+
+  const methodologyText = methodItems.length > 0
+    ? methodItems.join('. ') + '.'
+    : 'Tests evaluated according to standard validated clinical laboratory methods.';
+
+  // Dynamically assemble test limitations relevant to tests performed
+  const limitationItems = [];
+  if (hasMalaria || hasTyphi || hasDengue) {
+    limitationItems.push('Rapid card tests have biological window periods; negative results do not completely rule out acute early infection');
+  }
+  if (cbcRows) {
+    limitationItems.push('For CBC, a manual Peripheral Smear (PBS) is recommended in cases of marked cytopenias or abnormal cell populations');
+  }
+
+  let disclaimerHTML = `
     <div class="end-of-report">*** END OF REPORT ***</div>
     <div class="compact-disclaimer-box">
       <div class="disclaimer-title">IMPORTANT LABORATORY NOTES & CLINICAL DISCLAIMER:</div>
-      <p>• <strong>Methodology & Screening:</strong> CBC performed by 3-Part Automated Hematology Analyzer. Malaria evaluated by EDTA whole blood ICT Rapid Card. Typhoid and Dengue evaluated by serum ICT Rapid Card. ESR evaluated by Westergren Method.</p>
-      <p>• <strong>Clinical Correlation:</strong> All findings are diagnostic screening aids and must be correlated clinically by the treating physician with patient signs and history. Test results alone do not constitute a standalone medical diagnosis.</p>
-      <p>• <strong>Test Limitations:</strong> Rapid card tests have biological window periods; negative results do not completely rule out acute early infection. For CBC, a manual Peripheral Smear (PBS) is recommended in cases of marked cytopenias or abnormal cell populations.</p>
+      <p>• <strong>Methodology & Screening:</strong> ${methodologyText}</p>
+      <p>• <strong>Clinical Correlation:</strong> All findings are diagnostic screening aids and must be correlated clinically by the treating physician with patient signs and history. Test results alone do not constitute a standalone medical diagnosis.</p>`;
+
+  if (limitationItems.length > 0) {
+    disclaimerHTML += `
+      <p>• <strong>Test Limitations:</strong> ${limitationItems.join('. ')}.</p>`;
+  }
+
+  disclaimerHTML += `
       <p>• <strong>Legal Protection:</strong> Results relate strictly to the received biological specimen. Not valid for medico-legal or judicial purposes.</p>
     </div>
     
@@ -1318,6 +1508,8 @@
         <div class="sig-sub">Authorized Signatory</div>
       </div>
     </div>`;
+
+  reportHTML += disclaimerHTML;
 
   return reportHTML;
   }
@@ -1341,6 +1533,11 @@
   const receivedDate = document.getElementById('receivedDate').value;
   const reportedDate = document.getElementById('reportedDate').value;
   const referredBy = document.getElementById('referredBy').value || 'Not specified';
+  const patientPhone = document.getElementById('patientPhone') ? document.getElementById('patientPhone').value.trim() : '';
+  const patientCity = document.getElementById('patientCity') ? document.getElementById('patientCity').value.trim() : '';
+  const fastingStatus = document.getElementById('fastingStatus') ? document.getElementById('fastingStatus').value.trim() : '';
+  const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
+  const guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
   const existingReportIndex = history.findIndex(item => item.id === existingId);
   const previousTests = existingReportIndex !== -1 ? history[existingReportIndex].tests : null;
   const previousTube = existingReportIndex !== -1 ? history[existingReportIndex].tubeUsed : null;
@@ -1380,6 +1577,7 @@
     serial: existingReportIndex === -1 ? ++globalSerial : history[existingReportIndex].serial,
     id: existingReportIndex === -1 ? Date.now() : existingId,
     patientName, patientAge, patientGender, patientId, collectionDate, receivedDate, reportedDate, referredBy,
+    patientPhone, patientCity, fastingStatus, relationType, guardianName,
     testCost: testCost || 'Not specified', paymentMode, tubeUsed, reportHTML, tests, testParameters,
     timestamp: new Date().toLocaleString()
   };
@@ -1389,6 +1587,7 @@
   saveHistoryData(history);
   console.log('Report saved to history:', historyItem);
   console.log('Total reports in history:', history.length);
+  return historyItem;
   }
   // L2042
   function loadHistory(filters = null) {
@@ -1500,7 +1699,25 @@
   const titles = ['Mr.', 'Mrs.', 'Miss', 'Master', 'Baby', 'B/O'];
   const matchingTitle = titles.find(t => nameToLoad.startsWith(t + ' '));
   if (matchingTitle) { document.getElementById('patientTitle').value = matchingTitle; nameToLoad = nameToLoad.substring(matchingTitle.length + 1).trim(); }
+
+  let guardianPart = '';
+  let relationPart = 'S/O';
+  const guardianMatch = nameToLoad.match(/\s*\((S\/O|W\/O|D\/O|C\/O)\s+([^)]+)\)/i);
+  if (guardianMatch) {
+    relationPart = guardianMatch[1].toUpperCase();
+    guardianPart = guardianMatch[2].trim();
+    nameToLoad = nameToLoad.replace(guardianMatch[0], '').trim();
+  }
+  if (document.getElementById('relationType')) {
+    document.getElementById('relationType').value = item.relationType || relationPart;
+  }
+  if (document.getElementById('guardianName')) {
+    document.getElementById('guardianName').value = item.guardianName || guardianPart;
+  }
   document.getElementById('patientName').value = nameToLoad;
+  if (document.getElementById('patientPhone')) document.getElementById('patientPhone').value = item.patientPhone || '';
+  if (document.getElementById('patientCity')) document.getElementById('patientCity').value = item.patientCity || '';
+  if (document.getElementById('fastingStatus')) document.getElementById('fastingStatus').value = item.fastingStatus || '';
   const ageStr = (item.patientAge || '').toString().trim();
   const ageUnitMatch = ageStr.match(/(Yrs|Months|Days)/i);
   if (ageUnitMatch) {
@@ -1548,6 +1765,7 @@
   document.getElementById('savePDF').classList.remove('enabled');
   document.getElementById('editReport').classList.remove('enabled');
   toggleGenerateUpdateButton(true, id);
+  setFormButtonMode(true);
   validatePatientId();
   }
   // L2543
@@ -1579,10 +1797,12 @@
   function readPatient() {
   const patientTitle = document.getElementById('patientTitle') ? document.getElementById('patientTitle').value : '';
   const rawName = document.getElementById('patientName').value.trim();
-  const patientName = (patientTitle && !rawName.toLowerCase().startsWith(patientTitle.toLowerCase())) ? `${patientTitle} ${rawName}` : rawName;
+  let patientName = (patientTitle && !rawName.toLowerCase().startsWith(patientTitle.toLowerCase())) ? `${patientTitle} ${rawName}` : rawName;
+  const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
+  const guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
   const ageVal = document.getElementById('patientAge').value.trim();
   const ageUnit = document.getElementById('patientAgeUnit') ? document.getElementById('patientAgeUnit').value : 'Yrs';
-  return { patientTitle, rawName, patientName, ageVal, ageUnit, patientAge: ageVal ? `${ageVal} ${ageUnit}` : '', patientGender: document.getElementById('patientGender').value };
+  return { patientTitle, rawName, patientName, relationType, guardianName, ageVal, ageUnit, patientAge: ageVal ? `${ageVal} ${ageUnit}` : '', patientGender: document.getElementById('patientGender').value };
   }
   function showGeneratedReport(reportHTML) {
   document.getElementById('reportOutput').innerHTML = reportHTML;
@@ -1592,9 +1812,7 @@
   document.querySelector('.test-selection').style.display = 'none';
   document.querySelector('.cost-section').style.display = 'none';
   document.querySelector('.test-stats').style.display = 'none';
-  document.getElementById('printReport').classList.add('enabled');
-  document.getElementById('savePDF').classList.add('enabled');
-  document.getElementById('editReport').classList.add('enabled');
+  setPreviewButtonMode();
   }
   // L1500
   function generateReport() {
@@ -1622,9 +1840,12 @@
   }
   const testCost = document.getElementById('testCost').value;
   const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
-  showGeneratedReport(reportHTML);
-  saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, null);
+  const savedItem = saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, null);
+  if (savedItem && savedItem.id) {
+    setLastGeneratedReportId(savedItem.id);
+  }
   updateTodayTotal(); updateTodayReportCount(); updateTestStats();
+  showGeneratedReport(reportHTML);
   }
   // L1596
   function updateReport() {
@@ -1646,10 +1867,11 @@
   }
   const testCost = document.getElementById('testCost').value;
   const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
-  showGeneratedReport(reportHTML);
   saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, currentEditingId);
+  setLastGeneratedReportId(currentEditingId);
   updateTodayTotal(); updateTodayReportCount(); updateTestStats();
   toggleGenerateUpdateButton(false);
+  showGeneratedReport(reportHTML);
   }
 
   /* ===== Module: assets/js/services/inventory-service.js ===== */
@@ -1799,8 +2021,65 @@
   const isMalariaPositive = document.getElementById('malariaResult').value === 'Positive';
   document.getElementById('malariaSubtypeContainer').style.display = (document.getElementById('testMalaria').checked && isMalariaPositive) ? 'block' : 'none';
   }
+  function setPreviewButtonMode() {
+    document.body.classList.add('report-preview-active');
+    const generateBtn = document.getElementById('generateReport');
+    const updateBtn = document.getElementById('updateReport');
+    const editBtn = document.getElementById('editReport');
+    const printBtn = document.getElementById('printReport');
+    const savePdfBtn = document.getElementById('savePDF');
+    const newBtn = document.getElementById('newReport');
+    const viewHistoryBtn = document.getElementById('viewHistory');
+    const statisticsBtn = document.getElementById('statisticsBtn');
+
+    if (generateBtn) generateBtn.style.display = 'none';
+    if (updateBtn) updateBtn.style.display = 'none';
+    if (editBtn) {
+      editBtn.style.display = 'inline-block';
+      editBtn.classList.add('enabled');
+    }
+    if (printBtn) printBtn.classList.add('enabled');
+    if (savePdfBtn) savePdfBtn.classList.add('enabled');
+    if (newBtn) newBtn.style.display = 'inline-block';
+    if (viewHistoryBtn) viewHistoryBtn.style.display = 'none';
+    if (statisticsBtn) statisticsBtn.style.display = 'none';
+  }
+
+  function setFormButtonMode(isEditMode = false) {
+    document.body.classList.remove('report-preview-active');
+    const generateBtn = document.getElementById('generateReport');
+    const updateBtn = document.getElementById('updateReport');
+    const editBtn = document.getElementById('editReport');
+    const printBtn = document.getElementById('printReport');
+    const savePdfBtn = document.getElementById('savePDF');
+    const newBtn = document.getElementById('newReport');
+    const viewHistoryBtn = document.getElementById('viewHistory');
+    const statisticsBtn = document.getElementById('statisticsBtn');
+
+    if (isEditMode) {
+      if (generateBtn) generateBtn.style.display = 'none';
+      if (updateBtn) updateBtn.style.display = 'inline-block';
+    } else {
+      if (generateBtn) generateBtn.style.display = 'inline-block';
+      if (updateBtn) updateBtn.style.display = 'none';
+    }
+
+    if (editBtn) {
+      editBtn.style.display = 'none';
+      editBtn.classList.remove('enabled');
+    }
+    if (printBtn) printBtn.classList.remove('enabled');
+    if (savePdfBtn) savePdfBtn.classList.remove('enabled');
+    if (newBtn) newBtn.style.display = 'inline-block';
+    if (viewHistoryBtn) viewHistoryBtn.style.display = 'inline-block';
+    if (statisticsBtn) statisticsBtn.style.display = 'inline-block';
+  }
+
   // L2269 — moved from history/report to ui (v2 cycle-break delta, behaviour identical)
   function showReport(item) {
+  if (item && item.id) {
+    setCurrentPreviewHistoryId(item.id);
+  }
   document.getElementById('reportOutput').innerHTML = item.reportHTML;
   document.getElementById('reportOutput').style.display = 'block';
   document.querySelector('.test-inputs').style.display = 'none';
@@ -1808,18 +2087,17 @@
   document.querySelector('.test-selection').style.display = 'none';
   document.querySelector('.cost-section').style.display = 'none';
   document.querySelector('.test-stats').style.display = 'none';
-  document.getElementById('printReport').classList.add('enabled');
-  document.getElementById('savePDF').classList.add('enabled');
-  document.getElementById('editReport').classList.add('enabled');
+  setPreviewButtonMode();
   document.getElementById('historyModal').style.display = 'none';
   }
-  function hideReportShowForm() {
+  function hideReportShowForm(isEditMode = false) {
   document.getElementById('reportOutput').style.display = 'none';
   document.querySelector('.test-inputs').style.display = 'block';
   document.querySelector('.patient-info').style.display = 'grid';
   document.querySelector('.test-selection').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
   document.querySelector('.test-stats').style.display = 'block';
+  setFormButtonMode(isEditMode);
   }
   function bindMutualExclusivity() {
   const cashCheckbox = document.getElementById('paymentCash');
@@ -1927,15 +2205,25 @@
   });
   document.getElementById('editReport').addEventListener('click', function () {
     if (this.classList.contains('enabled')) {
-      document.getElementById('reportOutput').style.display = 'none';
-      document.querySelector('.test-inputs').style.display = 'block';
-      document.querySelector('.patient-info').style.display = 'grid';
-      document.querySelector('.test-selection').style.display = 'block';
-      document.querySelector('.cost-section').style.display = 'flex';
-      document.querySelector('.test-stats').style.display = 'block';
-      this.classList.remove('enabled');
-      document.getElementById('printReport').classList.remove('enabled');
-      document.getElementById('savePDF').classList.remove('enabled');
+      const previewHistoryId = getCurrentPreviewHistoryId();
+      if (previewHistoryId) {
+        loadReportForEditing(previewHistoryId);
+        setCurrentPreviewHistoryId(null);
+      } else {
+        document.getElementById('reportOutput').style.display = 'none';
+        document.querySelector('.test-inputs').style.display = 'block';
+        document.querySelector('.patient-info').style.display = 'grid';
+        document.querySelector('.test-selection').style.display = 'block';
+        document.querySelector('.cost-section').style.display = 'flex';
+        document.querySelector('.test-stats').style.display = 'block';
+        const lastGenId = getLastGeneratedReportId();
+        if (lastGenId) {
+          toggleGenerateUpdateButton(true, lastGenId);
+          setFormButtonMode(true);
+        } else {
+          setFormButtonMode(false);
+        }
+      }
     }
   });
   document.getElementById('newReport').addEventListener('click', handleNewReport);
@@ -1945,13 +2233,20 @@
   if (isEditing) {
     if (!confirm('You are currently editing a report. Creating a new report will discard your changes. Continue?')) return;
   }
+  setLastGeneratedReportId(null);
+  setCurrentPreviewHistoryId(null);
   sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
   document.getElementById('patientTitle').value = 'Mr.';
   document.getElementById('patientName').value = '';
+  if (document.getElementById('relationType')) document.getElementById('relationType').value = 'S/O';
+  if (document.getElementById('guardianName')) document.getElementById('guardianName').value = '';
   document.getElementById('patientAge').value = '';
   document.getElementById('patientAgeUnit').value = 'Yrs';
   document.getElementById('patientGender').value = '';
+  if (document.getElementById('patientPhone')) document.getElementById('patientPhone').value = '';
+  if (document.getElementById('patientCity')) document.getElementById('patientCity').value = '';
   document.getElementById('referredBy').value = 'SELF';
+  if (document.getElementById('fastingStatus')) document.getElementById('fastingStatus').value = '';
   document.getElementById('testCost').value = '';
   document.getElementById('paymentCash').checked = true;
   document.getElementById('paymentOnline').checked = false;
@@ -1978,10 +2273,8 @@
   document.querySelector('.test-inputs').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
   document.querySelector('.test-stats').style.display = 'block';
-  document.getElementById('printReport').classList.remove('enabled');
-  document.getElementById('savePDF').classList.remove('enabled');
-  document.getElementById('editReport').classList.remove('enabled');
   toggleGenerateUpdateButton(false);
+  setFormButtonMode(false);
   validatePatientId();
   updateTodayReportCount();
   updateTestStats();
@@ -2118,6 +2411,7 @@
   bindTestCheckboxes();
   bindCalculatorInputs();
   bindReportButtons();
+  setFormButtonMode(false);
   bindModals();
   setupSearchFunctionality();
   });

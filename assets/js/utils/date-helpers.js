@@ -45,3 +45,12 @@ export function formatDisplayDate(dateString) {
     minute: '2-digit'
   });
 }
+
+export function formatLabDate(dateString) {
+  if (!dateString) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    const [y, m, d] = dateString.split('-');
+    return `${d}/${m}/${y}`;
+  }
+  return dateString;
+}

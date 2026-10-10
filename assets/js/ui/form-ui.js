@@ -1,6 +1,5 @@
-/* UI helpers: index.html L962-1005 + L2269-2281 (showReport moved here to break history<->report cycle).
- * No imports from services/ (one-way DAG: services->ui forbidden in reverse). */
 import { updateSuggestedCost } from '../config/pricing-config.js';
+import { setCurrentPreviewHistoryId } from '../state/app-state.js';
 
 // L962
 export function autoUpdatePatientTitle() {
@@ -43,8 +42,65 @@ export function toggleTestInputs() {
   document.getElementById('malariaSubtypeContainer').style.display = (document.getElementById('testMalaria').checked && isMalariaPositive) ? 'block' : 'none';
 }
 
+export function setPreviewButtonMode() {
+  document.body.classList.add('report-preview-active');
+  const generateBtn = document.getElementById('generateReport');
+  const updateBtn = document.getElementById('updateReport');
+  const editBtn = document.getElementById('editReport');
+  const printBtn = document.getElementById('printReport');
+  const savePdfBtn = document.getElementById('savePDF');
+  const newBtn = document.getElementById('newReport');
+  const viewHistoryBtn = document.getElementById('viewHistory');
+  const statisticsBtn = document.getElementById('statisticsBtn');
+
+  if (generateBtn) generateBtn.style.display = 'none';
+  if (updateBtn) updateBtn.style.display = 'none';
+  if (editBtn) {
+    editBtn.style.display = 'inline-block';
+    editBtn.classList.add('enabled');
+  }
+  if (printBtn) printBtn.classList.add('enabled');
+  if (savePdfBtn) savePdfBtn.classList.add('enabled');
+  if (newBtn) newBtn.style.display = 'inline-block';
+  if (viewHistoryBtn) viewHistoryBtn.style.display = 'none';
+  if (statisticsBtn) statisticsBtn.style.display = 'none';
+}
+
+export function setFormButtonMode(isEditMode = false) {
+  document.body.classList.remove('report-preview-active');
+  const generateBtn = document.getElementById('generateReport');
+  const updateBtn = document.getElementById('updateReport');
+  const editBtn = document.getElementById('editReport');
+  const printBtn = document.getElementById('printReport');
+  const savePdfBtn = document.getElementById('savePDF');
+  const newBtn = document.getElementById('newReport');
+  const viewHistoryBtn = document.getElementById('viewHistory');
+  const statisticsBtn = document.getElementById('statisticsBtn');
+
+  if (isEditMode) {
+    if (generateBtn) generateBtn.style.display = 'none';
+    if (updateBtn) updateBtn.style.display = 'inline-block';
+  } else {
+    if (generateBtn) generateBtn.style.display = 'inline-block';
+    if (updateBtn) updateBtn.style.display = 'none';
+  }
+
+  if (editBtn) {
+    editBtn.style.display = 'none';
+    editBtn.classList.remove('enabled');
+  }
+  if (printBtn) printBtn.classList.remove('enabled');
+  if (savePdfBtn) savePdfBtn.classList.remove('enabled');
+  if (newBtn) newBtn.style.display = 'inline-block';
+  if (viewHistoryBtn) viewHistoryBtn.style.display = 'inline-block';
+  if (statisticsBtn) statisticsBtn.style.display = 'inline-block';
+}
+
 // L2269 — moved from history/report to ui (v2 cycle-break delta, behaviour identical)
 export function showReport(item) {
+  if (item && item.id) {
+    setCurrentPreviewHistoryId(item.id);
+  }
   document.getElementById('reportOutput').innerHTML = item.reportHTML;
   document.getElementById('reportOutput').style.display = 'block';
   document.querySelector('.test-inputs').style.display = 'none';
@@ -52,19 +108,18 @@ export function showReport(item) {
   document.querySelector('.test-selection').style.display = 'none';
   document.querySelector('.cost-section').style.display = 'none';
   document.querySelector('.test-stats').style.display = 'none';
-  document.getElementById('printReport').classList.add('enabled');
-  document.getElementById('savePDF').classList.add('enabled');
-  document.getElementById('editReport').classList.add('enabled');
+  setPreviewButtonMode();
   document.getElementById('historyModal').style.display = 'none';
 }
 
-export function hideReportShowForm() {
+export function hideReportShowForm(isEditMode = false) {
   document.getElementById('reportOutput').style.display = 'none';
   document.querySelector('.test-inputs').style.display = 'block';
   document.querySelector('.patient-info').style.display = 'grid';
   document.querySelector('.test-selection').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
   document.querySelector('.test-stats').style.display = 'block';
+  setFormButtonMode(isEditMode);
 }
 
 export function bindMutualExclusivity() {

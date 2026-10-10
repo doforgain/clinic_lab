@@ -30,7 +30,7 @@
 
     @page {
         size: A4;
-        margin: 0.5cm;
+        margin: 0.1cm 0.8cm 0.1cm 0.8cm;
     }
 
     body {
@@ -42,11 +42,57 @@
     }
 
     .report-output {
+        position: absolute;
+        left: 0;
+        top: 0;
         width: 100%;
-        padding: 25px;
-        padding-top: 150px;
+        padding: 0 4px 10px 4px;
+        padding-top: 0px;
+        margin: 0;
+        border: none;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+
+    .report-header {
+        width: 100%;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+        margin-bottom: 2px;
+        page-break-inside: avoid;
+    }
+
+    .header-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+    }
+
+    .header-svg {
+        width: 100%;
+        height: auto;
+        display: block;
+        margin: 0;
+    }
+
+    .report-patient-info {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 3px 10px;
+        margin-top: 2px;
+        margin-bottom: 4px;
+        font-size: 10.5pt;
+        line-height: 1.3;
+    }
+
+    .report-patient-info>div {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     table {
@@ -144,7 +190,7 @@
         border-radius: 3px;
     }
 
-    /* Abnormal & Positive Values in Red for Print */
+    /* Abnormal & Positive Values in Red for Print (Regular / Non-Bold) */
     .unified-report-table td.abnormal,
     .unified-report-table td.positive,
     td.abnormal,
@@ -152,7 +198,7 @@
     .abnormal,
     .positive {
         color: #d32f2f !important;
-        font-weight: 700 !important;
+        font-weight: normal !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }

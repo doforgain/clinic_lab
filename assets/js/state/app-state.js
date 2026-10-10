@@ -4,6 +4,8 @@
 const appState = {
   isEditing: false,
   currentEditingId: null,
+  lastGeneratedReportId: null,
+  currentPreviewHistoryId: null,
   currentFilters: {
     searchTerm: '',
     dateFrom: '',
@@ -23,6 +25,18 @@ export function setEditing(isEditMode, reportId = null) {
   appState.isEditing = !!isEditMode;
   appState.currentEditingId = reportId;
 }
+export function setLastGeneratedReportId(id) {
+  appState.lastGeneratedReportId = id;
+}
+export function getLastGeneratedReportId() {
+  return appState.lastGeneratedReportId;
+}
+export function setCurrentPreviewHistoryId(id) {
+  appState.currentPreviewHistoryId = id;
+}
+export function getCurrentPreviewHistoryId() {
+  return appState.currentPreviewHistoryId;
+}
 export function getCurrentFilters() { return appState.currentFilters; }
 export function setCurrentFilters(patch) {
   Object.assign(appState.currentFilters, patch);
@@ -38,13 +52,16 @@ export function resetCurrentFilters() {
 export function toggleGenerateUpdateButton(isEditMode = false, reportId = null) {
   const generateBtn = document.getElementById('generateReport');
   const updateBtn = document.getElementById('updateReport');
+  const isPreview = document.body.classList.contains('report-preview-active') ||
+    (document.getElementById('reportOutput') && document.getElementById('reportOutput').style.display === 'block');
+
   if (isEditMode) {
-    generateBtn.style.display = 'none';
-    updateBtn.style.display = 'block';
+    if (generateBtn) generateBtn.style.display = 'none';
+    if (updateBtn) updateBtn.style.display = isPreview ? 'none' : 'block';
     setEditing(true, reportId);
   } else {
-    generateBtn.style.display = 'block';
-    updateBtn.style.display = 'none';
+    if (generateBtn) generateBtn.style.display = isPreview ? 'none' : 'block';
+    if (updateBtn) updateBtn.style.display = 'none';
     setEditing(false, null);
   }
 }

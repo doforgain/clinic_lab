@@ -103,3 +103,17 @@
             background-color: #d91a72;
         }
 
+        /* Preview report state button overrides */
+        body.report-preview-active #generateReport,
+        body.report-preview-active #updateReport,
+        body.report-preview-active #viewHistory,
+        body.report-preview-active #statisticsBtn {
+            display: none !important;
+        }
+
+        body.report-preview-active #editReport {
+            display: inline-block !important;
+            opacity: 1 !important;
+            cursor: pointer !important;
+        }
+

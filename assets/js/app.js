@@ -3,17 +3,17 @@
  * Cycle-free: app.js is the only file allowed to import services + ui together. */
 import { getTodayDate } from './utils/date-helpers.js';
 import { generatePatientId, validatePatientId } from './utils/patient-id.js';
-import { getAppState, toggleGenerateUpdateButton } from './state/app-state.js';
+import { getAppState, toggleGenerateUpdateButton, getLastGeneratedReportId, setLastGeneratedReportId, getCurrentPreviewHistoryId, setCurrentPreviewHistoryId } from './state/app-state.js';
 import { STORAGE_KEYS, SESSION_KEYS } from './state/storage.js';
 import { getTubeCounts, setTubeCounts, initializeKitInventory, updateTubeCountsDisplay, updateKitCountsDisplay } from './state/inventory-state.js';
 import { calculateCBCParameters, calculateIndirectBilirubin, CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from './calculators/cbc-calculator.js';
 import { updateTodayTotal, toggleCollection, submitCollectionPassword, closeCollectionPasswordModal } from './calculators/cost-calculator.js';
 import { updateSuggestedCost } from './config/pricing-config.js';
 import { HISTORY_PASSWORD } from './config/auth-config.js';
-import { autoUpdatePatientTitle, toggleTestInputs, bindMutualExclusivity, bindTestCheckboxes } from './ui/form-ui.js';
+import { autoUpdatePatientTitle, toggleTestInputs, bindMutualExclusivity, bindTestCheckboxes, setPreviewButtonMode, setFormButtonMode } from './ui/form-ui.js';
 import { generateReport, updateReport } from './services/report-actions.js';
 import { saveAsPDF } from './services/pdf-service.js';
-import { showHistory, openHistoryPasswordModal, closeHistoryPasswordModal, submitHistoryPassword } from './services/history-service.js';
+import { showHistory, openHistoryPasswordModal, closeHistoryPasswordModal, submitHistoryPassword, loadReportForEditing } from './services/history-service.js';
 import { showAdvancedSearch, applyAdvancedSearch, resetAdvancedSearch, closeAdvancedSearch, setupSearchFunctionality, setLoadHistoryHook } from './services/search-service.js';
 import { loadHistory } from './services/history-service.js';
 import { updateTestStats, updateTodayReportCount, showStatistics, openStatisticsPasswordModal, closeStatisticsPasswordModal, submitStatisticsPassword } from './services/stats-service.js';
@@ -108,15 +108,25 @@ function bindReportButtons() {
   });
   document.getElementById('editReport').addEventListener('click', function () {
     if (this.classList.contains('enabled')) {
-      document.getElementById('reportOutput').style.display = 'none';
-      document.querySelector('.test-inputs').style.display = 'block';
-      document.querySelector('.patient-info').style.display = 'grid';
-      document.querySelector('.test-selection').style.display = 'block';
-      document.querySelector('.cost-section').style.display = 'flex';
-      document.querySelector('.test-stats').style.display = 'block';
-      this.classList.remove('enabled');
-      document.getElementById('printReport').classList.remove('enabled');
-      document.getElementById('savePDF').classList.remove('enabled');
+      const previewHistoryId = getCurrentPreviewHistoryId();
+      if (previewHistoryId) {
+        loadReportForEditing(previewHistoryId);
+        setCurrentPreviewHistoryId(null);
+      } else {
+        document.getElementById('reportOutput').style.display = 'none';
+        document.querySelector('.test-inputs').style.display = 'block';
+        document.querySelector('.patient-info').style.display = 'grid';
+        document.querySelector('.test-selection').style.display = 'block';
+        document.querySelector('.cost-section').style.display = 'flex';
+        document.querySelector('.test-stats').style.display = 'block';
+        const lastGenId = getLastGeneratedReportId();
+        if (lastGenId) {
+          toggleGenerateUpdateButton(true, lastGenId);
+          setFormButtonMode(true);
+        } else {
+          setFormButtonMode(false);
+        }
+      }
     }
   });
   document.getElementById('newReport').addEventListener('click', handleNewReport);
@@ -127,13 +137,20 @@ function handleNewReport() {
   if (isEditing) {
     if (!confirm('You are currently editing a report. Creating a new report will discard your changes. Continue?')) return;
   }
+  setLastGeneratedReportId(null);
+  setCurrentPreviewHistoryId(null);
   sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
   document.getElementById('patientTitle').value = 'Mr.';
   document.getElementById('patientName').value = '';
+  if (document.getElementById('relationType')) document.getElementById('relationType').value = 'S/O';
+  if (document.getElementById('guardianName')) document.getElementById('guardianName').value = '';
   document.getElementById('patientAge').value = '';
   document.getElementById('patientAgeUnit').value = 'Yrs';
   document.getElementById('patientGender').value = '';
+  if (document.getElementById('patientPhone')) document.getElementById('patientPhone').value = '';
+  if (document.getElementById('patientCity')) document.getElementById('patientCity').value = '';
   document.getElementById('referredBy').value = 'SELF';
+  if (document.getElementById('fastingStatus')) document.getElementById('fastingStatus').value = '';
   document.getElementById('testCost').value = '';
   document.getElementById('paymentCash').checked = true;
   document.getElementById('paymentOnline').checked = false;
@@ -160,10 +177,8 @@ function handleNewReport() {
   document.querySelector('.test-inputs').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
   document.querySelector('.test-stats').style.display = 'block';
-  document.getElementById('printReport').classList.remove('enabled');
-  document.getElementById('savePDF').classList.remove('enabled');
-  document.getElementById('editReport').classList.remove('enabled');
   toggleGenerateUpdateButton(false);
+  setFormButtonMode(false);
   validatePatientId();
   updateTodayReportCount();
   updateTestStats();
@@ -302,6 +317,7 @@ document.addEventListener('DOMContentLoaded', function () {
   bindTestCheckboxes();
   bindCalculatorInputs();
   bindReportButtons();
+  setFormButtonMode(false);
   bindModals();
   setupSearchFunctionality();
 });

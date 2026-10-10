@@ -1,5 +1,5 @@
-/* Extracted from index.html L1500-1671. Thin orchestration over builder/history/duplicate/cost/stats. */
-import { getAppState, toggleGenerateUpdateButton } from '../state/app-state.js';
+import { getAppState, toggleGenerateUpdateButton, setLastGeneratedReportId } from '../state/app-state.js';
+import { setPreviewButtonMode } from '../ui/form-ui.js';
 import { createReportHTML } from './report-builder.js';
 import { saveToHistory } from './history-service.js';
 import { checkDuplicatePatient } from './duplicate-service.js';
@@ -21,10 +21,12 @@ function readFormTests() {
 function readPatient() {
   const patientTitle = document.getElementById('patientTitle') ? document.getElementById('patientTitle').value : '';
   const rawName = document.getElementById('patientName').value.trim();
-  const patientName = (patientTitle && !rawName.toLowerCase().startsWith(patientTitle.toLowerCase())) ? `${patientTitle} ${rawName}` : rawName;
+  let patientName = (patientTitle && !rawName.toLowerCase().startsWith(patientTitle.toLowerCase())) ? `${patientTitle} ${rawName}` : rawName;
+  const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
+  const guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
   const ageVal = document.getElementById('patientAge').value.trim();
   const ageUnit = document.getElementById('patientAgeUnit') ? document.getElementById('patientAgeUnit').value : 'Yrs';
-  return { patientTitle, rawName, patientName, ageVal, ageUnit, patientAge: ageVal ? `${ageVal} ${ageUnit}` : '', patientGender: document.getElementById('patientGender').value };
+  return { patientTitle, rawName, patientName, relationType, guardianName, ageVal, ageUnit, patientAge: ageVal ? `${ageVal} ${ageUnit}` : '', patientGender: document.getElementById('patientGender').value };
 }
 function showGeneratedReport(reportHTML) {
   document.getElementById('reportOutput').innerHTML = reportHTML;
@@ -34,9 +36,7 @@ function showGeneratedReport(reportHTML) {
   document.querySelector('.test-selection').style.display = 'none';
   document.querySelector('.cost-section').style.display = 'none';
   document.querySelector('.test-stats').style.display = 'none';
-  document.getElementById('printReport').classList.add('enabled');
-  document.getElementById('savePDF').classList.add('enabled');
-  document.getElementById('editReport').classList.add('enabled');
+  setPreviewButtonMode();
 }
 
 // L1500
@@ -65,9 +65,12 @@ export function generateReport() {
   }
   const testCost = document.getElementById('testCost').value;
   const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
-  showGeneratedReport(reportHTML);
-  saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, null);
+  const savedItem = saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, null);
+  if (savedItem && savedItem.id) {
+    setLastGeneratedReportId(savedItem.id);
+  }
   updateTodayTotal(); updateTodayReportCount(); updateTestStats();
+  showGeneratedReport(reportHTML);
 }
 
 // L1596
@@ -90,10 +93,11 @@ export function updateReport() {
   }
   const testCost = document.getElementById('testCost').value;
   const reportHTML = createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed);
-  showGeneratedReport(reportHTML);
   saveToHistory(patientName, patientAge, patientGender, reportHTML, testCost, tests, paymentMode, tubeUsed, currentEditingId);
+  setLastGeneratedReportId(currentEditingId);
   updateTodayTotal(); updateTodayReportCount(); updateTestStats();
   toggleGenerateUpdateButton(false);
+  showGeneratedReport(reportHTML);
 }
 
 export { toggleGenerateUpdateButton };

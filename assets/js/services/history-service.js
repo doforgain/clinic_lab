@@ -10,7 +10,7 @@ import { updateTodayTotal } from '../calculators/cost-calculator.js';
 import { updateTodayReportCount, updateTestStats } from './stats-service.js';
 import { validatePatientId } from '../utils/patient-id.js';
 import { updateSuggestedCost } from '../config/pricing-config.js';
-import { toggleTestInputs, showReport } from '../ui/form-ui.js';
+import { toggleTestInputs, showReport, setFormButtonMode } from '../ui/form-ui.js';
 import { formatPointValue, formatPlateletValue, formatCBCDecimalInputs, calculateCBCParameters } from '../calculators/cbc-calculator.js';
 import { HISTORY_PASSWORD } from '../config/auth-config.js';
 
@@ -30,6 +30,11 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   const receivedDate = document.getElementById('receivedDate').value;
   const reportedDate = document.getElementById('reportedDate').value;
   const referredBy = document.getElementById('referredBy').value || 'Not specified';
+  const patientPhone = document.getElementById('patientPhone') ? document.getElementById('patientPhone').value.trim() : '';
+  const patientCity = document.getElementById('patientCity') ? document.getElementById('patientCity').value.trim() : '';
+  const fastingStatus = document.getElementById('fastingStatus') ? document.getElementById('fastingStatus').value.trim() : '';
+  const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
+  const guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
   const existingReportIndex = history.findIndex(item => item.id === existingId);
   const previousTests = existingReportIndex !== -1 ? history[existingReportIndex].tests : null;
   const previousTube = existingReportIndex !== -1 ? history[existingReportIndex].tubeUsed : null;
@@ -69,6 +74,7 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
     serial: existingReportIndex === -1 ? ++globalSerial : history[existingReportIndex].serial,
     id: existingReportIndex === -1 ? Date.now() : existingId,
     patientName, patientAge, patientGender, patientId, collectionDate, receivedDate, reportedDate, referredBy,
+    patientPhone, patientCity, fastingStatus, relationType, guardianName,
     testCost: testCost || 'Not specified', paymentMode, tubeUsed, reportHTML, tests, testParameters,
     timestamp: new Date().toLocaleString()
   };
@@ -78,6 +84,7 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   saveHistoryData(history);
   console.log('Report saved to history:', historyItem);
   console.log('Total reports in history:', history.length);
+  return historyItem;
 }
 
 // L2042
@@ -194,7 +201,25 @@ export function loadReportForEditing(id) {
   const titles = ['Mr.', 'Mrs.', 'Miss', 'Master', 'Baby', 'B/O'];
   const matchingTitle = titles.find(t => nameToLoad.startsWith(t + ' '));
   if (matchingTitle) { document.getElementById('patientTitle').value = matchingTitle; nameToLoad = nameToLoad.substring(matchingTitle.length + 1).trim(); }
+  
+  let guardianPart = '';
+  let relationPart = 'S/O';
+  const guardianMatch = nameToLoad.match(/\s*\((S\/O|W\/O|D\/O|C\/O)\s+([^)]+)\)/i);
+  if (guardianMatch) {
+    relationPart = guardianMatch[1].toUpperCase();
+    guardianPart = guardianMatch[2].trim();
+    nameToLoad = nameToLoad.replace(guardianMatch[0], '').trim();
+  }
+  if (document.getElementById('relationType')) {
+    document.getElementById('relationType').value = item.relationType || relationPart;
+  }
+  if (document.getElementById('guardianName')) {
+    document.getElementById('guardianName').value = item.guardianName || guardianPart;
+  }
   document.getElementById('patientName').value = nameToLoad;
+  if (document.getElementById('patientPhone')) document.getElementById('patientPhone').value = item.patientPhone || '';
+  if (document.getElementById('patientCity')) document.getElementById('patientCity').value = item.patientCity || '';
+  if (document.getElementById('fastingStatus')) document.getElementById('fastingStatus').value = item.fastingStatus || '';
   const ageStr = (item.patientAge || '').toString().trim();
   const ageUnitMatch = ageStr.match(/(Yrs|Months|Days)/i);
   if (ageUnitMatch) {
@@ -242,6 +267,7 @@ export function loadReportForEditing(id) {
   document.getElementById('savePDF').classList.remove('enabled');
   document.getElementById('editReport').classList.remove('enabled');
   toggleGenerateUpdateButton(true, id);
+  setFormButtonMode(true);
   validatePatientId();
 }
 

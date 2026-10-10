@@ -10,22 +10,40 @@
 
         .report-header {
             text-align: center;
-            margin-bottom: 0px;
+            margin: 0 0 4px 0;
+            padding: 0;
         }
 
-        .report-header h2 {
-            color: #dadddd;
-            font-size: 10px;
-            margin-top: 0px;
-            margin-bottom: 0px;
+        .header-container {
+            width: 100%;
+            max-width: 100%;
+            background: transparent;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header-svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 0;
         }
 
         .report-patient-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
-            margin-bottom: 1px;
-            font-size: 16px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 7px 14px;
+            margin-top: 6px;
+            margin-bottom: 5px;
+            font-size: 14px;
+            line-height: 1.35;
+        }
+
+        .report-patient-info > div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .report-test-section {
@@ -160,7 +178,7 @@
         .abnormal,
         .positive {
             color: #d32f2f !important;
-            font-weight: 700 !important;
+            font-weight: normal !important;
         }
 
         .normal {
