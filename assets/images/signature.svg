@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100" width="240" height="100">
+  <!-- Realistic Doctor Handwritten Signature in Royal Blue Ink -->
+  <g fill="none" stroke="#003380" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Capital initial flourish -->
+    <path d="M 25 65 C 20 45, 30 25, 45 28 C 58 31, 55 58, 42 75 C 38 80, 52 75, 65 60 C 75 48, 85 45, 95 55" stroke-width="2.6" />
+    <!-- Cursive loops and body -->
+    <path d="M 90 56 C 98 48, 108 42, 115 50 C 122 58, 120 70, 128 62 C 135 55, 142 48, 150 56 C 158 64, 162 60, 170 52 C 178 44, 185 58, 192 65" stroke-width="2.3" />
+    <!-- Sharp upward slash -->
+    <path d="M 188 64 Q 200 40 215 25" stroke-width="2.8" />
+    <!-- Doctor signature flourish underline with ink pressure variation -->
+    <path d="M 40 82 Q 130 78 220 58" stroke-width="2.2" />
+    <path d="M 180 72 C 195 70, 205 68, 222 64" stroke-width="1.8" />
+  </g>
+</svg>

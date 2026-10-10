@@ -248,7 +248,7 @@
 
         .sig-column {
             text-align: center;
-            width: 180px;
+            width: 200px;
         }
 
         .sig-column.center {
@@ -267,19 +267,76 @@
         }
 
         .sig-space {
-            height: 25px;
+            height: 32px;
             border-bottom: 1px solid #444;
             margin-bottom: 4px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .doctor-signature-img {
+            max-height: 48px;
+            max-width: 135px;
+            object-fit: contain;
+            transform: none;
+            margin-bottom: -5px;
+            pointer-events: none;
+            user-select: none;
         }
 
         .sig-title {
             font-size: 11px;
-            font-weight: 700;
-            color: #111;
+            font-weight: 600;
+            color: #334155;
         }
 
         .sig-sub {
             font-size: 9px;
             color: #666;
+        }
+
+        /* A4 Page Footer */
+        .report-page-footer {
+            margin-top: 14px;
+            padding-top: 6px;
+            border-top: 1.5px solid #cbd5e1;
+            font-size: 8.5pt;
+            color: #475569;
+        }
+
+        .report-page-footer .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
+        .report-page-footer .footer-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .report-page-footer .footer-icon {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+            color: #0284c7;
+            stroke-width: 2.2;
+        }
+
+        .report-page-footer .footer-subline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 7.5pt;
+            color: #64748b;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 3px;
         }
 

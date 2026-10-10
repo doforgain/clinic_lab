@@ -290,7 +290,7 @@
 
     .sig-column {
         text-align: center;
-        width: 170px;
+        width: 190px;
     }
 
     /* Verified Badge (Soft green background identical to preview) */
@@ -305,18 +305,81 @@
     }
 
     .sig-space {
-        height: 18px;
+        height: 24px;
         border-bottom: 1px solid #333;
         margin-bottom: 3px;
+        position: relative;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    .doctor-signature-img {
+        max-height: 38px;
+        max-width: 115px;
+        object-fit: contain;
+        transform: none;
+        margin-bottom: -4px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     .sig-title {
         font-size: 9pt;
-        font-weight: bold;
+        font-weight: 600;
+        color: #334155 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     .sig-sub {
         font-size: 7.5pt;
         color: #555;
+    }
+
+    /* A4 Page Footer for Print */
+    .report-page-footer {
+        margin-top: 8px;
+        padding-top: 4px;
+        border-top: 1.5px solid #cbd5e1 !important;
+        font-size: 7pt;
+        color: #475569 !important;
+        page-break-inside: avoid;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .report-page-footer .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+
+    .report-page-footer .footer-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+
+    .report-page-footer .footer-icon {
+        width: 10px;
+        height: 10px;
+        flex-shrink: 0;
+        color: #0284c7 !important;
+        stroke-width: 2.2;
+    }
+
+    .report-page-footer .footer-subline {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2px;
+        font-size: 6.25pt;
+        color: #64748b !important;
+        border-top: 1px dashed #e2e8f0 !important;
+        padding-top: 2px;
     }
 }

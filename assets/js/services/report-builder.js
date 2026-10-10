@@ -442,9 +442,42 @@ ${patientInfoHTML}
         <span class="verify-badge">✓ Electronically Verified</span>
       </div>
       <div class="sig-column">
-        <div class="sig-space"></div>
-        <div class="sig-title">Consultant Pathologist / Doctor</div>
-        <div class="sig-sub">Authorized Signatory</div>
+        <div class="sig-space">
+          <img src="assets/images/signature.png" class="doctor-signature-img" alt="Doctor Signature" onerror="this.onerror=null; this.src='assets/images/signature.svg';">
+        </div>
+        <div class="sig-title">Dr. Shahid Khan, MBBS</div>
+        <div class="sig-sub">Consultant Doctor / Authorized Signatory</div>
+      </div>
+    </div>
+    
+    <div class="report-page-footer">
+      <div class="footer-content">
+        <div class="footer-item">
+          <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <span><strong>SHAMS HEALTH CARE</strong>, Nuh Road, Tauru</span>
+        </div>
+        <div class="footer-item">
+          <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+          <span>Ph: <strong>8901469099</strong></span>
+        </div>
+        <div class="footer-item">
+          <svg class="footer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <span>Page <strong>1 of 1</strong></span>
+        </div>
+      </div>
+      <div class="footer-subline">
+        <span>Laboratory Diagnostic Services • Quality Assured Diagnostics</span>
+        <span>Computer Generated Diagnostic Report</span>
       </div>
     </div>`;
 
