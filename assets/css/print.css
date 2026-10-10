@@ -37,21 +37,133 @@
         width: 21cm;
         height: 29.7cm;
         font-size: 12pt;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     .report-output {
         width: 100%;
         padding: 25px;
         padding-top: 150px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     table {
-        font-size: 12pt;
+        font-size: 10.25pt;
     }
 
     th,
     td {
         padding: 2px 20px;
+    }
+
+    /* Unified Master Table Print Styles */
+    .unified-report-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 4px;
+        margin-bottom: 2px;
+        table-layout: fixed;
+        font-size: 10.25pt;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .unified-report-table th.col-investigation,
+    .unified-report-table td:nth-child(1) {
+        width: 40%;
+    }
+
+    .unified-report-table th.col-result,
+    .unified-report-table td:nth-child(2) {
+        width: 22%;
+    }
+
+    .unified-report-table th.col-unit,
+    .unified-report-table td:nth-child(3) {
+        width: 15%;
+    }
+
+    .unified-report-table th.col-ref,
+    .unified-report-table td:nth-child(4) {
+        width: 23%;
+    }
+
+    /* Table Header (11pt with soft grey background identical to preview) */
+    .unified-report-table th {
+        background-color: #f8f9fa !important;
+        border-top: 1px solid #dee2e6 !important;
+        border-bottom: 1px solid #dee2e6 !important;
+        font-size: 11pt;
+        font-weight: 700;
+        padding: 3px 6px;
+        color: #495057 !important;
+        text-align: left;
+    }
+
+    /* Table Values (10.25pt) */
+    .unified-report-table td {
+        padding: 2px 6px;
+        border-bottom: 1px solid #e9ecef;
+        font-size: 10.25pt;
+        color: #111;
+        text-align: left;
+    }
+
+    /* Section Divider (10.5pt with soft background identical to preview) */
+    .unified-report-table .report-section-row td {
+        padding: 3px 6px 2.5px 6px;
+        background-color: #fafbfc !important;
+        border-top: 1px solid #e9ecef !important;
+        border-bottom: 1px solid #e9ecef !important;
+    }
+
+    .section-banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .section-banner .section-name {
+        font-size: 10.5pt;
+        font-weight: 600;
+        color: #4a5568 !important;
+        letter-spacing: 0.3px;
+    }
+
+    /* Method Badge (Soft muted grey with no border) */
+    .section-banner .method-badge {
+        font-size: 8pt;
+        font-weight: 500;
+        color: #6c757d !important;
+        background-color: #f8f9fa !important;
+        border: none !important;
+        padding: 1px 5px;
+        border-radius: 3px;
+    }
+
+    /* Abnormal & Positive Values in Red for Print */
+    .unified-report-table td.abnormal,
+    .unified-report-table td.positive,
+    td.abnormal,
+    td.positive,
+    .abnormal,
+    .positive {
+        color: #d32f2f !important;
+        font-weight: 700 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .unified-report-table td.normal,
+    td.normal,
+    .normal {
+        color: #198754 !important;
+        font-weight: 600;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     .report-test-section h3 {
@@ -66,50 +178,53 @@
 
     .report-test-section h3 .method-badge {
         font-size: 8pt;
-        font-weight: 600;
-        color: #333;
-        background: transparent !important;
-        border: 1px solid #999;
+        font-weight: 500;
+        color: #6c757d !important;
+        background-color: #f8f9fa !important;
+        border: none !important;
         padding: 1px 6px;
         border-radius: 3px;
     }
 
     .end-of-report {
         text-align: center;
-        font-size: 8.5pt;
+        font-size: 8pt;
         font-weight: bold;
-        color: #555;
-        margin: 6px 0 3px 0;
+        color: #666;
+        margin: 5px 0 2px 0;
         page-break-inside: avoid;
     }
 
+    /* Compact Disclaimer Box (Identical to report preview) */
     .compact-disclaimer-box {
-        border-top: 1px dashed #666;
-        border-bottom: 1px dashed #666;
-        background: transparent !important;
-        padding: 4px 6px;
+        border-top: 1px dashed #ddd !important;
+        border-bottom: 1px dashed #ddd !important;
+        background-color: #fafbfc !important;
+        padding: 3px 6px;
         margin-top: 3px;
-        font-size: 5pt;
+        font-size: 6.5pt;
         line-height: 1.25;
-        color: #222;
+        color: #666 !important;
         page-break-inside: avoid;
     }
 
     .compact-disclaimer-box .disclaimer-title {
-        font-weight: bold;
-        font-size: 8pt;
-        margin-bottom: 2px;
+        font-weight: 700;
+        font-size: 7.5pt;
+        color: #444 !important;
+        margin-bottom: 1.5px;
     }
 
     .compact-disclaimer-box p {
-        margin: 1.5px 0;
+        margin: 1px 0;
     }
 
+    /* Signatures Block */
     .report-signatures-compact {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        margin-top: 14px;
+        margin-top: 10px;
         padding: 0 10px;
         page-break-inside: avoid;
     }
@@ -119,18 +234,19 @@
         width: 170px;
     }
 
+    /* Verified Badge (Soft green background identical to preview) */
     .verify-badge {
         font-size: 8pt;
-        color: #198754;
-        border: 1px solid #198754;
-        background: transparent !important;
-        padding: 1px 6px;
+        color: #198754 !important;
+        background-color: #e8f5e9 !important;
+        border: 1px solid #c8e6c9 !important;
+        padding: 1px 7px;
         border-radius: 10px;
-        font-weight: bold;
+        font-weight: 600;
     }
 
     .sig-space {
-        height: 20px;
+        height: 18px;
         border-bottom: 1px solid #333;
         margin-bottom: 3px;
     }
