@@ -136,33 +136,44 @@
         width: 23%;
     }
 
-    /* Table Header (11pt with soft grey background identical to preview) */
+    /* Table Header (11pt with darker grey background) */
     .unified-report-table th {
-        background-color: #f8f9fa !important;
-        border-top: 1px solid #dee2e6 !important;
-        border-bottom: 1px solid #dee2e6 !important;
+        background-color: #cbd5e1 !important;
+        border-top: 1px solid #94a3b8 !important;
+        border-bottom: 1px solid #94a3b8 !important;
         font-size: 11pt;
         font-weight: 700;
         padding: 3px 6px;
-        color: #495057 !important;
+        color: #1e293b !important;
         text-align: left;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     /* Table Values (10.25pt) */
     .unified-report-table td {
         padding: 2px 6px;
-        border-bottom: 1px solid #e9ecef;
+        border-bottom: 1px solid #e2e8f0;
         font-size: 10.25pt;
         color: #111;
         text-align: left;
     }
 
-    /* Section Divider (10.5pt with soft background identical to preview) */
+    /* Alternating row styling for table values */
+    .unified-report-table tbody tr:nth-child(even) td {
+        background-color: #f8fafc !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Section Divider (10.5pt with darker background) */
     .unified-report-table .report-section-row td {
         padding: 3px 6px 2.5px 6px;
-        background-color: #fafbfc !important;
-        border-top: 1px solid #e9ecef !important;
-        border-bottom: 1px solid #e9ecef !important;
+        background-color: #e2e8f0 !important;
+        border-top: 1px solid #cbd5e1 !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     .section-banner {
@@ -174,20 +185,22 @@
 
     .section-banner .section-name {
         font-size: 10.5pt;
-        font-weight: 600;
-        color: #4a5568 !important;
+        font-weight: 700;
+        color: #1e293b !important;
         letter-spacing: 0.3px;
     }
 
-    /* Method Badge (Soft muted grey with no border) */
+    /* Method Badge */
     .section-banner .method-badge {
         font-size: 8pt;
         font-weight: 500;
-        color: #6c757d !important;
-        background-color: #f8f9fa !important;
-        border: none !important;
+        color: #475569 !important;
+        background-color: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
         padding: 1px 5px;
         border-radius: 3px;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
 
     /* Abnormal & Positive Values in Red for Print (Regular / Non-Bold) */
