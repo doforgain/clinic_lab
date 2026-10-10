@@ -438,9 +438,6 @@ ${patientInfoHTML}
     </div>
     
     <div class="report-signatures-compact">
-      <div class="sig-column center">
-        <span class="verify-badge">✓ Electronically Verified</span>
-      </div>
       <div class="sig-column">
         <div class="sig-space">
           <img src="assets/images/signature.png" class="doctor-signature-img" alt="Doctor Signature" onerror="this.onerror=null; this.src='assets/images/signature.svg';">
@@ -474,10 +471,6 @@ ${patientInfoHTML}
           </svg>
           <span>Page <strong>1 of 1</strong></span>
         </div>
-      </div>
-      <div class="footer-subline">
-        <span>Laboratory Diagnostic Services • Quality Assured Diagnostics</span>
-        <span>Computer Generated Diagnostic Report</span>
       </div>
     </div>`;
 

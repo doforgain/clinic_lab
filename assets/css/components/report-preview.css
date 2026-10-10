@@ -240,7 +240,7 @@
         /* Signatures Block */
         .report-signatures-compact {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: flex-end;
             margin-top: 16px;
             padding: 0 15px;
