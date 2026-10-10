@@ -2,6 +2,23 @@
 import { CBC_PARAMS, WIDAL_PARAMS, WIDAL_CUTOFF, OTHER_TESTS, ESR_REF, BILIRUBIN_REF, crpTier, refRangeFor, isAbnormalByRange, isWidalPositive } from '../config/test-constants.js';
 import { CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from '../calculators/cbc-calculator.js';
 import { formatLabDate } from '../utils/date-helpers.js';
+function formatAlternatingRows(rowsHtml) {
+  if (!rowsHtml) return '';
+  const sections = rowsHtml.split(/(?=<tr\s+class=["']\s*report-section-row\s*["']>)/);
+  return sections.map(section => {
+    let rowIndex = 0;
+    return section.replace(/<tr(?!\s+class=["']\s*report-section-row\s*["'])([^>]*)>/g, (match, attrs) => {
+      rowIndex++;
+      if (rowIndex % 2 === 0) {
+        if (attrs && attrs.includes('class=')) {
+          return `<tr${attrs.replace(/class=(["'])/, 'class=$1alt-row ')}>`;
+        }
+        return `<tr class="alt-row"${attrs}>`;
+      }
+      return match;
+    });
+  }).join('');
+}
 
 export function createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed) {
   const hasWholeBloodTest = !!(tests.cbc || tests.esr || tests.malaria || tests.bloodGroup);
@@ -357,7 +374,7 @@ ${patientInfoHTML}
         </tr>
       </thead>
       <tbody>
-        ${tableRows}
+        ${formatAlternatingRows(tableRows)}
       </tbody>
     </table>`;
 

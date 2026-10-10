@@ -141,8 +141,8 @@
             vertical-align: middle;
         }
 
-        /* Alternating row styling for table values: start with white, then grey */
-        .unified-report-table tbody tr:not(.report-section-row):nth-child(odd) td {
+        /* Alternating row styling for table values: reset per section, start with white, then grey */
+        .unified-report-table tr.alt-row td {
             background-color: #f8fafc;
         }
 

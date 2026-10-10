@@ -1081,6 +1081,24 @@
 
   /* ===== Module: assets/js/services/report-builder.js ===== */
   /* Extracted from index.html L1673-2013. Template logic identical; ranges via config/test-constants.js */
+  function formatAlternatingRows(rowsHtml) {
+    if (!rowsHtml) return '';
+    const sections = rowsHtml.split(/(?=<tr\s+class=["']\s*report-section-row\s*["']>)/);
+    return sections.map(section => {
+      let rowIndex = 0;
+      return section.replace(/<tr(?!\s+class=["']\s*report-section-row\s*["'])([^>]*)>/g, (match, attrs) => {
+        rowIndex++;
+        if (rowIndex % 2 === 0) {
+          if (attrs && attrs.includes('class=')) {
+            return `<tr${attrs.replace(/class=(["'])/, 'class=$1alt-row ')}>`;
+          }
+          return `<tr class="alt-row"${attrs}>`;
+        }
+        return match;
+      });
+    }).join('');
+  }
+
   function createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed) {
   const hasWholeBloodTest = !!(tests.cbc || tests.esr || tests.malaria || tests.bloodGroup);
   const hasSerumTest = !!(tests.typhi || tests.dengue || tests.widal || tests.bilirubin || tests.crp);
@@ -1435,7 +1453,7 @@ ${patientInfoHTML}
         </tr>
       </thead>
       <tbody>
-        ${tableRows}
+        ${formatAlternatingRows(tableRows)}
       </tbody>
     </table>`;
 
