@@ -1160,14 +1160,10 @@
       <p>• <strong>Methodology & Screening:</strong> CBC performed by 3-Part Automated Hematology Analyzer. Typhoid, Malaria, and Dengue evaluated by qualitative Immunochromatographic (ICT) Rapid Diagnostic Card Kits. ESR evaluated by Westergren Method.</p>
       <p>• <strong>Clinical Correlation:</strong> All findings are diagnostic screening aids and must be correlated clinically by the treating physician with patient signs and history. Test results alone do not constitute a standalone medical diagnosis.</p>
       <p>• <strong>Test Limitations:</strong> Rapid card tests have biological window periods; negative results do not completely rule out acute early infection. For CBC, a manual Peripheral Smear (PBS) is recommended in cases of marked cytopenias or abnormal cell populations.</p>
-      <p>• <strong>Legal Protection:</strong> Results relate strictly to the received biological specimen. Not valid for medico-legal or judicial purposes. Discrepancies or re-test requests must be notified within 24 hours before routine specimen disposal.</p>
+      <p>• <strong>Legal Protection:</strong> Results relate strictly to the received biological specimen. Not valid for medico-legal or judicial purposes.</p>
     </div>
+    
     <div class="report-signatures-compact">
-      <div class="sig-column">
-        <div class="sig-space"></div>
-        <div class="sig-title">Medical Lab Technician</div>
-        <div class="sig-sub">DMLT / Prepared By</div>
-      </div>
       <div class="sig-column center">
         <span class="verify-badge">✓ Electronically Verified</span>
       </div>
