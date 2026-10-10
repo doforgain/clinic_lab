@@ -159,15 +159,15 @@
         text-align: left;
     }
 
-    /* Alternating row styling for table values */
-    .unified-report-table tbody tr:nth-child(even) td {
+    /* Alternating row styling for table values: start with white, then grey */
+    .unified-report-table tbody tr:not(.report-section-row):nth-child(odd) td {
         background-color: #f8fafc !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
     /* Section Divider (10.5pt with darker background) */
-    .unified-report-table .report-section-row td {
+    .unified-report-table tbody tr.report-section-row td {
         padding: 3px 6px 2.5px 6px;
         background-color: #e2e8f0 !important;
         border-top: 1px solid #cbd5e1 !important;
