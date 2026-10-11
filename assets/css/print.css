@@ -30,12 +30,12 @@
 
     @page {
         size: A4;
-        margin: 0.1cm 0.8cm 0.1cm 0.8cm;
+        margin: 0.1cm 0.8cm 1.1cm 0.8cm;
     }
 
     body {
         width: 21cm;
-        height: 29.7cm;
+        min-height: 29.7cm;
         font-size: 12pt;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -50,6 +50,7 @@
         padding-top: 0px;
         margin: 0;
         border: none;
+        box-sizing: border-box;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
@@ -337,16 +338,25 @@
         color: #555;
     }
 
-    /* A4 Page Footer for Print */
+    /* A4 Page Footer for Print - Fixed to bottom of every A4 page */
     .report-page-footer {
-        margin-top: 8px;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        margin-top: 0;
         padding-top: 4px;
+        padding-bottom: 2px;
         border-top: 1.5px solid #cbd5e1 !important;
+        background-color: #ffffff !important;
         font-size: 7pt;
         color: #475569 !important;
+        box-sizing: border-box;
         page-break-inside: avoid;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        z-index: 9999;
     }
 
     .report-page-footer .footer-content {
