@@ -58,10 +58,15 @@ A modern, responsive, client-side web application and Laboratory Information Sys
 - **PIN-Protected Inventory Restock**: Safeguards stock adjustment entries behind administrator passwords.
 
 ### 🔍 Historical Archive & Analytics
+- **Standalone History Portal (`history.html`)**: Dedicated full-page record management replacing previous modal popups, with instant password-free access.
 - **Fast Full-Text Search**: Filter by patient name, ID, date, or referring doctor.
 - **Quick Filters**: Immediate 1-day, 7-day, 30-day, test-specific, and payment-type filters.
 - **Multi-Parametric Advanced Search**: Filter by date intervals, cost limits, age ranges, gender, and specific test panels.
-- **Dedicated Dashboard Pages**: Standalone dedicated views for Report History (`history.html`) and Monthly Statistics (`statistics.html`).
+- **Direct Report Editing & Preview**:
+  - Clicking **Edit Report** from history opens `index.html?editId=<id>`, pre-populates all patient information and test parameters, and replaces the "Generate Report" button with **"Update Report"**.
+  - Clicking any report item opens `index.html?previewId=<id>` for immediate preview, printing, or client-side PDF export.
+  - Clicking **Edit Report** from the preview mode transitions smoothly back into edit mode with the **"Update Report"** button active.
+- **Standalone Analytics Dashboard (`statistics.html`)**: Dedicated analytics and consumables portal displaying monthly collections (Total, Cash, Online), test volume breakdowns, and tube/kit inventory status.
 
 ---
 
@@ -247,16 +252,16 @@ export const SUPABASE_CONFIG = {
 
 ## 🔒 Authentication & Access Control
 
-To protect financial records and prevent unauthorized changes to inventory, the application implements password gates:
+Access control is calibrated to maintain clinic security where needed while providing instant access for day-to-day operations:
 
-| Module / Action | Default PIN / Password | Managed In |
-| :--- | :--- | :--- |
-| **History & Archive View** | `admin1` | [auth-config.js](file:///assets/js/config/auth-config.js) |
-| **Test Analytics & Statistics** | `admin1` | [auth-config.js](file:///assets/js/config/auth-config.js) |
-| **Daily Financial Collections** | `admin1` | [auth-config.js](file:///assets/js/config/auth-config.js) |
-| **Inventory Stock Quantities** | `9211` | [auth-config.js](file:///assets/js/config/auth-config.js) |
+| Module / Action | Access / Security | PIN / Password | Managed In |
+| :--- | :--- | :--- | :--- |
+| **History & Records Page** (`history.html`) | Instant Access | *None (Password Removed)* | [bundle.js](file:///assets/js/bundle.js) |
+| **Statistics & Analytics Page** (`statistics.html`) | Instant Access | *None (Password Removed)* | [bundle.js](file:///assets/js/bundle.js) |
+| **Daily Financial Collections (Privacy Toggle)** | PIN Protected | `admin1` | [auth-config.js](file:///assets/js/config/auth-config.js) |
+| **Inventory Stock Quantity Updates** | PIN Protected | `9211` | [auth-config.js](file:///assets/js/config/auth-config.js) |
 
-> 💡 **Tip**: Passwords can be customized by editing `assets/js/config/auth-config.js` and updating `HISTORY_PASSWORD` and `INVENTORYUPDATE_PASSWORD`.
+> 💡 **Tip**: Sensitive action passwords can be customized by editing `assets/js/config/auth-config.js` and updating `COLLECTION_PASSWORD` and `INVENTORYUPDATE_PASSWORD`.
 
 ---
 
