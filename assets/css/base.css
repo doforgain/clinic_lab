@@ -72,6 +72,28 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
+        .cloud-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(60, 196, 173, 0.12);
+            color: #278f7e;
+            border: 1px solid rgba(60, 196, 173, 0.35);
+            margin-left: 15px;
+            cursor: default;
+            transition: all 0.3s ease;
+        }
+
+        .cloud-status-badge[data-status="offline"] {
+            background: rgba(230, 126, 34, 0.12);
+            color: #b85d10;
+            border-color: rgba(230, 126, 34, 0.35);
+        }
+
         .patient-info {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

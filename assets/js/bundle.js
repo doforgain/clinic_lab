@@ -173,6 +173,168 @@
   localStorage.setItem(STORAGE_KEYS.GLOBAL_SERIAL, String(n));
   }
 
+  /* ===== Module: Supabase Cloud Sync ===== */
+  const SUPABASE_CONFIG = {
+    url: 'https://ufiquhjvlcqvfamdhxin.supabase.co',
+    anonKey: 'sb_publishable_UJnX0-JZIlGfKMpwT2Q5_Q_tiTzL6Yd'
+  };
+
+  let supabaseClient = null;
+  function getSupabaseClient() {
+    if (!supabaseClient && typeof window !== 'undefined' && window.supabase && SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey) {
+      try {
+        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+      } catch (err) {
+        console.warn('Supabase client initialization failed:', err);
+      }
+    }
+    return supabaseClient;
+  }
+
+  function updateCloudStatusBadge(status, text) {
+    let badge = document.getElementById('cloudStatusBadge');
+    if (!badge) {
+      const logoContainer = document.querySelector('.logo-container');
+      if (logoContainer) {
+        badge = document.createElement('div');
+        badge.id = 'cloudStatusBadge';
+        badge.className = 'cloud-status-badge';
+        logoContainer.appendChild(badge);
+      }
+    }
+    if (badge) {
+      badge.setAttribute('data-status', status);
+      badge.innerHTML = text;
+      badge.title = status === 'connected' 
+        ? 'Connected to Supabase Cloud - reports sync across all devices' 
+        : 'Working locally in browser';
+    }
+  }
+
+  async function syncReportToCloud(reportItem) {
+    const client = getSupabaseClient();
+    if (!client || !reportItem) return;
+    try {
+      const { error } = await client.from('lab_reports').upsert({
+        id: reportItem.id,
+        serial: reportItem.serial,
+        patient_id: reportItem.patientId || '',
+        patient_name: reportItem.patientName || '',
+        reported_date: reportItem.reportedDate || '',
+        data: reportItem
+      });
+      if (error) {
+        console.warn('Cloud sync error for report:', error.message);
+      } else {
+        updateCloudStatusBadge('connected', '🟢 Cloud Synced');
+      }
+    } catch (err) {
+      console.warn('Network error syncing report to cloud:', err);
+    }
+  }
+
+  async function deleteReportFromCloud(id) {
+    const client = getSupabaseClient();
+    if (!client) return;
+    try {
+      const { error } = await client
+        .from('lab_reports')
+        .delete()
+        .eq('id', parseInt(id));
+      if (error) console.warn('Cloud report delete error:', error.message);
+    } catch (err) {
+      console.warn('Network error deleting report from cloud:', err);
+    }
+  }
+
+  let isSyncing = false;
+  async function syncReportsFromCloud() {
+    const client = getSupabaseClient();
+    if (!client || isSyncing) return;
+    isSyncing = true;
+    try {
+      const { data, error } = await client
+        .from('lab_reports')
+        .select('data')
+        .order('serial', { ascending: false });
+
+      if (error) {
+        console.warn('Supabase fetch error:', error.message);
+        updateCloudStatusBadge('offline', '🟡 Local Mode');
+        isSyncing = false;
+        return;
+      }
+
+      updateCloudStatusBadge('connected', '🟢 Cloud Synced');
+
+      if (data && data.length > 0) {
+        const cloudReports = data.map(row => row.data).filter(Boolean);
+        const localReports = loadHistoryData();
+        const cloudIds = new Set(cloudReports.map(r => r.id));
+
+        // If local has reports not yet in cloud, upload them
+        for (const localItem of localReports) {
+          if (!cloudIds.has(localItem.id)) {
+            await syncReportToCloud(localItem);
+            cloudReports.push(localItem);
+          }
+        }
+
+        // Sort by serial descending
+        cloudReports.sort((a, b) => (b.serial || 0) - (a.serial || 0));
+
+        // Update local cache
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(cloudReports));
+
+        // Update global serial if cloud has higher
+        const maxSerial = cloudReports.reduce((max, r) => Math.max(max, r.serial || 0), 0);
+        if (maxSerial > getGlobalSerial()) {
+          setGlobalSerial(maxSerial);
+        }
+
+        // Refresh UI
+        if (typeof loadHistory === 'function') loadHistory();
+        if (typeof updateTodayReportCount === 'function') updateTodayReportCount();
+        if (typeof updateTodayTotal === 'function') updateTodayTotal();
+        if (typeof updateTestStats === 'function') updateTestStats();
+      } else {
+        // Cloud table is empty, upload any existing local reports
+        const localReports = loadHistoryData();
+        if (localReports.length > 0) {
+          console.log('Migrating local reports to cloud...');
+          for (const item of localReports) {
+            await syncReportToCloud(item);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Error during cloud sync:', err);
+      updateCloudStatusBadge('offline', '🟡 Local Mode');
+    } finally {
+      isSyncing = false;
+    }
+  }
+
+  function initRealtimeSync() {
+    const client = getSupabaseClient();
+    if (!client) return;
+    try {
+      client
+        .channel('public:lab_reports')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'lab_reports' }, (payload) => {
+          console.log('Cloud change detected from another device:', payload.eventType);
+          syncReportsFromCloud();
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Supabase realtime subscribed successfully.');
+          }
+        });
+    } catch (err) {
+      console.warn('Realtime subscription error:', err);
+    }
+  }
+
   /* ===== Module: assets/js/state/app-state.js ===== */
   /* NEW in v2 — owns globals from index.html L571-572 + L2028-2039.
    * Breaks report-actions <-> history cycle by owning toggleGenerateUpdateButton (was L880-895). */
@@ -1629,6 +1791,7 @@ ${patientInfoHTML}
   else history[existingReportIndex] = historyItem;
   if (history.length > 10000) history = history.slice(0, 10000);
   saveHistoryData(history);
+  syncReportToCloud(historyItem);
   console.log('Report saved to history:', historyItem);
   console.log('Total reports in history:', history.length);
   return historyItem;
@@ -1730,6 +1893,7 @@ ${patientInfoHTML}
     if (index !== -1) {
       history[index].testCost = newCost;
       saveHistoryData(history);
+      syncReportToCloud(history[index]);
       loadHistory(); updateTodayTotal(); updateTodayReportCount(); updateTestStats();
     }
   } else if (newCost !== null) alert('Please enter a valid number for the cost.');
@@ -1823,6 +1987,7 @@ ${patientInfoHTML}
     if (item.tests) incrementKits(item.tests);
     history = history.filter(item => item.id !== parseInt(id));
     saveHistoryData(history);
+    deleteReportFromCloud(id);
     loadHistory(); updateTodayTotal(); updateTodayReportCount(); updateTestStats();
   }
   }
@@ -2458,6 +2623,8 @@ ${patientInfoHTML}
   setFormButtonMode(false);
   bindModals();
   setupSearchFunctionality();
+  syncReportsFromCloud();
+  initRealtimeSync();
   });
 
 })();
