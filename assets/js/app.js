@@ -185,20 +185,56 @@ function handleNewReport() {
 }
 
 function bindModals() {
-  document.getElementById('viewHistory').addEventListener('click', openHistoryPasswordModal);
-  document.getElementById('statisticsBtn').addEventListener('click', openStatisticsPasswordModal);
-  document.getElementById('updateTubeInventory').addEventListener('click', updateTubeInventoryWithPassword);
-  document.getElementById('advancedSearchBtn').addEventListener('click', showAdvancedSearch);
-  document.getElementById('applyAdvancedSearch').addEventListener('click', applyAdvancedSearch);
-  document.getElementById('resetAdvancedSearch').addEventListener('click', resetAdvancedSearch);
-  document.getElementById('closeAdvancedSearch').addEventListener('click', closeAdvancedSearch);
-  document.querySelector('.close-advanced-search').addEventListener('click', closeAdvancedSearch);
-  document.querySelector('.close-history').addEventListener('click', function () {
-    document.getElementById('historyModal').style.display = 'none';
-  });
-  document.querySelector('.close-statistics').addEventListener('click', function () {
-    document.getElementById('statisticsModal').style.display = 'none';
-  });
+  const viewHistoryBtn = document.getElementById('viewHistory');
+  if (viewHistoryBtn) {
+    viewHistoryBtn.addEventListener('click', function () {
+      window.location.href = 'history.html';
+    });
+  }
+  const statisticsBtn = document.getElementById('statisticsBtn');
+  if (statisticsBtn) {
+    statisticsBtn.addEventListener('click', function () {
+      window.location.href = 'statistics.html';
+    });
+  }
+  const updateTubeInvBtn = document.getElementById('updateTubeInventory');
+  if (updateTubeInvBtn) {
+    updateTubeInvBtn.addEventListener('click', updateTubeInventoryWithPassword);
+  }
+  const advancedSearchBtn = document.getElementById('advancedSearchBtn');
+  if (advancedSearchBtn) {
+    advancedSearchBtn.addEventListener('click', showAdvancedSearch);
+  }
+  const applyAdvancedSearchBtn = document.getElementById('applyAdvancedSearch');
+  if (applyAdvancedSearchBtn) {
+    applyAdvancedSearchBtn.addEventListener('click', applyAdvancedSearch);
+  }
+  const resetAdvancedSearchBtn = document.getElementById('resetAdvancedSearch');
+  if (resetAdvancedSearchBtn) {
+    resetAdvancedSearchBtn.addEventListener('click', resetAdvancedSearch);
+  }
+  const closeAdvancedSearchBtn = document.getElementById('closeAdvancedSearch');
+  if (closeAdvancedSearchBtn) {
+    closeAdvancedSearchBtn.addEventListener('click', closeAdvancedSearch);
+  }
+  const closeAdvancedSearchX = document.querySelector('.close-advanced-search');
+  if (closeAdvancedSearchX) {
+    closeAdvancedSearchX.addEventListener('click', closeAdvancedSearch);
+  }
+  const closeHistoryBtn = document.querySelector('.close-history');
+  if (closeHistoryBtn && !closeHistoryBtn.hasAttribute('href')) {
+    closeHistoryBtn.addEventListener('click', function () {
+      const modal = document.getElementById('historyModal');
+      if (modal) modal.style.display = 'none';
+    });
+  }
+  const closeStatisticsBtn = document.querySelector('.close-statistics');
+  if (closeStatisticsBtn && !closeStatisticsBtn.hasAttribute('href')) {
+    closeStatisticsBtn.addEventListener('click', function () {
+      const modal = document.getElementById('statisticsModal');
+      if (modal) modal.style.display = 'none';
+    });
+  }
 
   // Collection Password Modal bindings
   const collectionPassForm = document.getElementById('collectionPasswordForm');
@@ -274,6 +310,9 @@ function bindModals() {
     updateInvForm.addEventListener('submit', function (e) {
       e.preventDefault();
       saveInventoryChanges();
+      if (document.getElementById('statisticsContent')) {
+        renderStatistics();
+      }
     });
   }
   const cancelUpdateInvBtn = document.getElementById('cancelUpdateInventory');
@@ -308,6 +347,24 @@ function bindModals() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  // 1. History Page
+  if (document.getElementById('historyList') && !document.getElementById('generateReport')) {
+    setLoadHistoryHook(loadHistory);
+    loadHistory();
+    setupSearchFunctionality();
+    setupQuickFilters();
+    bindModals();
+    return;
+  }
+
+  // 2. Statistics Page
+  if (document.getElementById('statisticsContent') && !document.getElementById('generateReport')) {
+    renderStatistics();
+    bindModals();
+    return;
+  }
+
+  // 3. Main Generator Page (index.html)
   setLoadHistoryHook(loadHistory); // breaks search<->history cycle, preserves behaviour
   initDates();
   initPatientId();
@@ -320,4 +377,18 @@ document.addEventListener('DOMContentLoaded', function () {
   setFormButtonMode(false);
   bindModals();
   setupSearchFunctionality();
+
+  // Check query params if redirected from history page
+  const urlParams = new URLSearchParams(window.location.search);
+  const editId = urlParams.get('editId');
+  const previewId = urlParams.get('previewId');
+  if (editId) {
+    loadReportForEditing(parseInt(editId));
+  } else if (previewId) {
+    const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+    const item = history.find(h => h.id === parseInt(previewId));
+    if (item) {
+      showReport(item);
+    }
+  }
 });

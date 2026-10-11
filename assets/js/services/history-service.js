@@ -112,7 +112,13 @@ export function loadHistory(filters = null) {
       <button class="edit-report" data-id="${item.id}">Edit Report</button>
       <button class="delete-report" data-id="${item.id}">Delete</button></div>`;
     historyItem.addEventListener('click', function (e) {
-      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report')) showReport(item);
+      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report')) {
+        if (!document.getElementById('reportOutput')) {
+          window.location.href = `index.html?previewId=${item.id}`;
+        } else {
+          showReport(item);
+        }
+      }
     });
     historyList.appendChild(historyItem);
   });
@@ -171,7 +177,14 @@ export function addHistoryItemEventListeners() {
     btn.addEventListener('click', function (e) { e.stopPropagation(); editReportCost(this.dataset.id); });
   });
   document.querySelectorAll('.edit-report').forEach(btn => {
-    btn.addEventListener('click', function (e) { e.stopPropagation(); loadReportForEditing(parseInt(this.dataset.id)); });
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!document.getElementById('patientName')) {
+        window.location.href = `index.html?editId=${this.dataset.id}`;
+      } else {
+        loadReportForEditing(parseInt(this.dataset.id));
+      }
+    });
   });
   document.querySelectorAll('.delete-report').forEach(btn => {
     btn.addEventListener('click', function (e) { e.stopPropagation(); deleteReport(this.dataset.id); });

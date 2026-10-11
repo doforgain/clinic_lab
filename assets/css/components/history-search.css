@@ -28,6 +28,27 @@
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
+            text-decoration: none;
+            color: #555;
+            line-height: 1;
+        }
+
+        .close-history:hover {
+            color: #000;
+        }
+
+        .history-page-wrapper {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 10px;
+        }
+
+        .history-page-wrapper .history-content {
+            margin: 0 auto;
+            width: 100%;
+            max-width: 1000px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
         }
 
         .search-section {

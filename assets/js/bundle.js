@@ -746,9 +746,10 @@
   }
   // L1059
   function updateTodayTotal() {
-  document.getElementById('todayTotal').innerText = `₹${getTodayTotal()}`;
-  document.getElementById('todayCashTotal').innerText = `₹${getTodayCashTotal()}`;
-  document.getElementById('todayOnlineTotal').innerText = `₹${getTodayOnlineTotal()}`;
+    if (!document.getElementById('todayTotal')) return;
+    document.getElementById('todayTotal').innerText = `₹${getTodayTotal()}`;
+    document.getElementById('todayCashTotal').innerText = `₹${getTodayCashTotal()}`;
+    document.getElementById('todayOnlineTotal').innerText = `₹${getTodayOnlineTotal()}`;
   }
   // Password modal controls for Today's Collection
   function openCollectionPasswordModal() {
@@ -917,17 +918,18 @@
   }
   // L2679
   function updateTestStats() {
-  const { todayCounts } = getMonthlyTestStats();
-  document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
-  document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
-  document.getElementById('todayTyphoid').innerText = `Typhoid: ${todayCounts.typhi}`;
-  document.getElementById('todayDengue').innerText = `Dengue: ${todayCounts.dengue}`;
-  document.getElementById('todayMalaria').innerText = `Malaria: ${todayCounts.malaria}`;
-  document.getElementById('todayWidal').innerText = `Widal: ${todayCounts.widal}`;
-  document.getElementById('todayBloodGroup').innerText = `Blood Group: ${todayCounts.bloodGroup}`;
-  document.getElementById('todayBilirubin').innerText = `Bilirubin: ${todayCounts.bilirubin}`;
-  document.getElementById('todayCRP').innerText = `CRP: ${todayCounts.crp}`;
-  hideZeroTodayTests();
+    if (!document.getElementById('todayCBC')) return;
+    const { todayCounts } = getMonthlyTestStats();
+    document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
+    document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
+    document.getElementById('todayTyphoid').innerText = `Typhoid: ${todayCounts.typhi}`;
+    document.getElementById('todayDengue').innerText = `Dengue: ${todayCounts.dengue}`;
+    document.getElementById('todayMalaria').innerText = `Malaria: ${todayCounts.malaria}`;
+    document.getElementById('todayWidal').innerText = `Widal: ${todayCounts.widal}`;
+    document.getElementById('todayBloodGroup').innerText = `Blood Group: ${todayCounts.bloodGroup}`;
+    document.getElementById('todayBilirubin').innerText = `Bilirubin: ${todayCounts.bilirubin}`;
+    document.getElementById('todayCRP').innerText = `CRP: ${todayCounts.crp}`;
+    hideZeroTodayTests();
   }
   // L2695
   function hideZeroTodayTests() {
@@ -1014,7 +1016,9 @@
     });
     const tubeCounts = getTubeCounts();
     const kitCounts = getKitCounts();
-    document.getElementById('statisticsContent').innerHTML = `
+    const statContent = document.getElementById('statisticsContent');
+    if (statContent) {
+      statContent.innerHTML = `
       <div class="stats-summary"><h3>${currentMonthName} ${currentYear} Collection Summary</h3>
       <table class="stats-table"><tr><th>Total Collection</th><td>₹${monthlyCollection.toFixed(2)}</td></tr>
       <tr><th>Cash Collection</th><td>₹${monthlyCash.toFixed(2)}</td></tr>
@@ -1034,7 +1038,9 @@
       <tr><th>Red Tubes Remaining</th><td>${tubeCounts.red}</td></tr>
       <tr><th>Typhoid Kits Remaining</th><td>${kitCounts.typhoid}</td></tr>
       <tr><th>Malaria Kits Remaining</th><td>${kitCounts.malaria}</td></tr></table></div>`;
-    document.getElementById('statisticsModal').style.display = 'block';
+    }
+    const statsModal = document.getElementById('statisticsModal');
+    if (statsModal) statsModal.style.display = 'block';
   }
 
   // L2723 — open password modal
@@ -1820,7 +1826,13 @@ ${patientInfoHTML}
       <button class="edit-report" data-id="${item.id}">Edit Report</button>
       <button class="delete-report" data-id="${item.id}">Delete</button></div>`;
     historyItem.addEventListener('click', function (e) {
-      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report')) showReport(item);
+      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report')) {
+        if (!document.getElementById('reportOutput')) {
+          window.location.href = `index.html?previewId=${item.id}`;
+        } else {
+          showReport(item);
+        }
+      }
     });
     historyList.appendChild(historyItem);
   });
@@ -1877,7 +1889,14 @@ ${patientInfoHTML}
     btn.addEventListener('click', function (e) { e.stopPropagation(); editReportCost(this.dataset.id); });
   });
   document.querySelectorAll('.edit-report').forEach(btn => {
-    btn.addEventListener('click', function (e) { e.stopPropagation(); loadReportForEditing(parseInt(this.dataset.id)); });
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (!document.getElementById('patientName')) {
+        window.location.href = `index.html?editId=${this.dataset.id}`;
+      } else {
+        loadReportForEditing(parseInt(this.dataset.id));
+      }
+    });
   });
   document.querySelectorAll('.delete-report').forEach(btn => {
     btn.addEventListener('click', function (e) { e.stopPropagation(); deleteReport(this.dataset.id); });
@@ -2488,20 +2507,57 @@ ${patientInfoHTML}
   updateTestStats();
   }
   function bindModals() {
-    document.getElementById('viewHistory').addEventListener('click', openHistoryPasswordModal);
-    document.getElementById('statisticsBtn').addEventListener('click', openStatisticsPasswordModal);
-    document.getElementById('updateTubeInventory').addEventListener('click', updateTubeInventoryWithPassword);
-    document.getElementById('advancedSearchBtn').addEventListener('click', showAdvancedSearch);
-    document.getElementById('applyAdvancedSearch').addEventListener('click', applyAdvancedSearch);
-    document.getElementById('resetAdvancedSearch').addEventListener('click', resetAdvancedSearch);
-    document.getElementById('closeAdvancedSearch').addEventListener('click', closeAdvancedSearch);
-    document.querySelector('.close-advanced-search').addEventListener('click', closeAdvancedSearch);
-    document.querySelector('.close-history').addEventListener('click', function () {
-      document.getElementById('historyModal').style.display = 'none';
-    });
-    document.querySelector('.close-statistics').addEventListener('click', function () {
-      document.getElementById('statisticsModal').style.display = 'none';
-    });
+    const viewHistoryBtn = document.getElementById('viewHistory');
+    if (viewHistoryBtn) {
+      viewHistoryBtn.addEventListener('click', function () {
+        window.location.href = 'history.html';
+      });
+    }
+    const statisticsBtn = document.getElementById('statisticsBtn');
+    if (statisticsBtn) {
+      statisticsBtn.addEventListener('click', function () {
+        window.location.href = 'statistics.html';
+      });
+    }
+    const updateTubeInvBtn = document.getElementById('updateTubeInventory');
+    if (updateTubeInvBtn) {
+      updateTubeInvBtn.addEventListener('click', updateTubeInventoryWithPassword);
+    }
+    const advancedSearchBtn = document.getElementById('advancedSearchBtn');
+    if (advancedSearchBtn) {
+      advancedSearchBtn.addEventListener('click', showAdvancedSearch);
+    }
+    const applyAdvancedSearchBtn = document.getElementById('applyAdvancedSearch');
+    if (applyAdvancedSearchBtn) {
+      applyAdvancedSearchBtn.addEventListener('click', applyAdvancedSearch);
+    }
+    const resetAdvancedSearchBtn = document.getElementById('resetAdvancedSearch');
+    if (resetAdvancedSearchBtn) {
+      resetAdvancedSearchBtn.addEventListener('click', resetAdvancedSearch);
+    }
+    const closeAdvancedSearchBtn = document.getElementById('closeAdvancedSearch');
+    if (closeAdvancedSearchBtn) {
+      closeAdvancedSearchBtn.addEventListener('click', closeAdvancedSearch);
+    }
+    const closeAdvancedSearchX = document.querySelector('.close-advanced-search');
+    if (closeAdvancedSearchX) {
+      closeAdvancedSearchX.addEventListener('click', closeAdvancedSearch);
+    }
+
+    const closeHistoryBtn = document.querySelector('.close-history');
+    if (closeHistoryBtn && !closeHistoryBtn.hasAttribute('href')) {
+      closeHistoryBtn.addEventListener('click', function () {
+        const modal = document.getElementById('historyModal');
+        if (modal) modal.style.display = 'none';
+      });
+    }
+    const closeStatisticsBtn = document.querySelector('.close-statistics');
+    if (closeStatisticsBtn && !closeStatisticsBtn.hasAttribute('href')) {
+      closeStatisticsBtn.addEventListener('click', function () {
+        const modal = document.getElementById('statisticsModal');
+        if (modal) modal.style.display = 'none';
+      });
+    }
 
     // Collection Password Modal bindings
     const collectionPassForm = document.getElementById('collectionPasswordForm');
@@ -2520,7 +2576,7 @@ ${patientInfoHTML}
       closeCollectionPassBtn.addEventListener('click', closeCollectionPasswordModal);
     }
 
-    // History Password Modal bindings
+    // History Password Modal bindings (legacy fallback)
     const historyPassForm = document.getElementById('historyPasswordForm');
     if (historyPassForm) {
       historyPassForm.addEventListener('submit', function (e) {
@@ -2537,7 +2593,7 @@ ${patientInfoHTML}
       closeHistoryPassBtn.addEventListener('click', closeHistoryPasswordModal);
     }
 
-    // Statistics Password Modal bindings
+    // Statistics Password Modal bindings (legacy fallback)
     const statsPassForm = document.getElementById('statisticsPasswordForm');
     if (statsPassForm) {
       statsPassForm.addEventListener('submit', function (e) {
@@ -2577,6 +2633,9 @@ ${patientInfoHTML}
       updateInvForm.addEventListener('submit', function (e) {
         e.preventDefault();
         saveInventoryChanges();
+        if (document.getElementById('statisticsContent')) {
+          renderStatistics();
+        }
       });
     }
     const cancelUpdateInvBtn = document.getElementById('cancelUpdateInventory');
@@ -2610,20 +2669,56 @@ ${patientInfoHTML}
     });
   }
   document.addEventListener('DOMContentLoaded', function () {
-  setLoadHistoryHook(loadHistory); // breaks search<->history cycle, preserves behaviour
-  initDates();
-  initPatientId();
-  initInventory();
-  refreshDashboard();
-  bindMutualExclusivity();
-  bindTestCheckboxes();
-  bindCalculatorInputs();
-  bindReportButtons();
-  setFormButtonMode(false);
-  bindModals();
-  setupSearchFunctionality();
-  syncReportsFromCloud();
-  initRealtimeSync();
+    // 1. History Page
+    if (document.getElementById('historyList') && !document.getElementById('generateReport')) {
+      setLoadHistoryHook(loadHistory);
+      loadHistory();
+      setupSearchFunctionality();
+      setupQuickFilters();
+      bindModals();
+      syncReportsFromCloud();
+      initRealtimeSync();
+      return;
+    }
+
+    // 2. Statistics Page
+    if (document.getElementById('statisticsContent') && !document.getElementById('generateReport')) {
+      renderStatistics();
+      bindModals();
+      syncReportsFromCloud();
+      initRealtimeSync();
+      return;
+    }
+
+    // 3. Main Generator Page (index.html)
+    setLoadHistoryHook(loadHistory);
+    initDates();
+    initPatientId();
+    initInventory();
+    refreshDashboard();
+    bindMutualExclusivity();
+    bindTestCheckboxes();
+    bindCalculatorInputs();
+    bindReportButtons();
+    setFormButtonMode(false);
+    bindModals();
+    setupSearchFunctionality();
+    syncReportsFromCloud();
+    initRealtimeSync();
+
+    // Check query params if redirected from history page
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('editId');
+    const previewId = urlParams.get('previewId');
+    if (editId) {
+      loadReportForEditing(parseInt(editId));
+    } else if (previewId) {
+      const history = loadHistoryData();
+      const item = history.find(h => h.id === parseInt(previewId));
+      if (item) {
+        showReport(item);
+      }
+    }
   });
 
 })();

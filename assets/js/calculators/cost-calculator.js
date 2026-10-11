@@ -34,6 +34,7 @@ export function getTodayOnlineTotal() {
 
 // L1059
 export function updateTodayTotal() {
+  if (!document.getElementById('todayTotal')) return;
   document.getElementById('todayTotal').innerText = `₹${getTodayTotal()}`;
   document.getElementById('todayCashTotal').innerText = `₹${getTodayCashTotal()}`;
   document.getElementById('todayOnlineTotal').innerText = `₹${getTodayOnlineTotal()}`;

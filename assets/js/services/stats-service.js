@@ -61,6 +61,7 @@ export function getMonthlyTestStats() {
 
 // L2679
 export function updateTestStats() {
+  if (!document.getElementById('todayCBC')) return;
   const { todayCounts } = getMonthlyTestStats();
   document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
   document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
@@ -161,7 +162,9 @@ export function renderStatistics() {
   });
   const tubeCounts = getTubeCounts();
   const kitCounts = getKitCounts();
-  document.getElementById('statisticsContent').innerHTML = `
+  const statContent = document.getElementById('statisticsContent');
+  if (statContent) {
+    statContent.innerHTML = `
     <div class="stats-summary"><h3>${currentMonthName} ${currentYear} Collection Summary</h3>
     <table class="stats-table"><tr><th>Total Collection</th><td>₹${monthlyCollection.toFixed(2)}</td></tr>
     <tr><th>Cash Collection</th><td>₹${monthlyCash.toFixed(2)}</td></tr>
@@ -181,7 +184,9 @@ export function renderStatistics() {
     <tr><th>Red Tubes Remaining</th><td>${tubeCounts.red}</td></tr>
     <tr><th>Typhoid Kits Remaining</th><td>${kitCounts.typhoid}</td></tr>
     <tr><th>Malaria Kits Remaining</th><td>${kitCounts.malaria}</td></tr></table></div>`;
-  document.getElementById('statisticsModal').style.display = 'block';
+  }
+  const statsModal = document.getElementById('statisticsModal');
+  if (statsModal) statsModal.style.display = 'block';
 }
 
 // L2723 — open password modal

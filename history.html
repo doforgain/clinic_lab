@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHAMS HEALTH CARE - Report History</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <div class="history-page-wrapper">
+        <div class="history-content">
+            <a href="index.html" class="close-history" title="Back to Lab Generator">&times;</a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #3cc4ad; padding-bottom: 10px;">
+                <h2 style="margin: 0; color: #3cc4ad;">Report History</h2>
+                <a href="index.html" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 4px; font-size: 14px; font-weight: 600; background-color: #6c757d; color: white;">← Back to Lab</a>
+            </div>
+
+            <div class="enhanced-search-section">
+                <input type="text" id="searchHistory" placeholder="Search by name, patient ID, date, or doctor...">
+                <button id="clearSearch">Clear</button>
+                <button id="advancedSearchBtn" class="advanced-search-btn">Advanced Search</button>
+            </div>
+
+            <div class="quick-filters">
+                <button class="quick-filter-btn" data-days="1">Today</button>
+                <button class="quick-filter-btn" data-days="7">Last 7 Days</button>
+                <button class="quick-filter-btn" data-days="30">Last 30 Days</button>
+                <button class="quick-filter-btn" data-test="cbc">CBC Tests</button>
+                <button class="quick-filter-btn" data-test="typhi">Typhoid Tests</button>
+                <button class="quick-filter-btn" data-test="crp">CRP Tests</button>
+                <button class="quick-filter-btn" data-payment="Cash">Cash Payments</button>
+                <button class="quick-filter-btn" data-payment="Online">Online Payments</button>
+            </div>
+
+            <div id="searchSummary" class="search-summary" style="display: none;">
+                <strong>Active Filters:</strong>
+                <div class="active-filters" id="activeFilters"></div>
+            </div>
+
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">Click on a report to view / print it</p>
+            <div id="historyList" class="history-list"></div>
+        </div>
+    </div>
+
+    <!-- Advanced Search Modal -->
+    <div id="advancedSearchModal" class="advanced-search-modal">
+        <div class="advanced-search-content">
+            <span class="close-advanced-search">&times;</span>
+            <h2>Advanced Search</h2>
+
+            <div class="search-filters">
+                <div class="filter-group">
+                    <label for="searchDateFrom">Date From</label>
+                    <input type="date" id="searchDateFrom">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchDateTo">Date To</label>
+                    <input type="date" id="searchDateTo">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchTestType">Test Type</label>
+                    <select id="searchTestType">
+                        <option value="">All Tests</option>
+                        <option value="cbc">CBC</option>
+                        <option value="esr">ESR</option>
+                        <option value="typhi">Typhoid</option>
+                        <option value="dengue">Dengue</option>
+                        <option value="malaria">Malaria</option>
+                        <option value="widal">Widal</option>
+                        <option value="bloodGroup">Blood Group</option>
+                        <option value="bilirubin">Bilirubin</option>
+                        <option value="crp">CRP</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchPaymentMode">Payment Mode</label>
+                    <select id="searchPaymentMode">
+                        <option value="">All Modes</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchMinCost">Minimum Cost (₹)</label>
+                    <input type="number" id="searchMinCost" placeholder="0">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchMaxCost">Maximum Cost (₹)</label>
+                    <input type="number" id="searchMaxCost" placeholder="No limit">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchGender">Gender</label>
+                    <select id="searchGender">
+                        <option value="">All Genders</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchAgeFrom">Age From</label>
+                    <input type="number" id="searchAgeFrom" placeholder="0" min="0" max="120">
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchAgeTo">Age To</label>
+                    <input type="number" id="searchAgeTo" placeholder="120" min="0" max="120">
+                </div>
+            </div>
+
+            <div class="search-actions">
+                <button id="applyAdvancedSearch" class="btn-primary">Apply Filters</button>
+                <button id="resetAdvancedSearch" class="btn-secondary">Reset Filters</button>
+                <button id="closeAdvancedSearch" class="btn-secondary">Cancel</button>
+            </div>
+
+            <div class="search-results-info">
+                <p id="searchResultsCount">Showing all reports</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/bundle.js"></script>
+</body>
+
+</html>
