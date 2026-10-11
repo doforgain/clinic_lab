@@ -215,17 +215,19 @@
     const client = getSupabaseClient();
     if (!client || !reportItem) return;
     try {
+      const dataToSave = { ...reportItem, _synced: true };
       const { error } = await client.from('lab_reports').upsert({
         id: reportItem.id,
         serial: reportItem.serial,
         patient_id: reportItem.patientId || '',
         patient_name: reportItem.patientName || '',
         reported_date: reportItem.reportedDate || '',
-        data: reportItem
+        data: dataToSave
       });
       if (error) {
         console.warn('Cloud sync error for report:', error.message);
       } else {
+        reportItem._synced = true;
         updateCloudStatusBadge('connected', '🟢 Cloud Synced');
       }
     } catch (err) {
@@ -241,7 +243,11 @@
         .from('lab_reports')
         .delete()
         .eq('id', parseInt(id));
-      if (error) console.warn('Cloud report delete error:', error.message);
+      if (error) {
+        console.warn('Cloud report delete error:', error.message);
+      } else {
+        console.log('Report successfully deleted from Supabase cloud database:', id);
+      }
     } catch (err) {
       console.warn('Network error deleting report from cloud:', err);
     }
@@ -267,23 +273,25 @@
 
       updateCloudStatusBadge('connected', '🟢 Cloud Synced');
 
-      if (data && data.length > 0) {
-        const cloudReports = data.map(row => row.data).filter(Boolean);
-        const localReports = loadHistoryData();
-        const cloudIds = new Set(cloudReports.map(r => r.id));
+      if (data) {
+        const cloudReports = data.map(row => {
+          const r = row.data;
+          if (r) r._synced = true;
+          return r;
+        }).filter(Boolean);
 
-        // If local has reports not yet in cloud, upload them
-        for (const localItem of localReports) {
-          if (!cloudIds.has(localItem.id)) {
-            await syncReportToCloud(localItem);
-            cloudReports.push(localItem);
-          }
+        // Only upload local reports that were created while offline (_synced === false)
+        const localReports = loadHistoryData();
+        const offlineReports = localReports.filter(r => r && r._synced === false);
+        for (const offItem of offlineReports) {
+          await syncReportToCloud(offItem);
+          cloudReports.unshift(offItem);
         }
 
         // Sort by serial descending
         cloudReports.sort((a, b) => (b.serial || 0) - (a.serial || 0));
 
-        // Update local cache
+        // Cloud is authoritative: sync local storage cache to cloud
         localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(cloudReports));
 
         // Update global serial if cloud has higher
@@ -297,15 +305,6 @@
         if (typeof updateTodayReportCount === 'function') updateTodayReportCount();
         if (typeof updateTodayTotal === 'function') updateTodayTotal();
         if (typeof updateTestStats === 'function') updateTestStats();
-      } else {
-        // Cloud table is empty, upload any existing local reports
-        const localReports = loadHistoryData();
-        if (localReports.length > 0) {
-          console.log('Migrating local reports to cloud...');
-          for (const item of localReports) {
-            await syncReportToCloud(item);
-          }
-        }
       }
     } catch (err) {
       console.warn('Error during cloud sync:', err);

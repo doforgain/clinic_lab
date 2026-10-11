@@ -105,16 +105,18 @@ export async function syncReportsFromCloud(callbacks = {}) {
 
     updateCloudStatusBadge('connected', '🟢 Cloud Synced');
 
-    if (data && data.length > 0) {
-      const cloudReports = data.map(row => row.data).filter(Boolean);
-      const localReports = loadHistoryData();
-      const cloudIds = new Set(cloudReports.map(r => r.id));
+    if (data) {
+      const cloudReports = data.map(row => {
+        const r = row.data;
+        if (r) r._synced = true;
+        return r;
+      }).filter(Boolean);
 
-      for (const localItem of localReports) {
-        if (!cloudIds.has(localItem.id)) {
-          await syncReportToCloud(localItem);
-          cloudReports.push(localItem);
-        }
+      const localReports = loadHistoryData();
+      const offlineReports = localReports.filter(r => r && r._synced === false);
+      for (const offItem of offlineReports) {
+        await syncReportToCloud(offItem);
+        cloudReports.unshift(offItem);
       }
 
       cloudReports.sort((a, b) => (b.serial || 0) - (a.serial || 0));
@@ -126,13 +128,6 @@ export async function syncReportsFromCloud(callbacks = {}) {
       }
 
       if (callbacks.onUpdate) callbacks.onUpdate();
-    } else {
-      const localReports = loadHistoryData();
-      if (localReports.length > 0) {
-        for (const item of localReports) {
-          await syncReportToCloud(item);
-        }
-      }
     }
   } catch (err) {
     console.warn('Error during cloud sync:', err);
