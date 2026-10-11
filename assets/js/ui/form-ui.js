@@ -101,15 +101,24 @@ export function showReport(item) {
   if (item && item.id) {
     setCurrentPreviewHistoryId(item.id);
   }
-  document.getElementById('reportOutput').innerHTML = item.reportHTML;
-  document.getElementById('reportOutput').style.display = 'block';
-  document.querySelector('.test-inputs').style.display = 'none';
-  document.querySelector('.patient-info').style.display = 'none';
-  document.querySelector('.test-selection').style.display = 'none';
-  document.querySelector('.cost-section').style.display = 'none';
-  document.querySelector('.test-stats').style.display = 'none';
+  const reportOut = document.getElementById('reportOutput');
+  if (reportOut) {
+    reportOut.innerHTML = item.reportHTML;
+    reportOut.style.display = 'block';
+  }
+  const testInp = document.querySelector('.test-inputs');
+  if (testInp) testInp.style.display = 'none';
+  const patInfo = document.querySelector('.patient-info');
+  if (patInfo) patInfo.style.display = 'none';
+  const testSel = document.querySelector('.test-selection');
+  if (testSel) testSel.style.display = 'none';
+  const costSec = document.querySelector('.cost-section');
+  if (costSec) costSec.style.display = 'none';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'none';
   setPreviewButtonMode();
-  document.getElementById('historyModal').style.display = 'none';
+  const histModal = document.getElementById('historyModal');
+  if (histModal) histModal.style.display = 'none';
 }
 
 export function hideReportShowForm(isEditMode = false) {

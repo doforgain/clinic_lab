@@ -1880,8 +1880,9 @@ ${patientInfoHTML}
   // L2409
   function showHistory() {
     loadHistory();
-    document.getElementById('historyModal').style.display = 'block';
-    setTimeout(() => { import('./search-service.js').then(m => m.setupQuickFilters()); }, 100);
+    const histModal = document.getElementById('historyModal');
+    if (histModal) histModal.style.display = 'block';
+    setTimeout(() => { if (typeof setupQuickFilters === 'function') setupQuickFilters(); }, 100);
   }
   // L2420
   function addHistoryItemEventListeners() {
@@ -1919,7 +1920,7 @@ ${patientInfoHTML}
   // L2463 — with checkbox map fix
   function loadReportForEditing(id) {
   const history = loadHistoryData();
-  const item = history.find(item => item.id === id);
+  const item = history.find(item => item.id == id);
   if (!item) return;
   let nameToLoad = item.patientName || '';
   const titles = ['Mr.', 'Mrs.', 'Miss', 'Master', 'Baby', 'B/O'];
@@ -1980,16 +1981,26 @@ ${patientInfoHTML}
     formatCBCDecimalInputs();
     calculateCBCParameters();
   }
-  document.getElementById('historyModal').style.display = 'none';
-  document.getElementById('reportOutput').style.display = 'none';
-  document.querySelector('.patient-info').style.display = 'grid';
-  document.querySelector('.test-selection').style.display = 'block';
-  document.querySelector('.test-inputs').style.display = 'block';
-  document.querySelector('.cost-section').style.display = 'flex';
-  document.querySelector('.test-stats').style.display = 'block';
-  document.getElementById('printReport').classList.remove('enabled');
-  document.getElementById('savePDF').classList.remove('enabled');
-  document.getElementById('editReport').classList.remove('enabled');
+  const histModal = document.getElementById('historyModal');
+  if (histModal) histModal.style.display = 'none';
+  const reportOut = document.getElementById('reportOutput');
+  if (reportOut) reportOut.style.display = 'none';
+  const patInfo = document.querySelector('.patient-info');
+  if (patInfo) patInfo.style.display = 'grid';
+  const testSel = document.querySelector('.test-selection');
+  if (testSel) testSel.style.display = 'block';
+  const testInp = document.querySelector('.test-inputs');
+  if (testInp) testInp.style.display = 'block';
+  const costSec = document.querySelector('.cost-section');
+  if (costSec) costSec.style.display = 'flex';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'block';
+  const printRep = document.getElementById('printReport');
+  if (printRep) printRep.classList.remove('enabled');
+  const savePdf = document.getElementById('savePDF');
+  if (savePdf) savePdf.classList.remove('enabled');
+  const editRep = document.getElementById('editReport');
+  if (editRep) editRep.classList.remove('enabled');
   toggleGenerateUpdateButton(true, id);
   setFormButtonMode(true);
   validatePatientId();
@@ -2304,18 +2315,27 @@ ${patientInfoHTML}
 
   // L2269 — moved from history/report to ui (v2 cycle-break delta, behaviour identical)
   function showReport(item) {
-  if (item && item.id) {
-    setCurrentPreviewHistoryId(item.id);
-  }
-  document.getElementById('reportOutput').innerHTML = item.reportHTML;
-  document.getElementById('reportOutput').style.display = 'block';
-  document.querySelector('.test-inputs').style.display = 'none';
-  document.querySelector('.patient-info').style.display = 'none';
-  document.querySelector('.test-selection').style.display = 'none';
-  document.querySelector('.cost-section').style.display = 'none';
-  document.querySelector('.test-stats').style.display = 'none';
-  setPreviewButtonMode();
-  document.getElementById('historyModal').style.display = 'none';
+    if (item && item.id) {
+      setCurrentPreviewHistoryId(item.id);
+    }
+    const reportOut = document.getElementById('reportOutput');
+    if (reportOut) {
+      reportOut.innerHTML = item.reportHTML;
+      reportOut.style.display = 'block';
+    }
+    const testInp = document.querySelector('.test-inputs');
+    if (testInp) testInp.style.display = 'none';
+    const patInfo = document.querySelector('.patient-info');
+    if (patInfo) patInfo.style.display = 'none';
+    const testSel = document.querySelector('.test-selection');
+    if (testSel) testSel.style.display = 'none';
+    const costSec = document.querySelector('.cost-section');
+    if (costSec) costSec.style.display = 'none';
+    const testStats = document.querySelector('.test-stats');
+    if (testStats) testStats.style.display = 'none';
+    setPreviewButtonMode();
+    const histModal = document.getElementById('historyModal');
+    if (histModal) histModal.style.display = 'none';
   }
   function hideReportShowForm(isEditMode = false) {
   document.getElementById('reportOutput').style.display = 'none';

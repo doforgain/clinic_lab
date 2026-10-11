@@ -167,7 +167,8 @@ export function submitHistoryPassword() {
 // L2409
 export function showHistory() {
   loadHistory();
-  document.getElementById('historyModal').style.display = 'block';
+  const histModal = document.getElementById('historyModal');
+  if (histModal) histModal.style.display = 'block';
   setTimeout(() => { import('./search-service.js').then(m => m.setupQuickFilters()); }, 100);
 }
 
@@ -208,7 +209,7 @@ export function editReportCost(id) {
 // L2463 — with checkbox map fix
 export function loadReportForEditing(id) {
   const history = loadHistoryData();
-  const item = history.find(item => item.id === id);
+  const item = history.find(item => item.id == id);
   if (!item) return;
   let nameToLoad = item.patientName || '';
   const titles = ['Mr.', 'Mrs.', 'Miss', 'Master', 'Baby', 'B/O'];
@@ -269,16 +270,26 @@ export function loadReportForEditing(id) {
     formatCBCDecimalInputs();
     calculateCBCParameters();
   }
-  document.getElementById('historyModal').style.display = 'none';
-  document.getElementById('reportOutput').style.display = 'none';
-  document.querySelector('.patient-info').style.display = 'grid';
-  document.querySelector('.test-selection').style.display = 'block';
-  document.querySelector('.test-inputs').style.display = 'block';
-  document.querySelector('.cost-section').style.display = 'flex';
-  document.querySelector('.test-stats').style.display = 'block';
-  document.getElementById('printReport').classList.remove('enabled');
-  document.getElementById('savePDF').classList.remove('enabled');
-  document.getElementById('editReport').classList.remove('enabled');
+  const histModal = document.getElementById('historyModal');
+  if (histModal) histModal.style.display = 'none';
+  const reportOut = document.getElementById('reportOutput');
+  if (reportOut) reportOut.style.display = 'none';
+  const patInfo = document.querySelector('.patient-info');
+  if (patInfo) patInfo.style.display = 'grid';
+  const testSel = document.querySelector('.test-selection');
+  if (testSel) testSel.style.display = 'block';
+  const testInp = document.querySelector('.test-inputs');
+  if (testInp) testInp.style.display = 'block';
+  const costSec = document.querySelector('.cost-section');
+  if (costSec) costSec.style.display = 'flex';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'block';
+  const printRep = document.getElementById('printReport');
+  if (printRep) printRep.classList.remove('enabled');
+  const savePdf = document.getElementById('savePDF');
+  if (savePdf) savePdf.classList.remove('enabled');
+  const editRep = document.getElementById('editReport');
+  if (editRep) editRep.classList.remove('enabled');
   toggleGenerateUpdateButton(true, id);
   setFormButtonMode(true);
   validatePatientId();
