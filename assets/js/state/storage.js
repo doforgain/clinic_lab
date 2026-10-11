@@ -86,9 +86,17 @@ export async function deleteReportFromCloud(id) {
 }
 
 let isSyncing = false;
-export async function syncReportsFromCloud(callbacks = {}) {
+export async function syncReportsFromCloud(callbacks = {}, retryCount = 0) {
   const client = getSupabaseClient();
-  if (!client || isSyncing) return;
+  if (!client) {
+    if (retryCount < 10) {
+      setTimeout(() => syncReportsFromCloud(callbacks, retryCount + 1), 400);
+    } else {
+      updateCloudStatusBadge('offline', '🟡 Local Mode');
+    }
+    return;
+  }
+  if (isSyncing) return;
   isSyncing = true;
   try {
     const { data, error } = await client
@@ -127,7 +135,9 @@ export async function syncReportsFromCloud(callbacks = {}) {
         setGlobalSerial(maxSerial);
       }
 
-      if (callbacks.onUpdate) callbacks.onUpdate();
+      if (callbacks.onUpdate) {
+        try { callbacks.onUpdate(); } catch (cbErr) { console.warn('Sync onUpdate non-critical warning:', cbErr); }
+      }
     }
   } catch (err) {
     console.warn('Error during cloud sync:', err);
@@ -137,9 +147,14 @@ export async function syncReportsFromCloud(callbacks = {}) {
   }
 }
 
-export function initRealtimeSync(callbacks = {}) {
+export function initRealtimeSync(callbacks = {}, retryCount = 0) {
   const client = getSupabaseClient();
-  if (!client) return;
+  if (!client) {
+    if (retryCount < 10) {
+      setTimeout(() => initRealtimeSync(callbacks, retryCount + 1), 400);
+    }
+    return;
+  }
   try {
     client
       .channel('public:lab_reports')

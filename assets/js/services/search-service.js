@@ -78,6 +78,7 @@ export function updateSearchSummary(filteredCount, totalCount, searchStats) {
   try {
     const summaryElement = document.getElementById('searchSummary');
     const activeFiltersElement = document.getElementById('activeFilters');
+    if (!summaryElement || !activeFiltersElement) return;
     const activeFilters = getActiveFilters();
     if (activeFilters.length > 0 || filteredCount < totalCount) {
       summaryElement.style.display = 'block';

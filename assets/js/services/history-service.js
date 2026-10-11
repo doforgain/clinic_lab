@@ -94,6 +94,7 @@ export function loadHistory(filters = null) {
   const merged = getCurrentFilters();
   const history = loadHistoryData();
   const historyList = document.getElementById('historyList');
+  if (!historyList) return;
   const filteredHistory = applyAdvancedFilters(history, merged);
   const searchStats = calculateSearchStatistics(filteredHistory, merged);
   updateSearchSummary(filteredHistory.length, history.length, searchStats);

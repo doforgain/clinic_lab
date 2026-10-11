@@ -254,9 +254,17 @@
   }
 
   let isSyncing = false;
-  async function syncReportsFromCloud() {
+  async function syncReportsFromCloud(retryCount = 0) {
     const client = getSupabaseClient();
-    if (!client || isSyncing) return;
+    if (!client) {
+      if (retryCount < 10) {
+        setTimeout(() => syncReportsFromCloud(retryCount + 1), 400);
+      } else {
+        updateCloudStatusBadge('offline', '🟡 Local Mode');
+      }
+      return;
+    }
+    if (isSyncing) return;
     isSyncing = true;
     try {
       const { data, error } = await client
@@ -300,11 +308,15 @@
           setGlobalSerial(maxSerial);
         }
 
-        // Refresh UI
-        if (typeof loadHistory === 'function') loadHistory();
-        if (typeof updateTodayReportCount === 'function') updateTodayReportCount();
-        if (typeof updateTodayTotal === 'function') updateTodayTotal();
-        if (typeof updateTestStats === 'function') updateTestStats();
+        // Refresh UI safely without interrupting sync
+        try {
+          if (document.getElementById('historyList') && typeof loadHistory === 'function') loadHistory();
+          if (document.getElementById('todayTestCount') && typeof updateTodayReportCount === 'function') updateTodayReportCount();
+          if (document.getElementById('todayTotal') && typeof updateTodayTotal === 'function') updateTodayTotal();
+          if (document.getElementById('todayCBC') && typeof updateTestStats === 'function') updateTestStats();
+        } catch (uiErr) {
+          console.warn('UI refresh non-critical warning:', uiErr);
+        }
       }
     } catch (err) {
       console.warn('Error during cloud sync:', err);
@@ -314,9 +326,14 @@
     }
   }
 
-  function initRealtimeSync() {
+  function initRealtimeSync(retryCount = 0) {
     const client = getSupabaseClient();
-    if (!client) return;
+    if (!client) {
+      if (retryCount < 10) {
+        setTimeout(() => initRealtimeSync(retryCount + 1), 400);
+      }
+      return;
+    }
     try {
       client
         .channel('public:lab_reports')
@@ -1122,6 +1139,7 @@
   try {
     const summaryElement = document.getElementById('searchSummary');
     const activeFiltersElement = document.getElementById('activeFilters');
+    if (!summaryElement || !activeFiltersElement) return;
     const activeFilters = getActiveFilters();
     if (activeFilters.length > 0 || filteredCount < totalCount) {
       summaryElement.style.display = 'block';
@@ -1803,11 +1821,12 @@ ${patientInfoHTML}
   }
   // L2042
   function loadHistory(filters = null) {
+  const historyList = document.getElementById('historyList');
+  if (!historyList) return;
   const currentFilters = getCurrentFilters();
   if (filters) setCurrentFilters(filters);
   const merged = getCurrentFilters();
   const history = loadHistoryData();
-  const historyList = document.getElementById('historyList');
   const filteredHistory = applyAdvancedFilters(history, merged);
   const searchStats = calculateSearchStatistics(filteredHistory, merged);
   updateSearchSummary(filteredHistory.length, history.length, searchStats);
