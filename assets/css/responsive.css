@@ -96,6 +96,33 @@
             }
         }
 
+        /* Tablet intermediate breakpoint (769px-992px): gradual 2-col collapse instead of abrupt mobile snap */
+        @media (min-width: 769px) and (max-width: 992px) {
+            .patient-info {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .test-options {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .search-filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stats-panels-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-inventory-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
         @media (max-width: 480px) {
             .test-options {
                 grid-template-columns: 1fr;

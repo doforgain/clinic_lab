@@ -26,20 +26,26 @@ export function autoUpdatePatientTitle() {
 }
 
 // L988
+function setSectionVisibility(id, visible, showDisplay = 'block') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('is-hidden', !visible);
+  el.style.display = visible ? showDisplay : 'none';
+}
 export function toggleTestInputs() {
-  document.getElementById('cbcInputs').style.display = document.getElementById('testCBC').checked ? 'block' : 'none';
-  document.getElementById('esrInputs').style.display = document.getElementById('testESR').checked ? 'block' : 'none';
-  document.getElementById('typhiInputs').style.display = document.getElementById('testTyphi').checked ? 'block' : 'none';
-  document.getElementById('dengueInputs').style.display = document.getElementById('testDengue').checked ? 'block' : 'none';
-  document.getElementById('malariaInputs').style.display = document.getElementById('testMalaria').checked ? 'block' : 'none';
-  document.getElementById('widalInputs').style.display = document.getElementById('testWidal').checked ? 'block' : 'none';
-  document.getElementById('bloodGroupInputs').style.display = document.getElementById('testBloodGroup').checked ? 'block' : 'none';
-  document.getElementById('bilirubinInputs').style.display = document.getElementById('testBilirubin').checked ? 'block' : 'none';
-  document.getElementById('crpInputs').style.display = document.getElementById('testCRP').checked ? 'block' : 'none';
+  setSectionVisibility('cbcInputs', document.getElementById('testCBC').checked);
+  setSectionVisibility('esrInputs', document.getElementById('testESR').checked);
+  setSectionVisibility('typhiInputs', document.getElementById('testTyphi').checked);
+  setSectionVisibility('dengueInputs', document.getElementById('testDengue').checked);
+  setSectionVisibility('malariaInputs', document.getElementById('testMalaria').checked);
+  setSectionVisibility('widalInputs', document.getElementById('testWidal').checked);
+  setSectionVisibility('bloodGroupInputs', document.getElementById('testBloodGroup').checked);
+  setSectionVisibility('bilirubinInputs', document.getElementById('testBilirubin').checked);
+  setSectionVisibility('crpInputs', document.getElementById('testCRP').checked);
   const isTyphiPositive = document.getElementById('typhiResult').value === 'Positive';
-  document.getElementById('typhiSubtypeContainer').style.display = (document.getElementById('testTyphi').checked && isTyphiPositive) ? 'block' : 'none';
+  setSectionVisibility('typhiSubtypeContainer', (document.getElementById('testTyphi').checked && isTyphiPositive));
   const isMalariaPositive = document.getElementById('malariaResult').value === 'Positive';
-  document.getElementById('malariaSubtypeContainer').style.display = (document.getElementById('testMalaria').checked && isMalariaPositive) ? 'block' : 'none';
+  setSectionVisibility('malariaSubtypeContainer', (document.getElementById('testMalaria').checked && isMalariaPositive));
 }
 
 export function setPreviewButtonMode() {
@@ -54,8 +60,9 @@ export function setPreviewButtonMode() {
   const statisticsBtn = document.getElementById('statisticsBtn');
 
   if (generateBtn) generateBtn.style.display = 'none';
-  if (updateBtn) updateBtn.style.display = 'none';
+  if (updateBtn) { updateBtn.classList.add('is-hidden'); updateBtn.style.display = 'none'; }
   if (editBtn) {
+    editBtn.classList.remove('is-hidden');
     editBtn.style.display = 'inline-block';
     editBtn.classList.add('enabled');
   }
@@ -79,13 +86,14 @@ export function setFormButtonMode(isEditMode = false) {
 
   if (isEditMode) {
     if (generateBtn) generateBtn.style.display = 'none';
-    if (updateBtn) updateBtn.style.display = 'inline-block';
+    if (updateBtn) { updateBtn.classList.remove('is-hidden'); updateBtn.style.display = 'inline-block'; }
   } else {
     if (generateBtn) generateBtn.style.display = 'inline-block';
-    if (updateBtn) updateBtn.style.display = 'none';
+    if (updateBtn) { updateBtn.classList.add('is-hidden'); updateBtn.style.display = 'none'; }
   }
 
   if (editBtn) {
+    editBtn.classList.add('is-hidden');
     editBtn.style.display = 'none';
     editBtn.classList.remove('enabled');
   }

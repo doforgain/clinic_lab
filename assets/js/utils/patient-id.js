@@ -34,9 +34,11 @@ export function validatePatientId(excludeId = null) {
   const patientId = document.getElementById('patientId').value;
   const warningElement = document.getElementById('patientIdWarning');
   if (isPatientIdExists(patientId, id)) {
+    warningElement.classList.remove('is-hidden');
     warningElement.style.display = 'block';
     return false;
   } else {
+    warningElement.classList.add('is-hidden');
     warningElement.style.display = 'none';
     return true;
   }

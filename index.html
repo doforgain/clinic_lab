@@ -566,6 +566,9 @@
 
     <!-- Landing Page Interactions & Auth -->
     <script>
+        // Canonical source: assets/js/config/auth-config.js (STAFF_USERNAME / STAFF_PASSWORD / AUTH_SESSION_KEY).
+        // Duplicated here intentionally as plain constants because file:/// blocks ES module
+        // imports in classic scripts — keep these three values in sync with auth-config.js.
         const STAFF_USERNAME = 'staff124';
         const STAFF_PASSWORD = 'admin124';
         const AUTH_SESSION_KEY = 'shc_auth_session';

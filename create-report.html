@@ -83,7 +83,7 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="guardianName">Relation / Guardian <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <label for="guardianName">Relation / Guardian <small class="optional-note">(Optional)</small></label>
                 <div style="display: flex; gap: 6px;">
                     <select id="relationType" style="width: 85px;">
                         <option value="S/O">S/O</option>
@@ -117,15 +117,15 @@
             <div class="form-group">
                 <label for="patientId" class="required">Patient ID</label>
                 <input type="text" id="patientId" required>
-                <small class="patient-id-warning" id="patientIdWarning" style="display: none; color: red;">This Patient
+                <small class="patient-id-warning is-hidden" id="patientIdWarning">This Patient
                     ID already exists!</small>
             </div>
             <div class="form-group">
-                <label for="patientPhone">Contact No. <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <label for="patientPhone">Contact No. <small class="optional-note">(Optional)</small></label>
                 <input type="tel" id="patientPhone" placeholder="Mobile / Phone Number">
             </div>
             <div class="form-group">
-                <label for="patientCity">City / Locality <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <label for="patientCity">City / Locality <small class="optional-note">(Optional)</small></label>
                 <input type="text" id="patientCity" placeholder="City or Town">
             </div>
             <div class="form-group">
@@ -145,7 +145,7 @@
                 <input type="text" id="referredBy" value="SELF" placeholder="Doctor's Name">
             </div>
             <div class="form-group">
-                <label for="fastingStatus">Fasting Status <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <label for="fastingStatus">Fasting Status <small class="optional-note">(Optional)</small></label>
                 <select id="fastingStatus">
                     <option value="">Not Specified</option>
                     <option value="Random">Random</option>
@@ -260,7 +260,7 @@
                 </div>
             </div>
 
-            <div id="esrInputs" class="test-section" style="display: none;">
+            <div id="esrInputs" class="test-section is-hidden">
                 <h3>ESR Test Parameter</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -270,7 +270,7 @@
                 </div>
             </div>
 
-            <div id="typhiInputs" class="test-section" style="display: none;">
+            <div id="typhiInputs" class="test-section is-hidden">
                 <h3>Typhoid Test</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -280,7 +280,7 @@
                             <option value="Positive">Positive</option>
                         </select>
                     </div>
-                    <div class="form-group" id="typhiSubtypeContainer" style="display: none;">
+                    <div class="form-group is-hidden" id="typhiSubtypeContainer">
                         <label for="typhiSubtype">Typhoid Subtype</label>
                         <select id="typhiSubtype">
                             <option value="IgM">IgM</option>
@@ -291,7 +291,7 @@
                 </div>
             </div>
 
-            <div id="dengueInputs" class="test-section" style="display: none;">
+            <div id="dengueInputs" class="test-section is-hidden">
                 <h3>Dengue Test</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -304,7 +304,7 @@
                 </div>
             </div>
 
-            <div id="malariaInputs" class="test-section" style="display: none;">
+            <div id="malariaInputs" class="test-section is-hidden">
                 <h3>Malaria Parasite Test</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -314,7 +314,7 @@
                             <option value="Positive">Positive</option>
                         </select>
                     </div>
-                    <div class="form-group" id="malariaSubtypeContainer" style="display: none;">
+                    <div class="form-group is-hidden" id="malariaSubtypeContainer">
                         <label for="malariaSubtype">Malaria Subtype</label>
                         <select id="malariaSubtype">
                             <option value="Pf">Pf</option>
@@ -325,7 +325,7 @@
                 </div>
             </div>
 
-            <div id="widalInputs" class="test-section" style="display: none;">
+            <div id="widalInputs" class="test-section is-hidden">
                 <h3>Widal Test Parameters</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -347,7 +347,7 @@
                 </div>
             </div>
 
-            <div id="bloodGroupInputs" class="test-section" style="display: none;">
+            <div id="bloodGroupInputs" class="test-section is-hidden">
                 <h3>Blood Group Test</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -367,7 +367,7 @@
                 </div>
             </div>
 
-            <div id="bilirubinInputs" class="test-section" style="display: none;">
+            <div id="bilirubinInputs" class="test-section is-hidden">
                 <h3>Bilirubin Test Parameters</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -380,13 +380,12 @@
                     </div>
                     <div class="form-group">
                         <label for="indirectBilirubin">Indirect Bilirubin (mg/dL)</label>
-                        <input type="number" id="indirectBilirubin" step="0.1" min="0" max="50" readonly
-                            style="background-color: #f5f5f5;">
+                            <input type="number" id="indirectBilirubin" step="0.1" min="0" max="50" readonly class="readonly-input">
                     </div>
                 </div>
             </div>
 
-            <div id="crpInputs" class="test-section" style="display: none;">
+            <div id="crpInputs" class="test-section is-hidden">
                 <h3>CRP Test Parameter</h3>
                 <div class="test-fields">
                     <div class="form-group">
@@ -436,8 +435,8 @@
 
         <div class="buttons">
             <button id="generateReport">Generate Report</button>
-            <button id="updateReport" style="display: none;">Update Report</button>
-            <button id="editReport" style="display: none;">Edit Report</button>
+            <button id="updateReport" class="is-hidden">Update Report</button>
+            <button id="editReport" class="is-hidden">Edit Report</button>
             <button id="printReport">Print Report</button>
             <button id="savePDF">Save as PDF</button>
             <button id="newReport">New Report</button>
