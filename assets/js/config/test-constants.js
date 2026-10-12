@@ -31,7 +31,12 @@ export const WIDAL_PARAMS = [
 export const WIDAL_CUTOFF = '< 1:80';
 export function isWidalPositive(value) {
   if (!value) return false;
-  return value.includes('1:160') || value.includes('1:320') || value.includes('1:640') || value.includes('1:1280');
+  const str = String(value).trim();
+  const positiveTitres = ['1:160', '1:320', '1:640', '1:1280'];
+  return positiveTitres.some(titre => {
+    const regex = new RegExp(`(^|[^0-9])${titre.replace(':', '\\:')}([^0-9]|$)`);
+    return regex.test(str);
+  });
 }
 
 // index.html L1962-1966
@@ -51,19 +56,34 @@ export const BILIRUBIN_REF = {
 
 // index.html L1917-1935 CRP tiers
 export function crpTier(numValue) {
+  if (typeof numValue !== 'number' || Number.isNaN(numValue)) {
+    return { statusClass: '', refRange: '<10 (Normal)' };
+  }
   if (numValue < 10) return { statusClass: 'normal', refRange: '<10 (Normal)' };
   if (numValue < 20) return { statusClass: 'elevated', refRange: '10-20 (Elevated)' };
-  if (numValue < 50) return { statusClass: 'high', refRange: '20-50 (High)' };
+  if (numValue <= 50) return { statusClass: 'high', refRange: '20-50 (High)' };
   return { statusClass: 'veryhigh', refRange: '>50 (Very High)' };
 }
 
 export function refRangeFor(param, patientGender) {
+  if (!param) return '';
   if (param.ref) return param.ref;
-  return patientGender === 'Male' ? param.maleRef : param.femaleRef;
+  const g = String(patientGender || '').trim().toLowerCase();
+  if (g === 'male' || g === 'm') return param.maleRef || '';
+  if (g === 'female' || g === 'f') return param.femaleRef || '';
+  if (param.maleRef && param.femaleRef) {
+    const min = param.femaleRef.split('-')[0];
+    const max = param.maleRef.split('-')[1];
+    return `${min}-${max}`;
+  }
+  return param.maleRef || param.femaleRef || '';
 }
 
 export function isAbnormalByRange(value, rangeStr) {
-  const [min, max] = rangeStr.split('-').map(Number);
+  if (!rangeStr || value === '' || value === null || value === undefined) return false;
   const v = parseFloat(value);
+  if (Number.isNaN(v)) return false;
+  const [min, max] = rangeStr.split('-').map(Number);
+  if (Number.isNaN(min) || Number.isNaN(max)) return false;
   return v < min || v > max;
 }

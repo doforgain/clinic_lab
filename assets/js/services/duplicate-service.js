@@ -1,6 +1,6 @@
-/* Extracted from index.html L591-646. Moved out of patient-id (v1 fix). */
 import { TEST_TYPES } from '../config/test-constants.js';
 import { formatTimeDifference } from '../utils/date-helpers.js';
+import { loadHistoryData } from '../state/storage.js';
 
 export function areTestsIdentical(tests1, tests2) {
   for (const testType of TEST_TYPES) {
@@ -11,14 +11,15 @@ export function areTestsIdentical(tests1, tests2) {
 
 export function checkDuplicatePatient(patientName, patientAge, patientGender, tests) {
   try {
-    const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+    const history = loadHistoryData();
     const now = new Date();
     const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
     const recentReports = history
       .filter(item => {
         const reportTime = new Date(item.timestamp || item.reportedDate);
         return (
-          item.patientName.toLowerCase() === patientName.toLowerCase() &&
+          item &&
+          String(item.patientName || '').toLowerCase() === String(patientName || '').toLowerCase() &&
           item.patientAge === patientAge &&
           item.patientGender === patientGender &&
           (reportTime > thirtyMinutesAgo || history.length - history.slice().reverse().findIndex(r => r === item) <= 10)

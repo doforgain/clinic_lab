@@ -1,10 +1,15 @@
 /* ==========================================================================
    SHAMS HEALTH CARE - INVOICE SERVICE & INTERACTION HANDLER
+   --------------------------------------------------------------------------
+   ARCHITECTURE NOTE (B13):
+   Invoices are ephemeral, stateless views rendered on-the-fly from underlying
+   lab report records (loaded via loadHistoryData()). Line-item customizations
+   and temporary adjustments are not persisted to cloud storage.
    ========================================================================== */
 
 import { loadHistoryData } from '../state/storage.js';
 
-export const TEST_CATALOG = {
+export const INVOICE_TEST_CATALOG = {
   cbc: { name: 'Complete Blood Count (CBC / Hemogram)', sample: 'EDTA Whole Blood', rate: 200 },
   esr: { name: 'Erythrocyte Sedimentation Rate (ESR)', sample: 'EDTA Whole Blood', rate: 100 },
   typhi: { name: 'Typhoid (Typhi-dot) Rapid Antibody Test', sample: 'Serum / Whole Blood', rate: 100 },
@@ -15,6 +20,7 @@ export const TEST_CATALOG = {
   bilirubin: { name: 'Serum Bilirubin Profile (Total, Direct, Indirect)', sample: 'Serum', rate: 200 },
   crp: { name: 'C-Reactive Protein (CRP) Quantitative', sample: 'Serum', rate: 250 }
 };
+export const TEST_CATALOG = INVOICE_TEST_CATALOG;
 
 export function numberToIndianWords(num) {
   const n = Math.floor(Math.abs(Number(num) || 0));
@@ -97,6 +103,7 @@ export function initInvoicePage() {
   }
 
   activeReport = report;
+  bindInvoiceTableEvents();
   renderInvoice(report);
 }
 
@@ -154,8 +161,8 @@ export function renderInvoice(report) {
 
     if (report.tests && typeof report.tests === 'object') {
       Object.keys(report.tests).forEach(testKey => {
-        if (report.tests[testKey] === true && TEST_CATALOG[testKey]) {
-          selectedTests.push(TEST_CATALOG[testKey]);
+        if (report.tests[testKey] === true && INVOICE_TEST_CATALOG[testKey]) {
+          selectedTests.push(INVOICE_TEST_CATALOG[testKey]);
         }
       });
     }
@@ -187,19 +194,22 @@ export function renderInvoice(report) {
     const netCost = report.testCost && report.testCost !== 'Not specified' ? (parseFloat(report.testCost) || subtotal) : subtotal;
     const discount = Math.max(0, subtotal - netCost);
 
-    updateTotals(subtotal, discount, 0);
-    bindTableEvents();
+    updateInvoiceTotals(subtotal, discount, 0);
   }
 }
 
-export function bindTableEvents() {
+let _invoiceEventsBound = false;
+
+export function bindInvoiceTableEvents() {
+  if (_invoiceEventsBound) return;
   const tbody = document.getElementById('invTableBody');
   if (!tbody) return;
+  _invoiceEventsBound = true;
 
   // Handle amount and rate editing
   tbody.addEventListener('input', function (e) {
     if (e.target.classList.contains('td-amount-val') || e.target.classList.contains('td-rate-val')) {
-      recalculateFromTable();
+      recalculateInvoiceFromTable();
     }
   });
 
@@ -209,8 +219,8 @@ export function bindTableEvents() {
       const row = e.target.closest('tr');
       if (row) {
         row.remove();
-        reindexRows();
-        recalculateFromTable();
+        reindexInvoiceRows();
+        recalculateInvoiceFromTable();
       }
     }
   });
@@ -219,7 +229,7 @@ export function bindTableEvents() {
   const discountElem = document.getElementById('invDiscount');
   if (discountElem) {
     discountElem.oninput = () => {
-      recalculateFromTable();
+      recalculateInvoiceFromTable();
     };
   }
 
@@ -227,7 +237,7 @@ export function bindTableEvents() {
   const taxElem = document.getElementById('invTax');
   if (taxElem) {
     taxElem.oninput = () => {
-      recalculateFromTable();
+      recalculateInvoiceFromTable();
     };
   }
 
@@ -259,10 +269,10 @@ export function addInvoiceRow() {
     <td class="td-action no-print"><button type="button" class="item-delete-btn" title="Delete row">✕</button></td>
   `;
   tbody.appendChild(tr);
-  recalculateFromTable();
+  recalculateInvoiceFromTable();
 }
 
-function reindexRows() {
+function reindexInvoiceRows() {
   const rows = document.querySelectorAll('#invTableBody tr');
   rows.forEach((row, i) => {
     const numCell = row.querySelector('.td-num');
@@ -270,7 +280,7 @@ function reindexRows() {
   });
 }
 
-function getTableSubtotal() {
+function getInvoiceTableSubtotal() {
   let subtotal = 0;
   const amountCells = document.querySelectorAll('#invTableBody .td-amount-val');
   amountCells.forEach(cell => {
@@ -280,17 +290,17 @@ function getTableSubtotal() {
   return subtotal;
 }
 
-function recalculateFromTable() {
-  const subtotal = getTableSubtotal();
+function recalculateInvoiceFromTable() {
+  const subtotal = getInvoiceTableSubtotal();
   const discountElem = document.getElementById('invDiscount');
   const discount = discountElem ? (parseFloat(discountElem.innerText.replace(/[^0-9.-]/g, '')) || 0) : 0;
   const taxElem = document.getElementById('invTax');
   const tax = taxElem ? (parseFloat(taxElem.innerText.replace(/[^0-9.-]/g, '')) || 0) : 0;
 
-  updateTotals(subtotal, discount, tax);
+  updateInvoiceTotals(subtotal, discount, tax);
 }
 
-function updateTotals(subtotal, discount, tax = 0) {
+function updateInvoiceTotals(subtotal, discount, tax = 0) {
   const taxable = Math.max(0, subtotal - discount);
   const net = taxable + tax;
 
@@ -322,6 +332,11 @@ function updateTotals(subtotal, discount, tax = 0) {
   const wordsElem = document.getElementById('invAmountInWords');
   if (wordsElem) wordsElem.innerText = numberToIndianWords(net);
 }
+
+// Backward-compatibility aliases for modular consumers
+export const bindTableEvents = bindInvoiceTableEvents;
+export const recalculateFromTable = recalculateInvoiceFromTable;
+export const updateTotals = updateInvoiceTotals;
 
 function showInvoiceEmptyState(title, message) {
   const sheet = document.getElementById('invoiceSheet');

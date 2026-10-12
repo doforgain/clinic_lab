@@ -1,9 +1,9 @@
-/* Extracted from index.html L1059-1102 + L1272-1288. Totals + collection gate. */
 import { getTodayDate } from '../utils/date-helpers.js';
 import { COLLECTION_PASSWORD } from '../config/auth-config.js';
+import { loadHistoryData } from '../state/storage.js';
 
 function readHistory() {
-  return JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+  return loadHistoryData();
 }
 
 function sumWhere(pred) {
@@ -13,7 +13,7 @@ function sumWhere(pred) {
       total += parseFloat(item.testCost);
     }
   });
-  return total;
+  return Number(total.toFixed(2));
 }
 
 // L1068
@@ -40,17 +40,17 @@ export function updateTodayTotal() {
   const total = getTodayTotal();
   const cash = getTodayCashTotal();
   const online = getTodayOnlineTotal();
-  if (totalEl) totalEl.innerText = `₹${total}`;
+  if (totalEl) totalEl.innerText = `₹${total.toFixed(2)}`;
   const cashEl = document.getElementById('todayCashTotal');
-  if (cashEl) cashEl.innerText = `₹${cash}`;
+  if (cashEl) cashEl.innerText = `₹${cash.toFixed(2)}`;
   const onlineEl = document.getElementById('todayOnlineTotal');
-  if (onlineEl) onlineEl.innerText = `₹${online}`;
+  if (onlineEl) onlineEl.innerText = `₹${online.toFixed(2)}`;
 
-  if (dashTotal) dashTotal.innerText = `₹${total}`;
+  if (dashTotal) dashTotal.innerText = `₹${total.toFixed(2)}`;
   const dashCash = document.getElementById('dashTodayCash');
-  if (dashCash) dashCash.innerText = `₹${cash}`;
+  if (dashCash) dashCash.innerText = `₹${cash.toFixed(2)}`;
   const dashOnline = document.getElementById('dashTodayOnline');
-  if (dashOnline) dashOnline.innerText = `₹${online}`;
+  if (dashOnline) dashOnline.innerText = `₹${online.toFixed(2)}`;
 }
 
 // Password modal controls for Today's Collection

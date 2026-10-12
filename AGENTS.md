@@ -47,25 +47,33 @@ The application must execute reliably across two distinct environments:
 - **Source Modules (`assets/js/`)**: Structured into clean ES6 domain modules:
   - `calculators/`: `cbc-calculator.js`, `cost-calculator.js`
   - `config/`: `auth-config.js`, `pricing-config.js`, `supabase-config.js`, `test-constants.js`
-  - `services/`: `duplicate-service.js`, `history-service.js`, `inventory-service.js`, `pdf-service.js`, `report-actions.js`, `report-builder.js`, `search-service.js`, `stats-service.js`
+  - `services/`: `duplicate-service.js`, `history-service.js`, `inventory-service.js`, `invoice-service.js`, `pdf-service.js`, `report-actions.js`, `report-builder.js`, `search-service.js`, `stats-service.js`
   - `state/`: `app-state.js`, `inventory-state.js`, `storage.js`
   - `ui/`: `form-ui.js`
   - `utils/`: `date-helpers.js`, `dom-helpers.js`, `patient-id.js`
+  - `app.js`: Modular application orchestrator and page route initializers
 - **Universal Runtime Bundle (`assets/js/bundle.js`)**:
-  - Self-contained IIFE bundle combining all modules above.
-  - When updating logic in modular source files that affect user-facing execution, ensure `assets/js/bundle.js` is kept in sync.
+  - Self-contained IIFE bundle combining all source modules above.
+  - **Automated Compilation**: Run `node scripts/build-bundle.js` (zero dependencies, executes in <50ms via native Node.js).
+  - **Development Mode**: Run `node scripts/build-bundle.js --watch` to automatically rebuild on file save.
+  - **CI / Parity Check**: Run `node scripts/build-bundle.js --check` to verify that `bundle.js` is strictly in sync with source modules.
+  - **Single Source of Truth**: Always edit the source modules under `assets/js/` and compile with `node scripts/build-bundle.js`. Never hand-edit `bundle.js` directly to prevent module drift.
 
 ### 2.3 CSS Modular Architecture
 Aggregated by `assets/css/style.css` in strict dependency order:
 ```
-variables.css ➔ base.css ➔ components/*.css ➔ modals.css ➔ print.css ➔ responsive.css ➔ notifications.css
+variables.css ➔ base.css ➔ components/*.css ➔ modals.css ➔ print.css ➔ components/invoice.css ➔ responsive.css ➔ notifications.css ➔ components/landing.css
 ```
 - Never write ad-hoc inline styles when an established CSS class exists.
 - Global theme variables (colors, fonts, borders) are defined in `assets/css/variables.css`.
 
 ### 2.4 Cloud Sync & Persistence (`assets/js/state/storage.js`)
-- **Primary Database**: Supabase PostgreSQL table `public.lab_reports`.
-- **Local Fallback**: `localStorage` (`labReports`, `tubeCounts`, `kitInventory`, `globalSerial`).
+- **Dual-Mode Architecture**:
+  - *Offline Local Mode*: Workstations running on `file:///` operate 100% offline using `localStorage` without requiring logins or cloud connectivity.
+  - *Cloud Sync Mode*: Synchronizes `public.lab_reports` when connected and authenticated to Supabase.
+- **Primary Database**: Supabase PostgreSQL table `public.lab_reports` (with Row Level Security enabled).
+- **Workstation-Local Inventory**: Tube counts (`purpleTubeCount`, `redTubeCount`) and rapid test kits (`typhoidKitCount`, `malariaKitCount`) are tracked strictly in `localStorage` per counter workstation to reflect physical bench stock; they are intentionally decoupled from cloud sync.
+- **Stateless Invoice Views**: Invoices (`invoice.html`) are ephemeral printable documents rendered dynamically from `loadHistoryData()` records; line customizations are transient and not cloud-synced.
 - **Tombstone Sync**: Deletions set `is_deleted: true` with a tombstone entry in localStorage (`deletedReportIds`) to guarantee deleted records stay deleted across all synchronized devices.
 
 ---
@@ -83,12 +91,19 @@ variables.css ➔ base.css ➔ components/*.css ➔ modals.css ➔ print.css ➔
 
 ## 🔒 4. Security & Access Control Reference
 
+### 4.1 UI Operational Privacy Locks vs Cryptographic Boundaries
+> ⚠️ **Important Security Model Notice**:  
+> Client-side PINs (`admin1`, `9211`, `admin124`) are **UI operational privacy locks** designed for busy counter workstations to prevent walk-in patients or casual observers from viewing financial receipts and history over the counter. In a zero-build client app running on `file:///`, client PINs are not cryptographic boundaries.  
+> True data protection for cloud synchronization is enforced at the database layer via **Supabase Row Level Security (RLS)** policies (`scripts/supabase-rls-setup.sql`), ensuring unauthenticated network requests cannot dump or tamper with patient health information.
+
 | Feature | Access Level | Default PIN | Source Reference |
 | :--- | :--- | :--- | :--- |
-| **Report History Portal (`history.html`)** | Direct / Instant | *None* | `bundle.js` |
-| **Statistics & Analytics (`statistics.html`)** | Direct / Instant | *None* | `bundle.js` |
-| **Today's Collection (Privacy Toggle)** | PIN Protected | `admin1` | `auth-config.js` (`COLLECTION_PASSWORD`) |
-| **Inventory Stock Quantity Updates** | PIN Protected | `9211` | `auth-config.js` (`INVENTORYUPDATE_PASSWORD`) |
+| **All Internal Pages** (`dashboard.html`, `create-report.html`, `history.html`, `statistics.html`, `invoice.html`) | Staff Session Gate | `STAFF_USERNAME` (`staff124`) / `STAFF_PASSWORD` (`admin124`) | `auth-config.js`, `index.html` (`shc_auth_session`) |
+| **Report History Portal (`history.html`)** | Direct / Instant (Session-Gated) | *None* | `bundle.js` |
+| **Statistics & Analytics (`statistics.html`)** | Direct / Instant (Session-Gated) | *None* | `bundle.js` |
+| **Today's Collection (Privacy Toggle)** | UI Operational Privacy Lock | `admin1` | `auth-config.js` (`COLLECTION_PASSWORD`) |
+| **Inventory Stock Quantity Updates** | UI Operational Privacy Lock | `9211` | `auth-config.js` (`INVENTORYUPDATE_PASSWORD`) |
+
 
 ---
 

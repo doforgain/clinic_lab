@@ -12,17 +12,7 @@
     }
 
     .no-print {
-        display: none;
-    }
-
-    .report-output {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        padding: 0;
-        margin: 0;
-        border: none;
+        display: none !important;
     }
 
     .buttons,
@@ -30,26 +20,35 @@
         display: none !important;
     }
 
+    .container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
     @page {
-        size: A4;
-        margin: 0.1cm 0.8cm 1.1cm 0.8cm;
+        size: A4 portrait;
+        margin: 10mm 12mm 15mm 12mm;
     }
 
     body:not(.invoice-page-body) {
-        width: 21cm;
-        min-height: 29.7cm;
+        width: 100%;
+        min-height: auto;
         font-size: 12pt;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
     .report-output {
-        position: absolute;
+        position: relative;
         left: 0;
         top: 0;
         width: 100%;
-        padding: 0 4px 10px 4px;
-        padding-top: 0px;
+        padding: 0 0 20mm 0;
         margin: 0;
         border: none;
         box-sizing: border-box;

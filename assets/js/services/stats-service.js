@@ -2,12 +2,13 @@
 import { getTodayDate, getCurrentMonthName, formatDisplayDate } from '../utils/date-helpers.js';
 import { getTubeCounts, getKitCounts } from '../state/inventory-state.js';
 import { INVENTORY_PASSWORD } from '../config/auth-config.js';
+import { loadHistoryData } from '../state/storage.js';
 
 // L725
 export function getTodayReportCount() {
-  const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+  const history = loadHistoryData();
   const today = getTodayDate();
-  return history.filter(item => item.reportedDate === today && item.tests && typeof item.tests === 'object').length;
+  return history.filter(item => item && item.reportedDate === today && item.tests && typeof item.tests === 'object').length;
 }
 
 // L2571
@@ -37,7 +38,7 @@ export function calculateSearchStatistics(filteredHistory, filters) {
 
 // L2636
 export function getMonthlyTestStats() {
-  const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+  const history = loadHistoryData();
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
   let totalTests = 0, totalReports = 0;
@@ -45,9 +46,10 @@ export function getMonthlyTestStats() {
   const todayCounts = { ...testCounts };
   const today = getTodayDate();
   history.forEach(item => {
-    if (item.tests && typeof item.tests === 'object') {
-      const reportYear = parseInt(item.reportedDate.split('-')[0]);
-      const reportMonth = parseInt(item.reportedDate.split('-')[1]);
+    if (item && item.tests && typeof item.tests === 'object') {
+      const dateParts = String(item.reportedDate || '').split('-');
+      const reportYear = dateParts.length >= 2 ? parseInt(dateParts[0]) : NaN;
+      const reportMonth = dateParts.length >= 2 ? parseInt(dateParts[1]) : NaN;
       if (reportYear === currentYear && reportMonth === currentMonth) {
         totalReports++;
         for (const test in item.tests) {
@@ -159,7 +161,7 @@ export function submitStatisticsPassword() {
 
 export function renderStatistics() {
   updateTestStats();
-  const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+  const history = loadHistoryData();
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
   const currentMonthName = getCurrentMonthName();
@@ -167,9 +169,10 @@ export function renderStatistics() {
   const testCounts = { cbc: 0, esr: 0, typhi: 0, dengue: 0, malaria: 0, widal: 0, bloodGroup: 0, bilirubin: 0, crp: 0 };
   let purpleTubeUsage = 0, redTubeUsage = 0;
   history.forEach(item => {
-    if (item.tests && typeof item.tests === 'object') {
-      const reportYear = parseInt(item.reportedDate.split('-')[0]);
-      const reportMonth = parseInt(item.reportedDate.split('-')[1]);
+    if (item && item.tests && typeof item.tests === 'object') {
+      const dateParts = String(item.reportedDate || '').split('-');
+      const reportYear = dateParts.length >= 2 ? parseInt(dateParts[0]) : NaN;
+      const reportMonth = dateParts.length >= 2 ? parseInt(dateParts[1]) : NaN;
       if (reportYear === currentYear && reportMonth === currentMonth) {
         monthlyReports++;
         if (item.testCost && item.testCost !== 'Not specified' && !isNaN(parseFloat(item.testCost))) {

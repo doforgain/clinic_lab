@@ -1,16 +1,24 @@
-/* NEW in v2 — consolidates index.html L559,562,565,568 password consts (v1 missed).
- * Legacy values preserved for parity. Recommendation: collapse 3x 'admin1' to single VIEW_PASSWORD. */
+/**
+ * SHAMS HEALTH CARE - OPERATIONAL ACCESS CONFIGURATION
+ * 
+ * IMPORTANT SECURITY NOTE:
+ * These credentials and PINs serve as UI OPERATIONAL PRIVACY LOCKS for single-workstation
+ * clinic workflows (preventing walk-in patients or casual observers from viewing financial 
+ * collections and sensitive history over the counter). They are NOT cryptographic security
+ * boundaries. True data security for cloud synchronization is enforced at the database level 
+ * via Supabase Row-Level Security (RLS) policies.
+ */
 
 export const STAFF_USERNAME = 'staff124';
 export const STAFF_PASSWORD = 'admin124';
 export const AUTH_SESSION_KEY = 'shc_auth_session';
 
-export const LOGIN_PASSWORD = '9211';
 export const INVENTORYUPDATE_PASSWORD = '9211';
 export const HISTORY_PASSWORD = 'admin1';
 export const INVENTORY_PASSWORD = 'admin1';
 export const COLLECTION_PASSWORD = 'admin1';
 
-// Recommended consolidated aliases (use in new code, keep legacy exports for compat)
+// Consolidated aliases for convenience
 export const VIEW_PASSWORD = HISTORY_PASSWORD; // history + stats + collection gates
 export const UPDATE_PASSWORD = INVENTORYUPDATE_PASSWORD;
+

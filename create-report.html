@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHAMS HEALTH CARE - Lab Report Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <script>
         if (!sessionStorage.getItem('shc_auth_session')) {
@@ -33,19 +32,19 @@
 
                 <nav class="header-nav" aria-label="Main Navigation">
                     <a href="dashboard.html" class="nav-tab" id="navDashboard">
-                        <span class="tab-icon">📊</span>
+                        <span class="tab-icon" aria-hidden="true">📊</span>
                         <span class="tab-label">Dashboard</span>
                     </a>
                     <a href="create-report.html" class="nav-tab active" id="navCreateReport">
-                        <span class="tab-icon">📝</span>
+                        <span class="tab-icon" aria-hidden="true">📝</span>
                         <span class="tab-label">Create Report</span>
                     </a>
                     <a href="history.html" class="nav-tab" id="navViewHistory">
-                        <span class="tab-icon">📂</span>
+                        <span class="tab-icon" aria-hidden="true">📂</span>
                         <span class="tab-label">View History</span>
                     </a>
                     <a href="statistics.html" class="nav-tab" id="navStatistics">
-                        <span class="tab-icon">📈</span>
+                        <span class="tab-icon" aria-hidden="true">📈</span>
                         <span class="tab-label">Statistics</span>
                     </a>
                 </nav>

@@ -1,12 +1,6 @@
 /* Extracted from index.html L898-959. Pure cores + legacy DOM wrappers (identical behaviour). */
 
-// Pure: total - direct
-export function calcIndirectBilirubin(total, direct) {
-  const t = parseFloat(total) || 0;
-  const d = parseFloat(direct) || 0;
-  const indirect = t - d;
-  return indirect >= 0 ? Number(indirect.toFixed(2)) : null;
-}
+
 
 // DOM wrapper L898-904
 export function calculateIndirectBilirubin() {
@@ -57,8 +51,8 @@ export function formatPlateletValue(val) {
     return str;
   }
 
-  // If user entered without decimal (e.g. 145 -> 1.45, 83 -> 0.83, 250 -> 2.50)
-  if (num >= 10000) {
+  // If user entered without decimal (e.g. 5000 -> 0.05, 145 -> 1.45, 83 -> 0.83, 250 -> 2.50)
+  if (num >= 1000) {
     return (num / 100000).toFixed(2);
   } else if (num >= 10) {
     return (num / 100).toFixed(2);
@@ -81,22 +75,7 @@ export function formatCBCDecimalInputs() {
   }
 }
 
-export function absoluteCount(tlc, pct) {
-  if (!(tlc > 0) || !(pct > 0)) return null;
-  return Math.round((tlc * pct) / 100);
-}
-export function pcvFromRbcMcv(rbcCount, mcv) {
-  if (rbcCount > 0 && mcv > 0) return Number(((rbcCount * mcv) / 10).toFixed(1));
-  return null;
-}
-export function mchFromHbRbc(hb, rbc) {
-  if (hb > 0 && rbc > 0) return Number(((hb / rbc) * 10).toFixed(1));
-  return null;
-}
-export function mchcFromHbPcv(hb, pcv) {
-  if (hb > 0 && pcv > 0) return Number(((hb / pcv) * 100).toFixed(1));
-  return null;
-}
+
 
 // DOM wrapper L907-959 — byte-behaviour identical to legacy
 export function calculateCBCParameters() {

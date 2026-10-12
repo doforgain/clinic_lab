@@ -211,58 +211,70 @@ Navigate to `http://localhost:8080` in your web browser.
 
 ---
 
-## ☁️ Cloud Synchronization (Supabase)
+## ☁️ Cloud Synchronization (Supabase Dual-Mode)
 
-The system automatically syncs patient records and daily reports to the cloud so all computers in the laboratory share the same live database.
+The application supports a **Dual-Mode Architecture**:
+1. **Offline Local Mode**: On single clinic workstations running locally via `file:///`, all reports, records, search, and printing function 100% offline without requiring internet or database logins (stored safely in `localStorage`).
+2. **Cloud Sync Mode**: When connected to Supabase, patient records automatically synchronize across clinic computers in real-time.
 
-### Supabase Database Schema
-The application communicates with a Supabase PostgreSQL table named `lab_reports`. If connecting a custom Supabase instance, create the table using the following SQL:
+### Supabase Database Schema & Tightened RLS
+The application communicates with a Supabase PostgreSQL table named `lab_reports`. To deploy or harden your database with Row Level Security (preventing unauthenticated data access), execute the setup script at [`scripts/supabase-rls-setup.sql`](file:///scripts/supabase-rls-setup.sql) in your Supabase SQL Editor:
 
 ```sql
-CREATE TABLE public.lab_reports (
+CREATE TABLE IF NOT EXISTS public.lab_reports (
     id TEXT PRIMARY KEY,
+    serial INTEGER,
     patient_id TEXT,
     patient_name TEXT,
+    reported_date TEXT,
+    is_deleted BOOLEAN DEFAULT FALSE,
+    data JSONB NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
-    report_data JSONB NOT NULL,
-    is_deleted BOOLEAN DEFAULT FALSE
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );
 
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.lab_reports ENABLE ROW LEVEL SECURITY;
 
--- Allow read/write for authenticated and anon roles (or configure custom clinic policies)
-CREATE POLICY "Allow public read-write for clinic app"
+-- Restrict read/write to authenticated clinic staff (blocks unauthenticated curl/API dumps)
+CREATE POLICY "Clinic staff authenticated full access"
     ON public.lab_reports
     FOR ALL
+    TO authenticated
     USING (true)
     WITH CHECK (true);
 ```
 
-### Configuration
-Connection settings are managed in [assets/js/config/supabase-config.js](file:///assets/js/config/supabase-config.js):
+### Rotating Publishable Keys & API Settings
+If your publishable anon key was ever exposed in public repositories:
+1. Navigate to **Supabase Dashboard &rarr; Project Settings &rarr; API**.
+2. Rotate your API keys.
+3. Update [assets/js/config/supabase-config.js](file:///assets/js/config/supabase-config.js):
 ```javascript
 export const SUPABASE_CONFIG = {
   url: 'https://<your-project-id>.supabase.co',
-  anonKey: '<your-publishable-anon-key>'
+  anonKey: '<your-rotated-publishable-key>'
 };
 ```
+4. Rebuild the application bundle with `node scripts/build-bundle.js`.
 
 ---
 
 ## 🔒 Authentication & Access Control
 
-Access control is calibrated to maintain clinic security where needed while providing instant access for day-to-day operations:
+### Operational Privacy Locks vs Database Security
+> ⚠️ **Security Notice**:  
+> Client-side PINs (`admin1`, `9211`, `admin124`) serve as **UI Operational Privacy Locks** designed for front-desk counters to shield financial collection totals and settings from walk-in patients. In an offline zero-build app (`file:///`), client PINs are not cryptographic boundaries.  
+> True cryptographic data security is enforced at the cloud layer via Supabase Row-Level Security (RLS) policies.
 
-| Module / Action | Access / Security | PIN / Password | Managed In |
+| Module / Action | Access / Security | Default PIN | Managed In |
 | :--- | :--- | :--- | :--- |
-| **History & Records Page** (`history.html`) | Instant Access | *None (Password Removed)* | [bundle.js](file:///assets/js/bundle.js) |
-| **Statistics & Analytics Page** (`statistics.html`) | Instant Access | *None (Password Removed)* | [bundle.js](file:///assets/js/bundle.js) |
-| **Daily Financial Collections (Privacy Toggle)** | PIN Protected | `admin1` | [auth-config.js](file:///assets/js/config/auth-config.js) |
-| **Inventory Stock Quantity Updates** | PIN Protected | `9211` | [auth-config.js](file:///assets/js/config/auth-config.js) |
+| **History & Records Page** (`history.html`) | Instant Access | *None* | [bundle.js](file:///assets/js/bundle.js) |
+| **Statistics & Analytics Page** (`statistics.html`) | Instant Access | *None* | [bundle.js](file:///assets/js/bundle.js) |
+| **Daily Financial Collections (Privacy Toggle)** | UI Privacy Lock | `admin1` | [auth-config.js](file:///assets/js/config/auth-config.js) |
+| **Inventory Stock Quantity Updates** | UI Privacy Lock | `9211` | [auth-config.js](file:///assets/js/config/auth-config.js) |
 
-> 💡 **Tip**: Sensitive action passwords can be customized by editing `assets/js/config/auth-config.js` and updating `COLLECTION_PASSWORD` and `INVENTORYUPDATE_PASSWORD`.
+> 💡 **Tip**: Operational privacy PINs can be customized by editing `assets/js/config/auth-config.js` and updating `COLLECTION_PASSWORD` and `INVENTORYUPDATE_PASSWORD`.
 
 ---
 

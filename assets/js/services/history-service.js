@@ -2,7 +2,7 @@
  * Split notes: inventory part delegates to inventory-state; filter/stats to search/stats services.
  * Depends on ui/form-ui for view helpers (one-way: services->ui, ui never imports services). */
 import { getCurrentFilters, setCurrentFilters, toggleGenerateUpdateButton } from '../state/app-state.js';
-import { STORAGE_KEYS, loadHistoryData, saveHistoryData, getGlobalSerial, setGlobalSerial } from '../state/storage.js';
+import { STORAGE_KEYS, loadHistoryData, saveHistoryData, getGlobalSerial, setGlobalSerial, syncReportToCloud, deleteReportFromCloud } from '../state/storage.js';
 import { decrementTube, incrementTube, decrementKits, incrementKits, adjustKitsForEdit } from '../state/inventory-state.js';
 import { applyAdvancedFilters, updateSearchSummary } from './search-service.js';
 import { calculateSearchStatistics } from './stats-service.js';
@@ -13,6 +13,7 @@ import { updateSuggestedCost } from '../config/pricing-config.js';
 import { toggleTestInputs, showReport, setFormButtonMode } from '../ui/form-ui.js';
 import { formatPointValue, formatPlateletValue, formatCBCDecimalInputs, calculateCBCParameters } from '../calculators/cbc-calculator.js';
 import { HISTORY_PASSWORD } from '../config/auth-config.js';
+import { escapeHtml } from '../utils/dom-helpers.js';
 
 // Fixed checkbox map (v2 §6 bugfix): legacy `test${Cap}` produced testCbc/testEsr (broken).
 export const TEST_CHECKBOX_MAP = {
@@ -72,7 +73,7 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   if (tests.crp) testParameters.crp = { crp: document.getElementById('crp').value };
   const historyItem = {
     serial: existingReportIndex === -1 ? ++globalSerial : history[existingReportIndex].serial,
-    id: existingReportIndex === -1 ? Date.now() : existingId,
+    id: existingReportIndex === -1 ? `${Date.now()}-${Math.random().toString(36).substr(2, 5)}` : String(existingId),
     patientName, patientAge, patientGender, patientId, collectionDate, receivedDate, reportedDate, referredBy,
     patientPhone, patientCity, fastingStatus, relationType, guardianName,
     testCost: testCost || 'Not specified', paymentMode, tubeUsed, reportHTML, tests, testParameters,
@@ -82,7 +83,7 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   else history[existingReportIndex] = historyItem;
   if (history.length > 10000) history = history.slice(0, 10000);
   saveHistoryData(history);
-  console.log('Report saved to history:', historyItem);
+  syncReportToCloud(historyItem);
   console.log('Total reports in history:', history.length);
   return historyItem;
 }
@@ -107,23 +108,23 @@ export function loadHistory(filters = null) {
     historyItem.innerHTML = `
       <div class="history-item-main">
         <div class="history-item-header">
-          <span class="history-serial-badge">#${item.serial}</span>
-          <span class="history-patient-name">${item.patientName}</span>
-          <span class="history-patient-demographics">(${item.patientAge}, ${item.patientGender})</span>
+          <span class="history-serial-badge">#${escapeHtml(item.serial)}</span>
+          <span class="history-patient-name">${escapeHtml(item.patientName)}</span>
+          <span class="history-patient-demographics">(${escapeHtml(item.patientAge)}, ${escapeHtml(item.patientGender)})</span>
         </div>
         <div class="history-item-sub">
-          <span class="history-pill">🆔 ${item.patientId}</span>
-          <span class="history-pill">📅 ${item.reportedDate}</span>
+          <span class="history-pill">🆔 ${escapeHtml(item.patientId)}</span>
+          <span class="history-pill">📅 ${escapeHtml(item.reportedDate)}</span>
           <span class="history-pill">🧪 Tests: ${testCount}</span>
-          ${item.testCost && item.testCost !== 'Not specified' ? `<span class="history-cost-pill">💰 ₹${item.testCost} <small>(${item.paymentMode || 'Cash'})</small></span>` : ''}
-          ${item.tubeUsed ? `<span class="history-pill">🩸 ${item.tubeUsed} Tube</span>` : ''}
+          ${item.testCost && item.testCost !== 'Not specified' ? `<span class="history-cost-pill">💰 ₹${escapeHtml(item.testCost)} <small>(${escapeHtml(item.paymentMode || 'Cash')})</small></span>` : ''}
+          ${item.tubeUsed ? `<span class="history-pill">🩸 ${escapeHtml(item.tubeUsed)} Tube</span>` : ''}
         </div>
       </div>
       <div class="history-item-actions">
-        <button class="view-invoice" data-id="${item.id}" title="Generate / View Invoice">Invoice</button>
-        ${item.testCost && item.testCost !== 'Not specified' ? `<button class="edit-cost" data-id="${item.id}" title="Edit Cost">Edit Cost</button>` : ''}
-        <button class="edit-report" data-id="${item.id}" title="Edit Report">Edit Report</button>
-        <button class="delete-report" data-id="${item.id}" title="Delete Report">Delete</button>
+        <button class="view-invoice" data-id="${escapeHtml(item.id)}" title="Generate / View Invoice">Invoice</button>
+        ${item.testCost && item.testCost !== 'Not specified' ? `<button class="edit-cost" data-id="${escapeHtml(item.id)}" title="Edit Cost">Edit Cost</button>` : ''}
+        <button class="edit-report" data-id="${escapeHtml(item.id)}" title="Edit Report">Edit Report</button>
+        <button class="delete-report" data-id="${escapeHtml(item.id)}" title="Delete Report">Delete</button>
       </div>`;
     historyItem.addEventListener('click', function (e) {
       if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report') && !e.target.classList.contains('view-invoice')) {
@@ -217,10 +218,20 @@ export function editReportCost(id) {
   const newCost = prompt('Enter new cost in rupees:', '');
   if (newCost !== null && !isNaN(parseFloat(newCost)) && newCost.trim() !== '') {
     let history = loadHistoryData();
-    const index = history.findIndex(item => item.id === parseInt(id));
+    const strId = String(id);
+    const index = history.findIndex(item => String(item.id) === strId);
     if (index !== -1) {
-      history[index].testCost = newCost;
+      const formattedCost = parseFloat(newCost).toFixed(2);
+      history[index].testCost = formattedCost;
+      if (history[index].reportHTML) {
+        history[index].reportHTML = history[index].reportHTML.replace(
+          /(<strong>(?:Test Cost|Cost|Amount|Total Amount):<\/strong>\s*(?:₹|Rs\.?)?\s*)([0-9.]+)/i,
+          `$1${formattedCost}`
+        );
+      }
+      history[index]._synced = false;
       saveHistoryData(history);
+      syncReportToCloud(history[index]);
       loadHistory(); updateTodayTotal(); updateTodayReportCount(); updateTestStats();
     }
   } else if (newCost !== null) alert('Please enter a valid number for the cost.');
@@ -229,7 +240,8 @@ export function editReportCost(id) {
 // L2463 — with checkbox map fix
 export function loadReportForEditing(id) {
   const history = loadHistoryData();
-  const item = history.find(item => item.id == id);
+  const strId = String(id);
+  const item = history.find(item => String(item.id) === strId);
   if (!item) return;
   let nameToLoad = item.patientName || '';
   const titles = ['Mr.', 'Mrs.', 'Miss', 'Master', 'Baby', 'B/O'];
@@ -318,14 +330,16 @@ export function loadReportForEditing(id) {
 // L2543
 export function deleteReport(id) {
   if (!confirm('Are you sure you want to delete this report? This action cannot be undone.')) return;
+  const strId = String(id);
   let history = loadHistoryData();
-  const itemIndex = history.findIndex(item => item.id === parseInt(id));
+  const itemIndex = history.findIndex(item => String(item.id) === strId);
   if (itemIndex !== -1) {
     const item = history[itemIndex];
     if (item.tubeUsed) incrementTube(item.tubeUsed);
     if (item.tests) incrementKits(item.tests);
-    history = history.filter(item => item.id !== parseInt(id));
+    history = history.filter(item => String(item.id) !== strId);
     saveHistoryData(history);
+    deleteReportFromCloud(strId);
     loadHistory(); updateTodayTotal(); updateTodayReportCount(); updateTestStats();
   }
 }

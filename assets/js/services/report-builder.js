@@ -2,6 +2,7 @@
 import { CBC_PARAMS, WIDAL_PARAMS, WIDAL_CUTOFF, OTHER_TESTS, ESR_REF, BILIRUBIN_REF, crpTier, refRangeFor, isAbnormalByRange, isWidalPositive } from '../config/test-constants.js';
 import { CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from '../calculators/cbc-calculator.js';
 import { formatLabDate } from '../utils/date-helpers.js';
+import { escapeHtml } from '../utils/dom-helpers.js';
 function formatAlternatingRows(rowsHtml) {
   if (!rowsHtml) return '';
   const sections = rowsHtml.split(/(?=<tr\s+class=["']\s*report-section-row\s*["']>)/);
@@ -62,40 +63,40 @@ export function createReportHTML(patientName, patientAge, patientGender, tests, 
   const ageGenderStr = patientAge && patientGender ? `${patientAge} / ${patientGender}` : (patientAge || patientGender || '');
 
   let patientInfoHTML = `
-      <div><strong>Patient Name:</strong> ${cleanPatientName}</div>`;
+      <div><strong>Patient Name:</strong> ${escapeHtml(cleanPatientName)}</div>`;
 
   if (guardianName) {
-    patientInfoHTML += `\n      <div><strong>${relationType}:</strong> ${guardianName}</div>`;
+    patientInfoHTML += `\n      <div><strong>${escapeHtml(relationType)}:</strong> ${escapeHtml(guardianName)}</div>`;
   }
 
-  patientInfoHTML += `\n      <div><strong>Age / Gender:</strong> ${ageGenderStr}</div>
-      <div><strong>Patient ID:</strong> ${patientId}</div>`;
+  patientInfoHTML += `\n      <div><strong>Age / Gender:</strong> ${escapeHtml(ageGenderStr)}</div>
+      <div><strong>Patient ID:</strong> ${escapeHtml(patientId)}</div>`;
 
   if (patientPhone) {
-    patientInfoHTML += `\n      <div><strong>Contact:</strong> ${patientPhone}</div>`;
+    patientInfoHTML += `\n      <div><strong>Contact:</strong> ${escapeHtml(patientPhone)}</div>`;
   }
   if (patientCity) {
-    patientInfoHTML += `\n      <div><strong>City:</strong> ${patientCity}</div>`;
+    patientInfoHTML += `\n      <div><strong>City:</strong> ${escapeHtml(patientCity)}</div>`;
   }
 
   if (collDate) {
-    patientInfoHTML += `\n      <div><strong>Collection Date:</strong> ${collDate}</div>`;
+    patientInfoHTML += `\n      <div><strong>Collection Date:</strong> ${escapeHtml(collDate)}</div>`;
   }
   if (recvDate) {
-    patientInfoHTML += `\n      <div><strong>Received Date:</strong> ${recvDate}</div>`;
+    patientInfoHTML += `\n      <div><strong>Received Date:</strong> ${escapeHtml(recvDate)}</div>`;
   }
   if (repDate) {
-    patientInfoHTML += `\n      <div><strong>Reported Date:</strong> ${repDate}</div>`;
+    patientInfoHTML += `\n      <div><strong>Reported Date:</strong> ${escapeHtml(repDate)}</div>`;
   }
-  patientInfoHTML += `\n      <div><strong>Referred By:</strong> ${referredBy}</div>`;
+  patientInfoHTML += `\n      <div><strong>Referred By:</strong> ${escapeHtml(referredBy)}</div>`;
 
   if (fastingStatus) {
-    patientInfoHTML += `\n      <div><strong>Fasting Status:</strong> ${fastingStatus}</div>`;
+    patientInfoHTML += `\n      <div><strong>Fasting Status:</strong> ${escapeHtml(fastingStatus)}</div>`;
   }
 
-  patientInfoHTML += `\n      <div><strong>Specimen:</strong> ${specimenType}</div>
-      <div class="no-print"><strong>Payment Mode:</strong> ${paymentMode}</div>
-      <div class="no-print"><strong>Tube Used:</strong> ${tubeUsed}</div>`;
+  patientInfoHTML += `\n      <div><strong>Specimen:</strong> ${escapeHtml(specimenType)}</div>
+      <div class="no-print"><strong>Payment Mode:</strong> ${escapeHtml(paymentMode)}</div>
+      <div class="no-print"><strong>Tube Used:</strong> ${escapeHtml(tubeUsed)}</div>`;
 
   let reportHTML = `
     <div class="report-header">
@@ -166,7 +167,7 @@ ${patientInfoHTML}
         }
         const refRange = refRangeFor(param, patientGender);
         const isAbnormal = isAbnormalByRange(value, refRange);
-        cbcRows += `<tr><td>${param.name}</td><td class="${isAbnormal ? 'abnormal' : ''}">${value}</td><td>${param.unit}</td><td>${refRange}</td></tr>`;
+        cbcRows += `<tr><td>${escapeHtml(param.name)}</td><td class="${isAbnormal ? 'abnormal' : ''}">${escapeHtml(value)}</td><td>${escapeHtml(param.unit)}</td><td>${escapeHtml(refRange)}</td></tr>`;
       }
     });
     if (cbcRows) {
@@ -201,7 +202,7 @@ ${patientInfoHTML}
         </tr>
         <tr>
           <td>Erythrocyte Sedimentation Rate (ESR)</td>
-          <td class="${isAbnormal ? 'abnormal' : ''}">${esrValue}</td>
+          <td class="${isAbnormal ? 'abnormal' : ''}">${escapeHtml(esrValue)}</td>
           <td>${ESR_REF.unit}</td>
           <td>${ESR_REF.display}</td>
         </tr>`;
@@ -228,7 +229,7 @@ ${patientInfoHTML}
           const subtype = document.getElementById('malariaSubtype').value;
           displayResult = `Positive (${subtype === 'Both' ? 'Pf and Pv' : subtype})`;
         }
-        rapidRows += `<tr><td>Malaria Parasite Antigen (Pv / Pf)</td><td class="${result === 'Positive' ? 'positive' : ''}">${displayResult}</td><td>—</td><td>Negative</td></tr>`;
+        rapidRows += `<tr><td>Malaria Parasite Antigen (Pv / Pf)</td><td class="${result === 'Positive' ? 'positive' : ''}">${escapeHtml(displayResult)}</td><td>—</td><td>Negative</td></tr>`;
       }
     }
     // Typhoid (Serum)
@@ -241,7 +242,7 @@ ${patientInfoHTML}
           const subtype = document.getElementById('typhiSubtype').value;
           displayResult = `Positive (${subtype === 'Both' ? 'IgM and IgG' : subtype})`;
         }
-        rapidRows += `<tr><td>Typhoid Rapid (IgM / IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${displayResult}</td><td>—</td><td>Negative</td></tr>`;
+        rapidRows += `<tr><td>Typhoid Rapid (IgM / IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${escapeHtml(displayResult)}</td><td>—</td><td>Negative</td></tr>`;
       }
     }
     // Dengue (Serum)
@@ -249,7 +250,7 @@ ${patientInfoHTML}
       const result = document.getElementById('dengueResult').value || '';
       if (result) {
         hasDengue = true;
-        rapidRows += `<tr><td>Dengue Rapid (NS1 / IgM / IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${result}</td><td>—</td><td>Negative</td></tr>`;
+        rapidRows += `<tr><td>Dengue Rapid (NS1 / IgM / IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${escapeHtml(result)}</td><td>—</td><td>Negative</td></tr>`;
       }
     }
     if (rapidRows) {
@@ -273,7 +274,7 @@ ${patientInfoHTML}
       const value = document.getElementById(param.id).value || '';
       if (value) {
         const isPositive = isWidalPositive(value);
-        widalRows += `<tr><td>S. Typhi '${param.name.replace(' Antigen', '')}' Antigen</td><td class="${isPositive ? 'positive' : ''}">${value}</td><td>Titre</td><td>${WIDAL_CUTOFF.replace('<', '&lt;')}</td></tr>`;
+        widalRows += `<tr><td>S. Typhi '${escapeHtml(param.name.replace(' Antigen', ''))}' Antigen</td><td class="${isPositive ? 'positive' : ''}">${escapeHtml(value)}</td><td>Titre</td><td>${WIDAL_CUTOFF.replace('<', '&lt;')}</td></tr>`;
       }
     });
     if (widalRows) {
@@ -299,9 +300,9 @@ ${patientInfoHTML}
     if (totalBilirubin || directBilirubin || indirectBilirubin) {
       hasBilirubin = true;
       let rows = '';
-      if (totalBilirubin) rows += `<tr><td>Total Bilirubin</td><td class="${parseFloat(totalBilirubin) > BILIRUBIN_REF.total.max ? 'abnormal' : ''}">${totalBilirubin}</td><td>mg/dL</td><td>${BILIRUBIN_REF.total.display}</td></tr>`;
-      if (directBilirubin) rows += `<tr><td>Direct Bilirubin</td><td class="${parseFloat(directBilirubin) > BILIRUBIN_REF.direct.max ? 'abnormal' : ''}">${directBilirubin}</td><td>mg/dL</td><td>${BILIRUBIN_REF.direct.display}</td></tr>`;
-      if (indirectBilirubin) rows += `<tr><td>Indirect Bilirubin</td><td class="${parseFloat(indirectBilirubin) > BILIRUBIN_REF.indirect.max ? 'abnormal' : ''}">${indirectBilirubin}</td><td>mg/dL</td><td>${BILIRUBIN_REF.indirect.display}</td></tr>`;
+      if (totalBilirubin) rows += `<tr><td>Total Bilirubin</td><td class="${parseFloat(totalBilirubin) > BILIRUBIN_REF.total.max ? 'abnormal' : ''}">${escapeHtml(totalBilirubin)}</td><td>mg/dL</td><td>${BILIRUBIN_REF.total.display}</td></tr>`;
+      if (directBilirubin) rows += `<tr><td>Direct Bilirubin</td><td class="${parseFloat(directBilirubin) > BILIRUBIN_REF.direct.max ? 'abnormal' : ''}">${escapeHtml(directBilirubin)}</td><td>mg/dL</td><td>${BILIRUBIN_REF.direct.display}</td></tr>`;
+      if (indirectBilirubin) rows += `<tr><td>Indirect Bilirubin</td><td class="${parseFloat(indirectBilirubin) > BILIRUBIN_REF.indirect.max ? 'abnormal' : ''}">${escapeHtml(indirectBilirubin)}</td><td>mg/dL</td><td>${BILIRUBIN_REF.indirect.display}</td></tr>`;
       tableRows += `
         <tr class="report-section-row">
           <td colspan="4">
@@ -332,7 +333,7 @@ ${patientInfoHTML}
         </tr>
         <tr>
           <td>C-Reactive Protein (CRP)</td>
-          <td class="${tier.statusClass}">${crpValue}</td>
+          <td class="${tier.statusClass}">${escapeHtml(crpValue)}</td>
           <td>mg/L</td>
           <td>${tier.refRange}</td>
         </tr>`;
@@ -356,7 +357,7 @@ ${patientInfoHTML}
         </tr>
         <tr>
           <td>ABO & Rh Blood Group</td>
-          <td style="font-weight: 600;">${bloodGroupValue}</td>
+          <td style="font-weight: 600;">${escapeHtml(bloodGroupValue)}</td>
           <td>—</td>
           <td>—</td>
         </tr>`;

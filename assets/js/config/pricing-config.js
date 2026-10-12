@@ -12,57 +12,66 @@ export const PRICES = {
   crp: 250
 };
 
-// Combo rules from L1031-1035. NOTE known bug (v2 §6): original ignores bilirubin/crp/dengue in combo guard.
-// Pure function preserves legacy behaviour exactly; fix flagged with includeExtraTests=true.
-export function computeSuggestedCost(t, includeExtraTests = false) {
-  const cbc = !!t.cbc, esr = !!t.esr, typhi = !!t.typhi, dengue = !!t.dengue,
-        malaria = !!t.malaria, widal = !!t.widal, bloodGroup = !!t.bloodGroup;
-  const bilirubin = !!t.bilirubin, crp = !!t.crp;
+// Cumulative combo pricing: applies combo discount for fever packages and adds any extra panels (Bilirubin, CRP, Dengue, etc.)
+export function computeSuggestedCost(t) {
+  if (!t || typeof t !== 'object') return 0;
+  const cbc = !!t.cbc;
+  const esr = !!t.esr;
+  const typhi = !!t.typhi;
+  const dengue = !!t.dengue;
+  const malaria = !!t.malaria;
+  const widal = !!t.widal;
+  const bloodGroup = !!t.bloodGroup;
+  const bilirubin = !!t.bilirubin;
+  const crp = !!t.crp;
 
-  let extra = false;
-  if (includeExtraTests) {
-    extra = bilirubin || crp || dengue || esr;
+  let comboBase = 0;
+  const covered = { cbc: false, typhi: false, malaria: false, widal: false };
+
+  // Combo 1 & 2: CBC + Malaria + Typhoid (Typhi or Widal) -> ₹300 bundle
+  if (cbc && (typhi || widal) && malaria) {
+    comboBase = 300;
+    covered.cbc = true;
+    covered.malaria = true;
+    if (typhi) covered.typhi = true;
+    else covered.widal = true;
   }
-  const isCombo1 = cbc && typhi && malaria && !esr && !dengue && !widal && !bloodGroup;
-  const isCombo2 = cbc && widal && malaria && !esr && !typhi && !dengue && !bloodGroup;
-  const isCombo3 = cbc && typhi && !malaria && !esr && !widal && !dengue && !bloodGroup;
-  const isCombo4 = cbc && widal && !malaria && !esr && !typhi && !dengue && !bloodGroup;
-  const isCombo5 = cbc && malaria && !widal && !esr && !typhi && !dengue && !bloodGroup;
-
-  if (!includeExtraTests) {
-    if (isCombo1 || isCombo2) return 300;
-    if (isCombo3 || isCombo4 || isCombo5) return 250;
-  } else {
-    if ((isCombo1 || isCombo2) && !bilirubin && !crp) return 300;
-    if ((isCombo3 || isCombo4 || isCombo5) && !bilirubin && !crp) return 250;
+  // Combo 3, 4, 5: CBC + one of (Typhi, Widal, Malaria) -> ₹250 bundle
+  else if (cbc && (typhi || widal || malaria)) {
+    comboBase = 250;
+    covered.cbc = true;
+    if (typhi) covered.typhi = true;
+    else if (widal) covered.widal = true;
+    else if (malaria) covered.malaria = true;
   }
 
-  let total = 0;
-  if (cbc) total += PRICES.cbc;
+  let total = comboBase;
+  if (!covered.cbc && cbc) total += PRICES.cbc;
+  if (!covered.typhi && typhi) total += PRICES.typhi;
+  if (!covered.malaria && malaria) total += PRICES.malaria;
+  if (!covered.widal && widal) total += PRICES.widal;
   if (esr) total += PRICES.esr;
-  if (typhi) total += PRICES.typhi;
   if (dengue) total += PRICES.dengue;
-  if (malaria) total += PRICES.malaria;
-  if (widal) total += PRICES.widal;
   if (bloodGroup) total += PRICES.bloodGroup;
   if (bilirubin) total += PRICES.bilirubin;
   if (crp) total += PRICES.crp;
-  void extra;
+
   return total;
 }
 
-// DOM wrapper — identical behaviour to legacy updateSuggestedCost (L1008-1056)
+// DOM wrapper — updates suggested cost in UI
 export function updateSuggestedCost() {
   const t = {
-    cbc: document.getElementById('testCBC').checked,
-    esr: document.getElementById('testESR').checked,
-    typhi: document.getElementById('testTyphi').checked,
-    dengue: document.getElementById('testDengue').checked,
-    malaria: document.getElementById('testMalaria').checked,
-    widal: document.getElementById('testWidal').checked,
-    bloodGroup: document.getElementById('testBloodGroup').checked,
-    bilirubin: document.getElementById('testBilirubin').checked,
-    crp: document.getElementById('testCRP').checked
+    cbc: document.getElementById('testCBC') ? document.getElementById('testCBC').checked : false,
+    esr: document.getElementById('testESR') ? document.getElementById('testESR').checked : false,
+    typhi: document.getElementById('testTyphi') ? document.getElementById('testTyphi').checked : false,
+    dengue: document.getElementById('testDengue') ? document.getElementById('testDengue').checked : false,
+    malaria: document.getElementById('testMalaria') ? document.getElementById('testMalaria').checked : false,
+    widal: document.getElementById('testWidal') ? document.getElementById('testWidal').checked : false,
+    bloodGroup: document.getElementById('testBloodGroup') ? document.getElementById('testBloodGroup').checked : false,
+    bilirubin: document.getElementById('testBilirubin') ? document.getElementById('testBilirubin').checked : false,
+    crp: document.getElementById('testCRP') ? document.getElementById('testCRP').checked : false
   };
-  document.getElementById('testCost').value = computeSuggestedCost(t, false);
+  const costEl = document.getElementById('testCost');
+  if (costEl) costEl.value = computeSuggestedCost(t);
 }

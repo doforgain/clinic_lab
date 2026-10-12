@@ -1,14 +1,14 @@
-/* Extracted from index.html L680-722. localStorage access preserved for parity. */
 import { getAppState } from '../state/app-state.js';
+import { loadHistoryData } from '../state/storage.js';
 
 export function generatePatientId() {
   const currentDate = new Date();
   const currentMonth = currentDate.toLocaleString('default', { month: 'short' }).toUpperCase();
   const currentYear = currentDate.getFullYear();
-  const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+  const history = loadHistoryData();
   let maxSerial = 0;
   history.forEach(item => {
-    if (item.patientId && item.patientId.startsWith(`${currentMonth}-${currentYear}-`)) {
+    if (item && item.patientId && item.patientId.startsWith(`${currentMonth}-${currentYear}-`)) {
       const serialStr = item.patientId.split('-')[2];
       const serial = parseInt(serialStr);
       if (!isNaN(serial) && serial > maxSerial) maxSerial = serial;
@@ -19,9 +19,10 @@ export function generatePatientId() {
 }
 
 export function isPatientIdExists(patientId, excludeId = null) {
-  const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
+  const history = loadHistoryData();
   return history.some(item => {
-    if (excludeId && item.id === excludeId) return false;
+    if (!item) return false;
+    if (excludeId && String(item.id) === String(excludeId)) return false;
     return item.patientId === patientId;
   });
 }

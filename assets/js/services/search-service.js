@@ -2,6 +2,7 @@
 import { getCurrentFilters, setCurrentFilters } from '../state/app-state.js';
 import { formatDisplayDate } from '../utils/date-helpers.js';
 import { calculateSearchStatistics } from './stats-service.js';
+import { escapeHtml } from '../utils/dom-helpers.js';
 
 // Hook set by app.js to break search<->history import cycle (behaviour identical to legacy direct call)
 let loadHistoryHook = null;
@@ -45,19 +46,30 @@ export function closeAdvancedSearch() {
 
 // L2097
 export function applyAdvancedFilters(history, filters) {
+  if (!Array.isArray(history)) return [];
+  if (!filters || typeof filters !== 'object') return history;
+  const searchTerm = filters.searchTerm ? String(filters.searchTerm).trim() : '';
+  const searchLower = searchTerm.toLowerCase();
+
   return history.filter(item => {
-    if (filters.searchTerm) {
-      const searchLower = filters.searchTerm.toLowerCase();
+    if (!item) return false;
+    if (searchTerm) {
+      const pName = String(item.patientName || '').toLowerCase();
+      const pId = String(item.patientId || '').toLowerCase();
+      const refBy = String(item.referredBy || '').toLowerCase();
+      const cDate = String(item.collectionDate || '');
+      const rDate = String(item.reportedDate || '');
       const matchesSearch =
-        item.patientName.toLowerCase().includes(searchLower) ||
-        item.patientId.toLowerCase().includes(searchLower) ||
-        (item.referredBy && item.referredBy.toLowerCase().includes(searchLower)) ||
-        item.collectionDate.includes(filters.searchTerm) ||
-        item.reportedDate.includes(filters.searchTerm);
+        pName.includes(searchLower) ||
+        pId.includes(searchLower) ||
+        refBy.includes(searchLower) ||
+        cDate.toLowerCase().includes(searchLower) ||
+        rDate.toLowerCase().includes(searchLower);
       if (!matchesSearch) return false;
     }
-    if (filters.dateFrom && item.reportedDate < filters.dateFrom) return false;
-    if (filters.dateTo && item.reportedDate > filters.dateTo) return false;
+    const itemRepDate = String(item.reportedDate || '');
+    if (filters.dateFrom && itemRepDate < filters.dateFrom) return false;
+    if (filters.dateTo && itemRepDate > filters.dateTo) return false;
     if (filters.testType && (!item.tests || !item.tests[filters.testType])) return false;
     if (filters.paymentMode && item.paymentMode !== filters.paymentMode) return false;
     if (filters.minCost && item.testCost && item.testCost !== 'Not specified') {
@@ -86,7 +98,7 @@ export function updateSearchSummary(filteredCount, totalCount, searchStats) {
       activeFilters.forEach(filter => {
         const filterTag = document.createElement('span');
         filterTag.className = 'filter-tag';
-        filterTag.innerHTML = `${filter.label}: ${filter.value}<span class="remove-filter" data-filter="${filter.key}">&times;</span>`;
+        filterTag.innerHTML = `${escapeHtml(filter.label)}: ${escapeHtml(filter.value)}<span class="remove-filter" data-filter="${escapeHtml(filter.key)}">&times;</span>`;
         activeFiltersElement.appendChild(filterTag);
       });
       const statsHTML = `

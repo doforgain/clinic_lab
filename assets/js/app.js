@@ -1,10 +1,10 @@
-/* App entrypoint — decomposed DOMContentLoaded from index.html L1291-1498.
- * Wires all modules. Behaviour identical to legacy. Load via <script type="module">.
+/* App entrypoint — decomposed DOMContentLoaded from index.html.
+ * Wires all modules. Compiled into assets/js/bundle.js for zero-build execution.
  * Cycle-free: app.js is the only file allowed to import services + ui together. */
 import { getTodayDate } from './utils/date-helpers.js';
 import { generatePatientId, validatePatientId } from './utils/patient-id.js';
 import { getAppState, toggleGenerateUpdateButton, getLastGeneratedReportId, setLastGeneratedReportId, getCurrentPreviewHistoryId, setCurrentPreviewHistoryId } from './state/app-state.js';
-import { STORAGE_KEYS, SESSION_KEYS } from './state/storage.js';
+import { STORAGE_KEYS, SESSION_KEYS, loadHistoryData, syncReportsFromCloud, initRealtimeSync } from './state/storage.js';
 import { getTubeCounts, setTubeCounts, initializeKitInventory, updateTubeCountsDisplay, updateKitCountsDisplay } from './state/inventory-state.js';
 import { calculateCBCParameters, calculateIndirectBilirubin, CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from './calculators/cbc-calculator.js';
 import { updateTodayTotal, toggleCollection, submitCollectionPassword, closeCollectionPasswordModal } from './calculators/cost-calculator.js';
@@ -14,10 +14,11 @@ import { autoUpdatePatientTitle, toggleTestInputs, bindMutualExclusivity, bindTe
 import { generateReport, updateReport } from './services/report-actions.js';
 import { saveAsPDF } from './services/pdf-service.js';
 import { showHistory, openHistoryPasswordModal, closeHistoryPasswordModal, submitHistoryPassword, loadReportForEditing } from './services/history-service.js';
-import { showAdvancedSearch, applyAdvancedSearch, resetAdvancedSearch, closeAdvancedSearch, setupSearchFunctionality, setLoadHistoryHook } from './services/search-service.js';
+import { showAdvancedSearch, applyAdvancedSearch, resetAdvancedSearch, closeAdvancedSearch, setupSearchFunctionality, setupQuickFilters, setLoadHistoryHook } from './services/search-service.js';
 import { loadHistory } from './services/history-service.js';
-import { updateTestStats, updateTodayReportCount, showStatistics, openStatisticsPasswordModal, closeStatisticsPasswordModal, submitStatisticsPassword } from './services/stats-service.js';
+import { updateTestStats, updateTodayReportCount, showStatistics, renderStatistics, openStatisticsPasswordModal, closeStatisticsPasswordModal, submitStatisticsPassword } from './services/stats-service.js';
 import { updateTubeInventoryWithPassword, openInventoryPasswordModal, closeInventoryPasswordModal, submitInventoryPassword, openUpdateInventoryModal, closeUpdateInventoryModal, saveInventoryChanges } from './services/inventory-service.js';
+import { initInvoicePage } from './services/invoice-service.js';
 
 function initDates() {
   const today = getTodayDate();
@@ -192,71 +193,7 @@ function handleNewReport() {
   updateTestStats();
 }
 
-function showDashboardView() {
-  const dash = document.getElementById('dashboardOverview');
-  if (!dash) return;
-  dash.style.display = 'block';
-  ['.patient-info', '.test-selection', '.test-inputs', '.cost-section', '.buttons', '.test-stats'].forEach(sel => {
-    const el = document.querySelector(sel);
-    if (el) el.style.display = 'none';
-  });
-  const output = document.getElementById('reportOutput');
-  if (output) output.style.display = 'none';
 
-  const navDash = document.getElementById('navDashboard');
-  const navCreate = document.getElementById('navCreateReport');
-  if (navDash) navDash.classList.add('active');
-  if (navCreate) navCreate.classList.remove('active');
-
-  const dateEl = document.getElementById('dashTodayDate');
-  if (dateEl) {
-    const now = new Date();
-    dateEl.textContent = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
-  }
-  refreshDashboard();
-}
-
-function showCreateReportView() {
-  const dash = document.getElementById('dashboardOverview');
-  if (dash) dash.style.display = 'none';
-
-  const patientInfo = document.querySelector('.patient-info');
-  if (patientInfo) patientInfo.style.display = 'grid';
-  const testSel = document.querySelector('.test-selection');
-  if (testSel) testSel.style.display = 'block';
-  const testInp = document.querySelector('.test-inputs');
-  if (testInp) testInp.style.display = 'block';
-  const costSec = document.querySelector('.cost-section');
-  if (costSec) costSec.style.display = 'flex';
-  const buttons = document.querySelector('.buttons');
-  if (buttons) buttons.style.display = 'flex';
-  const testStats = document.querySelector('.test-stats');
-  if (testStats) testStats.style.display = 'block';
-
-  const navDash = document.getElementById('navDashboard');
-  const navCreate = document.getElementById('navCreateReport');
-  if (navDash) navDash.classList.remove('active');
-  if (navCreate) navCreate.classList.add('active');
-}
-
-function bindHeaderNavigation() {
-  const navDash = document.getElementById('navDashboard');
-  if (navDash && navDash.tagName === 'BUTTON') {
-    navDash.addEventListener('click', showDashboardView);
-  }
-  const navCreate = document.getElementById('navCreateReport');
-  if (navCreate && navCreate.tagName === 'BUTTON') {
-    navCreate.addEventListener('click', showCreateReportView);
-  }
-  const dashBtnNewReport = document.getElementById('dashBtnNewReport');
-  if (dashBtnNewReport) {
-    dashBtnNewReport.addEventListener('click', function () {
-      showCreateReportView();
-      const newReportBtn = document.getElementById('newReport');
-      if (newReportBtn) newReportBtn.click();
-    });
-  }
-}
 
 function bindModals() {
   const viewHistoryBtn = document.getElementById('viewHistory');
@@ -429,6 +366,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupQuickFilters();
     bindModals();
     updateTodayReportCount();
+    syncReportsFromCloud();
+    initRealtimeSync();
     return;
   }
 
@@ -437,10 +376,20 @@ document.addEventListener('DOMContentLoaded', function () {
     renderStatistics();
     bindModals();
     updateTodayReportCount();
+    syncReportsFromCloud();
+    initRealtimeSync();
     return;
   }
 
-  // 3. Dashboard Page (dashboard.html)
+  // 3. Invoice Page (Stateless on-the-fly view derived from lab reports)
+  if (document.getElementById('invoiceSheet') && !document.getElementById('generateReport')) {
+    initInvoicePage();
+    bindModals();
+    updateTodayReportCount();
+    return;
+  }
+
+  // 4. Dashboard Page (dashboard.html)
   if (document.getElementById('dashboardOverview') && !document.getElementById('generateReport')) {
     const dateEl = document.getElementById('dashTodayDate');
     if (dateEl) {
@@ -451,16 +400,18 @@ document.addEventListener('DOMContentLoaded', function () {
     updateTodayReportCount();
     updateTestStats();
     bindModals();
+    syncReportsFromCloud();
+    initRealtimeSync();
     return;
   }
 
-  // 4. If landing page (no generateReport, no dashboardOverview), exit early
+  // 5. Landing Page (index.html) - exit early if no generator present
   if (!document.getElementById('generateReport')) {
     return;
   }
 
-  // 5. Main Report Generator Page (create-report.html)
-  setLoadHistoryHook(loadHistory); // breaks search<->history cycle, preserves behaviour
+  // 6. Main Report Generator Page (create-report.html)
+  setLoadHistoryHook(loadHistory);
   initDates();
   initPatientId();
   initInventory();
@@ -472,25 +423,23 @@ document.addEventListener('DOMContentLoaded', function () {
   setFormButtonMode(false);
   bindModals();
   setupSearchFunctionality();
+  syncReportsFromCloud();
+  initRealtimeSync();
 
-  bindHeaderNavigation();
-
-  // Check query params if redirected from history page or dashboard
+  // Check query params if redirected from history page or dashboard tab
   const urlParams = new URLSearchParams(window.location.search);
   const editId = urlParams.get('editId');
   const previewId = urlParams.get('previewId');
   const tab = urlParams.get('tab');
   if (editId) {
-    showCreateReportView();
-    loadReportForEditing(parseInt(editId));
+    loadReportForEditing(String(editId));
   } else if (previewId) {
-    showCreateReportView();
-    const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
-    const item = history.find(h => h.id === parseInt(previewId));
+    const history = loadHistoryData();
+    const item = history.find(h => String(h.id) === String(previewId));
     if (item) {
       showReport(item);
     }
   } else if (tab === 'dashboard') {
-    showDashboardView();
+    window.location.href = 'dashboard.html';
   }
 });

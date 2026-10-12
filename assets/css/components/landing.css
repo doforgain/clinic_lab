@@ -938,3 +938,56 @@
     border: none;
     cursor: not-allowed;
 }
+
+/* About Quality Card & Governance (B09) */
+.landing-about-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    padding: 36px;
+    max-width: 960px;
+    margin: 0 auto;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.landing-about-content {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.landing-about-text {
+    flex: 1;
+    min-width: 280px;
+}
+
+.landing-about-text h3 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 12px;
+}
+
+.landing-about-text p {
+    font-size: 14.5px;
+    color: #475569;
+    line-height: 1.7;
+    margin: 0 0 16px;
+}
+
+.landing-about-badges {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.landing-about-badge {
+    background: #f1f5f9;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+}
+

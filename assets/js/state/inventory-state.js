@@ -64,6 +64,7 @@ export function adjustKitsForEdit(oldTests, newTests) {
   if (oldTests.malaria && !newTests.malaria) incrementKits({ malaria: true });
 }
 export function initializeKitInventory() {
+  if (localStorage.getItem('shc_inventory_initialized')) return;
   const kitCounts = getKitCounts();
   if (kitCounts.typhoid === 0 && kitCounts.malaria === 0) {
     const typhoidCount = prompt('Enter initial number of Typhoid test kits:', '50');
@@ -71,9 +72,11 @@ export function initializeKitInventory() {
     if (typhoidCount !== null && !isNaN(parseInt(typhoidCount))) kitCounts.typhoid = parseInt(typhoidCount);
     if (malariaCount !== null && !isNaN(parseInt(malariaCount))) kitCounts.malaria = parseInt(malariaCount);
     setKitCounts(kitCounts.typhoid, kitCounts.malaria);
+    localStorage.setItem('shc_inventory_initialized', 'true');
   }
 }
 export function initializeTubeInventory() {
+  if (localStorage.getItem('shc_tubes_initialized')) return;
   const tubeCounts = getTubeCounts();
   if (tubeCounts.purple === 0 && tubeCounts.red === 0) {
     const purpleCount = prompt('Enter initial number of Purple (EDTA) tubes:', '100');
@@ -81,5 +84,6 @@ export function initializeTubeInventory() {
     if (purpleCount !== null && !isNaN(parseInt(purpleCount))) tubeCounts.purple = parseInt(purpleCount);
     if (redCount !== null && !isNaN(parseInt(redCount))) tubeCounts.red = parseInt(redCount);
     setTubeCounts(tubeCounts.purple, tubeCounts.red);
+    localStorage.setItem('shc_tubes_initialized', 'true');
   }
 }
