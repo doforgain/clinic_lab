@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHAMS HEALTH CARE - Lab Report Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        if (!sessionStorage.getItem('shc_auth_session')) {
+            window.location.replace('index.html?auth_required=true');
+        }
+        window.addEventListener('pageshow', function (event) {
+            if (!sessionStorage.getItem('shc_auth_session')) {
+                window.location.replace('index.html?auth_required=true');
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="index.html" class="brand-group" title="SHAMS HEALTH CARE Home">
+                    <div class="brand-logo">SHC</div>
+                    <div class="brand-text">
+                        <h1>SHAMS <span>HEALTH CARE</span></h1>
+                        <span class="brand-subtitle">Laboratory Diagnostic Services</span>
+                    </div>
+                </a>
+
+                <nav class="header-nav" aria-label="Main Navigation">
+                    <a href="dashboard.html" class="nav-tab" id="navDashboard">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-label">Dashboard</span>
+                    </a>
+                    <a href="create-report.html" class="nav-tab active" id="navCreateReport">
+                        <span class="tab-icon">📝</span>
+                        <span class="tab-label">Create Report</span>
+                    </a>
+                    <a href="history.html" class="nav-tab" id="navViewHistory">
+                        <span class="tab-icon">📂</span>
+                        <span class="tab-label">View History</span>
+                    </a>
+                    <a href="statistics.html" class="nav-tab" id="navStatistics">
+                        <span class="tab-icon">📈</span>
+                        <span class="tab-label">Statistics</span>
+                    </a>
+                </nav>
+
+                <div class="header-status-area">
+                    <div id="cloudStatusBadge" class="cloud-status-badge" data-status="offline" title="Local Mode (Working locally)">
+                        <span class="status-dot"></span>
+                    </div>
+                    <div class="header-test-counter" title="Today's Reports Generated: 00">
+                        <span class="counter-badge" id="todayTestCount">00</span>
+                    </div>
+                    <a href="index.html" class="header-logout-btn" id="headerLogoutBtn" title="Logout" aria-label="Logout" onclick="sessionStorage.removeItem('shc_auth_session'); window.location.replace('index.html?logged_out=true'); return false;">
+                        <svg class="logout-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <div class="patient-info">
+            <div class="form-group">
+                <label for="patientName" class="required">Patient Name</label>
+                <div style="display: flex; gap: 6px;">
+                    <select id="patientTitle" style="width: 85px;">
+                        <option value="Mr.">Mr.</option>
+                        <option value="Mrs.">Mrs.</option>
+                        <option value="Miss">Miss</option>
+                        <option value="Master">Master</option>
+                        <option value="Baby">Baby</option>
+                        <option value="B/O">B/O</option>
+                    </select>
+                    <input type="text" id="patientName" placeholder="Full Name" required style="flex: 1;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="guardianName">Relation / Guardian <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <div style="display: flex; gap: 6px;">
+                    <select id="relationType" style="width: 85px;">
+                        <option value="S/O">S/O</option>
+                        <option value="W/O">W/O</option>
+                        <option value="D/O">D/O</option>
+                        <option value="C/O">C/O</option>
+                    </select>
+                    <input type="text" id="guardianName" placeholder="Father / Husband Name" style="flex: 1;">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="patientAge" class="required">Age</label>
+                <div style="display: flex; gap: 6px;">
+                    <input type="number" id="patientAge" min="0" required placeholder="Age" style="flex: 1;">
+                    <select id="patientAgeUnit" style="width: 95px;">
+                        <option value="Yrs">Yrs</option>
+                        <option value="Months">Months</option>
+                        <option value="Days">Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="patientGender" class="required">Gender</label>
+                <select id="patientGender" required>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="patientId" class="required">Patient ID</label>
+                <input type="text" id="patientId" required>
+                <small class="patient-id-warning" id="patientIdWarning" style="display: none; color: red;">This Patient
+                    ID already exists!</small>
+            </div>
+            <div class="form-group">
+                <label for="patientPhone">Contact No. <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <input type="tel" id="patientPhone" placeholder="Mobile / Phone Number">
+            </div>
+            <div class="form-group">
+                <label for="patientCity">City / Locality <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <input type="text" id="patientCity" placeholder="City or Town">
+            </div>
+            <div class="form-group">
+                <label for="collectionDate" class="required">Collection Date</label>
+                <input type="date" id="collectionDate" required>
+            </div>
+            <div class="form-group">
+                <label for="receivedDate" class="required">Received Date</label>
+                <input type="date" id="receivedDate" required>
+            </div>
+            <div class="form-group">
+                <label for="reportedDate" class="required">Reported Date</label>
+                <input type="date" id="reportedDate" required>
+            </div>
+            <div class="form-group">
+                <label for="referredBy">Referred By</label>
+                <input type="text" id="referredBy" value="SELF" placeholder="Doctor's Name">
+            </div>
+            <div class="form-group">
+                <label for="fastingStatus">Fasting Status <small style="font-weight: normal; color: #666;">(Optional)</small></label>
+                <select id="fastingStatus">
+                    <option value="">Not Specified</option>
+                    <option value="Random">Random</option>
+                    <option value="Fasting">Fasting</option>
+                    <option value="Post-Prandial (PP)">Post-Prandial (PP)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="test-selection">
+            <h3>Select Tests</h3>
+            <div class="test-options">
+                <div class="test-option">
+                    <input type="checkbox" id="testCBC" checked>
+                    <label for="testCBC">CBC</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testESR">
+                    <label for="testESR">ESR</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testTyphi" checked>
+                    <label for="testTyphi">Typhoid</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testDengue">
+                    <label for="testDengue">Dengue</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testMalaria" checked>
+                    <label for="testMalaria">Malaria Parasite</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testWidal">
+                    <label for="testWidal">Widal</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testBloodGroup">
+                    <label for="testBloodGroup">Blood Group</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testBilirubin">
+                    <label for="testBilirubin">Bilirubin</label>
+                </div>
+                <div class="test-option">
+                    <input type="checkbox" id="testCRP">
+                    <label for="testCRP">CRP</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-inputs">
+            <div id="cbcInputs" class="test-section">
+                <h3>CBC Test Parameters</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="hemoglobin">Hemoglobin (g/dL)</label>
+                        <input type="number" id="hemoglobin" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="tlc">Total Leucocyte Count (cells/cumm)</label>
+                        <input type="number" id="tlc">
+                    </div>
+                    <div class="form-group">
+                        <label for="neutrophils">Neutrophils (%)</label>
+                        <input type="number" id="neutrophils" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="lymphocytes">Lymphocytes (%)</label>
+                        <input type="number" id="lymphocytes" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="mid">Mid (%)</label>
+                        <input type="number" id="mid" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="rbcCount">RBC Count (million/cumm)</label>
+                        <input type="number" id="rbcCount" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="mcv">MCV (fL)</label>
+                        <input type="number" id="mcv" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="platelet">Platelet Count (lakhs/cumm)</label>
+                        <input type="number" id="platelet" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="absoluteNeutrophils">Absolute Neutrophils (cells/cumm)</label>
+                        <input type="number" id="absoluteNeutrophils">
+                    </div>
+                    <div class="form-group">
+                        <label for="absoluteLymphocytes">Absolute Lymphocytes (cells/cumm)</label>
+                        <input type="number" id="absoluteLymphocytes">
+                    </div>
+                    <div class="form-group">
+                        <label for="absoluteMid">Absolute Mid (cells/cumm)</label>
+                        <input type="number" id="absoluteMid">
+                    </div>
+                    <div class="form-group">
+                        <label for="pcv">PCV (%)</label>
+                        <input type="number" id="pcv" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="mch">MCH (pg)</label>
+                        <input type="number" id="mch" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="mchc">MCHC (g/dL)</label>
+                        <input type="number" id="mchc" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <div id="esrInputs" class="test-section" style="display: none;">
+                <h3>ESR Test Parameter</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="esr">ESR (mm/hr)</label>
+                        <input type="number" id="esr">
+                    </div>
+                </div>
+            </div>
+
+            <div id="typhiInputs" class="test-section" style="display: none;">
+                <h3>Typhoid Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="typhiResult">Result</label>
+                        <select id="typhiResult">
+                            <option value="Negative">Negative</option>
+                            <option value="Positive">Positive</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="typhiSubtypeContainer" style="display: none;">
+                        <label for="typhiSubtype">Typhoid Subtype</label>
+                        <select id="typhiSubtype">
+                            <option value="IgM">IgM</option>
+                            <option value="IgG">IgG</option>
+                            <option value="Both">Both (IgM and IgG)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dengueInputs" class="test-section" style="display: none;">
+                <h3>Dengue Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="dengueResult">Result</label>
+                        <select id="dengueResult">
+                            <option value="Negative">Negative</option>
+                            <option value="Positive">Positive</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="malariaInputs" class="test-section" style="display: none;">
+                <h3>Malaria Parasite Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="malariaResult">Result</label>
+                        <select id="malariaResult">
+                            <option value="Negative">Negative</option>
+                            <option value="Positive">Positive</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="malariaSubtypeContainer" style="display: none;">
+                        <label for="malariaSubtype">Malaria Subtype</label>
+                        <select id="malariaSubtype">
+                            <option value="Pf">Pf</option>
+                            <option value="Pv">Pv</option>
+                            <option value="Both">Both (Pf and Pv)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="widalInputs" class="test-section" style="display: none;">
+                <h3>Widal Test Parameters</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="oAntigen">O Antigen (Titer)</label>
+                        <input type="text" id="oAntigen" placeholder="e.g., 1:80">
+                    </div>
+                    <div class="form-group">
+                        <label for="hAntigen">H Antigen (Titer)</label>
+                        <input type="text" id="hAntigen" placeholder="e.g., 1:160">
+                    </div>
+                    <div class="form-group">
+                        <label for="ahAntigen">AH Antigen (Titer)</label>
+                        <input type="text" id="ahAntigen" placeholder="e.g., 1:80">
+                    </div>
+                    <div class="form-group">
+                        <label for="bhAntigen">BH Antigen (Titer)</label>
+                        <input type="text" id="bhAntigen" placeholder="e.g., 1:80">
+                    </div>
+                </div>
+            </div>
+
+            <div id="bloodGroupInputs" class="test-section" style="display: none;">
+                <h3>Blood Group Test</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="bloodGroup">Blood Group</label>
+                        <select id="bloodGroup">
+                            <option value="">Select Blood Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bilirubinInputs" class="test-section" style="display: none;">
+                <h3>Bilirubin Test Parameters</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="totalBilirubin">Total Bilirubin (mg/dL)</label>
+                        <input type="number" id="totalBilirubin" step="0.1" min="0" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="directBilirubin">Direct Bilirubin (mg/dL)</label>
+                        <input type="number" id="directBilirubin" step="0.1" min="0" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="indirectBilirubin">Indirect Bilirubin (mg/dL)</label>
+                        <input type="number" id="indirectBilirubin" step="0.1" min="0" max="50" readonly
+                            style="background-color: #f5f5f5;">
+                    </div>
+                </div>
+            </div>
+
+            <div id="crpInputs" class="test-section" style="display: none;">
+                <h3>CRP Test Parameter</h3>
+                <div class="test-fields">
+                    <div class="form-group">
+                        <label for="crp">CRP (mg/L)</label>
+                        <input type="number" id="crp" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="cost-section">
+            <div class="cost-info">
+                <h3>Cost Information</h3>
+                <div class="cost-row">
+                    <div class="cost-input">
+                        <label for="testCost">Test Cost (₹)</label>
+                        <input type="number" id="testCost" placeholder="Enter price in rupees">
+                    </div>
+                    <div class="payment-options">
+                        <label class="required">Payment Mode (Select one)</label>
+                        <div class="payment-option">
+                            <input type="checkbox" id="paymentCash">
+                            <label for="paymentCash">Cash</label>
+                        </div>
+                        <div class="payment-option">
+                            <input type="checkbox" id="paymentOnline">
+                            <label for="paymentOnline">Online</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="tube-options">
+                    <label>Tube Used (Select one)</label>
+                    <div class="tube-option">
+                        <input type="checkbox" id="tubePurple" checked>
+                        <label for="tubePurple">Purple (EDTA)</label>
+                    </div>
+                    <div class="tube-option">
+                        <input type="checkbox" id="tubeRed">
+                        <label for="tubeRed">Red (Plain)</label>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <div class="buttons">
+            <button id="generateReport">Generate Report</button>
+            <button id="updateReport" style="display: none;">Update Report</button>
+            <button id="editReport" style="display: none;">Edit Report</button>
+            <button id="printReport">Print Report</button>
+            <button id="savePDF">Save as PDF</button>
+            <button id="newReport">New Report</button>
+            <button id="viewHistory">View History</button>
+            <button id="statisticsBtn">Statistics</button>
+        </div>
+
+
+
+        <div id="reportOutput" class="report-output"></div>
+    </div>
+
+
+
+    <!-- Inventory Password Modal -->
+    <div id="inventoryPasswordModal" class="auth-password-modal">
+        <div class="auth-password-content">
+            <span class="close-auth-password" id="closeInventoryPassword">&times;</span>
+            <div class="auth-modal-header">
+                <div class="auth-lock-icon">📦</div>
+                <h3>Inventory Management</h3>
+                <p>Enter the security password to update stock quantities.</p>
+            </div>
+            <form id="inventoryPasswordForm">
+                <div class="password-input-wrapper">
+                    <input type="password" id="inventoryPasswordInput" placeholder="Enter password" autocomplete="off">
+                </div>
+                <div id="inventoryPasswordError" class="modal-error-message">Incorrect password. Please try again.</div>
+                <div class="auth-modal-buttons">
+                    <button type="button" id="cancelInventoryPassword" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="submitInventoryPassword" class="btn-unlock">Unlock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Inventory Quantities Modal -->
+    <div id="updateInventoryModal" class="inventory-edit-modal">
+        <div class="inventory-edit-content">
+            <span class="close-inventory-edit" id="closeUpdateInventory">&times;</span>
+            <div class="inventory-edit-header">
+                <div class="inventory-edit-icon">📦</div>
+                <h3>Update Stock Quantities</h3>
+                <p>Adjust current stock levels for collection tubes and test kits.</p>
+            </div>
+            <form id="updateInventoryForm">
+                <div class="inventory-form-grid">
+                    <div class="inventory-field-group">
+                        <label for="invPurpleTubes">🟣 Purple (EDTA) Tubes</label>
+                        <input type="number" id="invPurpleTubes" min="0" required placeholder="Quantity">
+                    </div>
+                    <div class="inventory-field-group">
+                        <label for="invRedTubes">🔴 Red (Plain) Tubes</label>
+                        <input type="number" id="invRedTubes" min="0" required placeholder="Quantity">
+                    </div>
+                    <div class="inventory-field-group">
+                        <label for="invTyphoidKits">🧪 Typhoid Test Kits</label>
+                        <input type="number" id="invTyphoidKits" min="0" required placeholder="Quantity">
+                    </div>
+                    <div class="inventory-field-group">
+                        <label for="invMalariaKits">🦟 Malaria Test Kits</label>
+                        <input type="number" id="invMalariaKits" min="0" required placeholder="Quantity">
+                    </div>
+                </div>
+                <div id="inventoryEditError" class="modal-error-message">Please enter valid positive numbers for all quantities.</div>
+                <div class="inventory-edit-buttons">
+                    <button type="button" id="cancelUpdateInventory" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="saveUpdateInventory" class="btn-save">Save Inventory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/bundle.js"></script>
+</body>
+
+</html>

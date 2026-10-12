@@ -34,10 +34,23 @@ export function getTodayOnlineTotal() {
 
 // L1059
 export function updateTodayTotal() {
-  if (!document.getElementById('todayTotal')) return;
-  document.getElementById('todayTotal').innerText = `₹${getTodayTotal()}`;
-  document.getElementById('todayCashTotal').innerText = `₹${getTodayCashTotal()}`;
-  document.getElementById('todayOnlineTotal').innerText = `₹${getTodayOnlineTotal()}`;
+  const totalEl = document.getElementById('todayTotal');
+  const dashTotal = document.getElementById('dashTodayTotal');
+  if (!totalEl && !dashTotal) return;
+  const total = getTodayTotal();
+  const cash = getTodayCashTotal();
+  const online = getTodayOnlineTotal();
+  if (totalEl) totalEl.innerText = `₹${total}`;
+  const cashEl = document.getElementById('todayCashTotal');
+  if (cashEl) cashEl.innerText = `₹${cash}`;
+  const onlineEl = document.getElementById('todayOnlineTotal');
+  if (onlineEl) onlineEl.innerText = `₹${online}`;
+
+  if (dashTotal) dashTotal.innerText = `₹${total}`;
+  const dashCash = document.getElementById('dashTodayCash');
+  if (dashCash) dashCash.innerText = `₹${cash}`;
+  const dashOnline = document.getElementById('dashTodayOnline');
+  if (dashOnline) dashOnline.innerText = `₹${online}`;
 }
 
 // Password modal controls for Today's Collection

@@ -60,6 +60,40 @@
                 flex-direction: column;
                 align-items: stretch;
             }
+
+            .page-section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .page-section-header .section-actions {
+                width: 100%;
+            }
+
+            .page-section-header .section-actions .dash-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .stats-panels-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-inventory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .history-item-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
 
         @media (max-width: 480px) {
@@ -71,8 +105,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .history-content,
-            .statistics-content {
+            .history-modal .history-content,
+            .statistics-modal .statistics-content {
                 width: 95%;
                 margin: 10% auto;
             }

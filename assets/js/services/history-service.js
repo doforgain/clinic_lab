@@ -105,17 +105,30 @@ export function loadHistory(filters = null) {
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
     historyItem.innerHTML = `
-      <div style="flex: 1;"><strong>#${item.serial} - ${item.patientName}</strong> (${item.patientAge}, ${item.patientGender}) -
-      ${item.patientId} - ${item.reportedDate} - Tests: ${testCount}
-      ${item.testCost && item.testCost !== 'Not specified' ? `<span class="history-cost">₹${item.testCost} (${item.paymentMode})</span>` : ''}
-      ${item.tubeUsed ? `<span style="margin-left: 10px; font-size: 12px; color: #666;">Tube: ${item.tubeUsed}</span>` : ''}</div>
-      <div>${item.testCost && item.testCost !== 'Not specified' ? `<button class="edit-cost" data-id="${item.id}">Edit Cost</button>` : ''}
-      <button class="edit-report" data-id="${item.id}">Edit Report</button>
-      <button class="delete-report" data-id="${item.id}">Delete</button></div>`;
+      <div class="history-item-main">
+        <div class="history-item-header">
+          <span class="history-serial-badge">#${item.serial}</span>
+          <span class="history-patient-name">${item.patientName}</span>
+          <span class="history-patient-demographics">(${item.patientAge}, ${item.patientGender})</span>
+        </div>
+        <div class="history-item-sub">
+          <span class="history-pill">🆔 ${item.patientId}</span>
+          <span class="history-pill">📅 ${item.reportedDate}</span>
+          <span class="history-pill">🧪 Tests: ${testCount}</span>
+          ${item.testCost && item.testCost !== 'Not specified' ? `<span class="history-cost-pill">💰 ₹${item.testCost} <small>(${item.paymentMode || 'Cash'})</small></span>` : ''}
+          ${item.tubeUsed ? `<span class="history-pill">🩸 ${item.tubeUsed} Tube</span>` : ''}
+        </div>
+      </div>
+      <div class="history-item-actions">
+        <button class="view-invoice" data-id="${item.id}" title="Generate / View Invoice">Invoice</button>
+        ${item.testCost && item.testCost !== 'Not specified' ? `<button class="edit-cost" data-id="${item.id}" title="Edit Cost">Edit Cost</button>` : ''}
+        <button class="edit-report" data-id="${item.id}" title="Edit Report">Edit Report</button>
+        <button class="delete-report" data-id="${item.id}" title="Delete Report">Delete</button>
+      </div>`;
     historyItem.addEventListener('click', function (e) {
-      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report')) {
+      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report') && !e.target.classList.contains('view-invoice')) {
         if (!document.getElementById('reportOutput')) {
-          window.location.href = `index.html?previewId=${item.id}`;
+          window.location.href = `create-report.html?previewId=${item.id}`;
         } else {
           showReport(item);
         }
@@ -175,6 +188,12 @@ export function showHistory() {
 
 // L2420
 export function addHistoryItemEventListeners() {
+  document.querySelectorAll('.view-invoice').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      window.open(`invoice.html?id=${this.dataset.id}`, '_blank');
+    });
+  });
   document.querySelectorAll('.edit-cost').forEach(btn => {
     btn.addEventListener('click', function (e) { e.stopPropagation(); editReportCost(this.dataset.id); });
   });
@@ -182,7 +201,7 @@ export function addHistoryItemEventListeners() {
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (!document.getElementById('patientName')) {
-        window.location.href = `index.html?editId=${this.dataset.id}`;
+        window.location.href = `create-report.html?editId=${this.dataset.id}`;
       } else {
         loadReportForEditing(parseInt(this.dataset.id));
       }

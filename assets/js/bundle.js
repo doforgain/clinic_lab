@@ -10,6 +10,11 @@
   /* ===== Module: assets/js/config/auth-config.js ===== */
   /* NEW in v2 — consolidates index.html L559,562,565,568 password consts (v1 missed).
    * Legacy values preserved for parity. Recommendation: collapse 3x 'admin1' to single VIEW_PASSWORD. */
+  const STAFF_USERNAME = 'staff124';
+  const STAFF_PASSWORD = 'admin124';
+  const AUTH_SESSION_KEY = 'shc_auth_session';
+
+  const LOGIN_PASSWORD = '9211';
   const INVENTORYUPDATE_PASSWORD = '9211';
   const HISTORY_PASSWORD = 'admin1';
   const INVENTORY_PASSWORD = 'admin1';
@@ -194,20 +199,20 @@
   function updateCloudStatusBadge(status, text) {
     let badge = document.getElementById('cloudStatusBadge');
     if (!badge) {
-      const logoContainer = document.querySelector('.logo-container');
-      if (logoContainer) {
+      const container = document.querySelector('.header-status-area') || document.querySelector('.logo-container');
+      if (container) {
         badge = document.createElement('div');
         badge.id = 'cloudStatusBadge';
         badge.className = 'cloud-status-badge';
-        logoContainer.appendChild(badge);
+        container.prepend(badge);
       }
     }
     if (badge) {
       badge.setAttribute('data-status', status);
-      badge.innerHTML = text;
+      badge.innerHTML = '<span class="status-dot"></span>';
       badge.title = status === 'connected' 
-        ? 'Connected to Supabase Cloud - reports sync across all devices' 
-        : 'Working locally in browser';
+        ? 'Cloud Synced - Supabase Connected' 
+        : 'Local Mode - Working locally';
     }
   }
 
@@ -761,12 +766,23 @@
   const today = getTodayDate();
   return sumWhere(item => item.reportedDate === today && item.paymentMode === 'Online');
   }
-  // L1059
   function updateTodayTotal() {
-    if (!document.getElementById('todayTotal')) return;
-    document.getElementById('todayTotal').innerText = `₹${getTodayTotal()}`;
-    document.getElementById('todayCashTotal').innerText = `₹${getTodayCashTotal()}`;
-    document.getElementById('todayOnlineTotal').innerText = `₹${getTodayOnlineTotal()}`;
+    const total = getTodayTotal();
+    const cash = getTodayCashTotal();
+    const online = getTodayOnlineTotal();
+    const todayTotalEl = document.getElementById('todayTotal');
+    if (todayTotalEl) todayTotalEl.innerText = `₹${total}`;
+    const todayCashEl = document.getElementById('todayCashTotal');
+    if (todayCashEl) todayCashEl.innerText = `₹${cash}`;
+    const todayOnlineEl = document.getElementById('todayOnlineTotal');
+    if (todayOnlineEl) todayOnlineEl.innerText = `₹${online}`;
+
+    const dashTotal = document.getElementById('dashTodayTotal');
+    if (dashTotal) dashTotal.innerText = `₹${total}`;
+    const dashCash = document.getElementById('dashTodayCash');
+    if (dashCash) dashCash.innerText = `₹${cash}`;
+    const dashOnline = document.getElementById('dashTodayOnline');
+    if (dashOnline) dashOnline.innerText = `₹${online}`;
   }
   // Password modal controls for Today's Collection
   function openCollectionPasswordModal() {
@@ -935,18 +951,35 @@
   }
   // L2679
   function updateTestStats() {
-    if (!document.getElementById('todayCBC')) return;
     const { todayCounts } = getMonthlyTestStats();
-    document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
-    document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
-    document.getElementById('todayTyphoid').innerText = `Typhoid: ${todayCounts.typhi}`;
-    document.getElementById('todayDengue').innerText = `Dengue: ${todayCounts.dengue}`;
-    document.getElementById('todayMalaria').innerText = `Malaria: ${todayCounts.malaria}`;
-    document.getElementById('todayWidal').innerText = `Widal: ${todayCounts.widal}`;
-    document.getElementById('todayBloodGroup').innerText = `Blood Group: ${todayCounts.bloodGroup}`;
-    document.getElementById('todayBilirubin').innerText = `Bilirubin: ${todayCounts.bilirubin}`;
-    document.getElementById('todayCRP').innerText = `CRP: ${todayCounts.crp}`;
-    hideZeroTodayTests();
+    if (document.getElementById('todayCBC')) {
+      document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
+      document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
+      document.getElementById('todayTyphoid').innerText = `Typhoid: ${todayCounts.typhi}`;
+      document.getElementById('todayDengue').innerText = `Dengue: ${todayCounts.dengue}`;
+      document.getElementById('todayMalaria').innerText = `Malaria: ${todayCounts.malaria}`;
+      document.getElementById('todayWidal').innerText = `Widal: ${todayCounts.widal}`;
+      document.getElementById('todayBloodGroup').innerText = `Blood Group: ${todayCounts.bloodGroup}`;
+      document.getElementById('todayBilirubin').innerText = `Bilirubin: ${todayCounts.bilirubin}`;
+      document.getElementById('todayCRP').innerText = `CRP: ${todayCounts.crp}`;
+      hideZeroTodayTests();
+    }
+
+    const dashMap = {
+      dashCBC: todayCounts.cbc,
+      dashESR: todayCounts.esr,
+      dashTyphoid: todayCounts.typhi,
+      dashDengue: todayCounts.dengue,
+      dashMalaria: todayCounts.malaria,
+      dashWidal: todayCounts.widal,
+      dashBloodGroup: todayCounts.bloodGroup,
+      dashBilirubin: todayCounts.bilirubin,
+      dashCRP: todayCounts.crp
+    };
+    Object.keys(dashMap).forEach(k => {
+      const el = document.getElementById(k);
+      if (el) el.innerText = dashMap[k];
+    });
   }
   // L2695
   function hideZeroTodayTests() {
@@ -958,13 +991,18 @@
   }
   // L2710
   function updateTodayReportCount() {
-  const reportCount = getTodayReportCount();
-  const displayElement = document.getElementById('todayTestCount');
-  if (displayElement) {
-    displayElement.innerText = reportCount.toString().padStart(2, '0');
-    displayElement.style.display = 'none';
-    setTimeout(() => { displayElement.style.display = 'flex'; }, 0);
-  }
+    const reportCount = getTodayReportCount();
+    const displayElement = document.getElementById('todayTestCount');
+    if (displayElement) {
+      const formatted = reportCount.toString().padStart(2, '0');
+      displayElement.innerText = formatted;
+      const parent = displayElement.closest('.header-test-counter');
+      if (parent) parent.title = `Today's Reports Generated: ${formatted}`;
+    }
+    const dashTodayTests = document.getElementById('dashTodayTests');
+    if (dashTodayTests) {
+      dashTodayTests.innerText = reportCount.toString();
+    }
   }
   // Password modal controls for Statistics
   function openStatisticsPasswordModal() {
@@ -1036,25 +1074,90 @@
     const statContent = document.getElementById('statisticsContent');
     if (statContent) {
       statContent.innerHTML = `
-      <div class="stats-summary"><h3>${currentMonthName} ${currentYear} Collection Summary</h3>
-      <table class="stats-table"><tr><th>Total Collection</th><td>₹${monthlyCollection.toFixed(2)}</td></tr>
-      <tr><th>Cash Collection</th><td>₹${monthlyCash.toFixed(2)}</td></tr>
-      <tr><th>Online Collection</th><td>₹${monthlyOnline.toFixed(2)}</td></tr>
-      <tr><th>Total Reports</th><td>${monthlyReports}</td></tr></table></div>
-      <div class="stats-summary"><h3>Test Statistics for ${currentMonthName}</h3>
-      <table class="stats-table">
-      <tr><th>CBC Tests</th><td>${testCounts.cbc}</td></tr><tr><th>ESR Tests</th><td>${testCounts.esr}</td></tr>
-      <tr><th>Typhoid Tests</th><td>${testCounts.typhi}</td></tr><tr><th>Dengue Tests</th><td>${testCounts.dengue}</td></tr>
-      <tr><th>Malaria Tests</th><td>${testCounts.malaria}</td></tr><tr><th>Widal Tests</th><td>${testCounts.widal}</td></tr>
-      <tr><th>Blood Group Tests</th><td>${testCounts.bloodGroup}</td></tr><tr><th>Bilirubin Tests</th><td>${testCounts.bilirubin}</td></tr>
-      <tr><th>CRP Tests</th><td>${testCounts.crp}</td></tr></table></div>
-      <div class="stats-summary"><h3>Tube Usage and Inventory</h3>
-      <table class="stats-table"><tr><th>Purple Tubes Used This Month</th><td>${purpleTubeUsage}</td></tr>
-      <tr><th>Red Tubes Used This Month</th><td>${redTubeUsage}</td></tr>
-      <tr><th>Purple Tubes Remaining</th><td>${tubeCounts.purple}</td></tr>
-      <tr><th>Red Tubes Remaining</th><td>${tubeCounts.red}</td></tr>
-      <tr><th>Typhoid Kits Remaining</th><td>${kitCounts.typhoid}</td></tr>
-      <tr><th>Malaria Kits Remaining</th><td>${kitCounts.malaria}</td></tr></table></div>`;
+      <!-- Monthly Financial KPI Summary Cards -->
+      <div class="stats-kpi-grid">
+        <div class="dash-card total">
+          <div class="dash-card-icon">💰</div>
+          <div class="dash-card-info">
+            <div class="dash-label">${currentMonthName} Total Collection</div>
+            <div class="dash-val">₹${monthlyCollection.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dash-card cash">
+          <div class="dash-card-icon">💵</div>
+          <div class="dash-card-info">
+            <div class="dash-label">Cash Collection</div>
+            <div class="dash-val">₹${monthlyCash.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dash-card online">
+          <div class="dash-card-icon">📱</div>
+          <div class="dash-card-info">
+            <div class="dash-label">Online Payments</div>
+            <div class="dash-val">₹${monthlyOnline.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dash-card tests">
+          <div class="dash-card-icon">📋</div>
+          <div class="dash-card-info">
+            <div class="dash-label">Total Reports (${currentMonthName})</div>
+            <div class="dash-val">${monthlyReports}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Breakdown Panels -->
+      <div class="stats-panels-grid">
+        <div class="stats-panel-card">
+          <div class="stats-panel-header">
+            <h4><span>🧪</span> Diagnostic Tests Breakdown (${currentMonthName} ${currentYear})</h4>
+          </div>
+          <div class="dashboard-chips-grid stats-chips-grid">
+            <div class="test-chip"><span>CBC:</span> <span class="chip-count">${testCounts.cbc}</span></div>
+            <div class="test-chip"><span>ESR:</span> <span class="chip-count">${testCounts.esr}</span></div>
+            <div class="test-chip"><span>Typhoid:</span> <span class="chip-count">${testCounts.typhi}</span></div>
+            <div class="test-chip"><span>Dengue:</span> <span class="chip-count">${testCounts.dengue}</span></div>
+            <div class="test-chip"><span>Malaria:</span> <span class="chip-count">${testCounts.malaria}</span></div>
+            <div class="test-chip"><span>Widal:</span> <span class="chip-count">${testCounts.widal}</span></div>
+            <div class="test-chip"><span>Blood Group:</span> <span class="chip-count">${testCounts.bloodGroup}</span></div>
+            <div class="test-chip"><span>Bilirubin:</span> <span class="chip-count">${testCounts.bilirubin}</span></div>
+            <div class="test-chip"><span>CRP:</span> <span class="chip-count">${testCounts.crp}</span></div>
+          </div>
+        </div>
+
+        <div class="stats-panel-card">
+          <div class="stats-panel-header">
+            <h4><span>📦</span> Tube Consumption & Remaining Stock</h4>
+          </div>
+          <div class="stats-inventory-grid">
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🟣 Purple Tubes Used</span>
+              <span class="inv-stat-val usage">${purpleTubeUsage}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🟣 Purple Tubes In Stock</span>
+              <span class="inv-stat-val stock">${tubeCounts.purple}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🔴 Red Tubes Used</span>
+              <span class="inv-stat-val usage">${redTubeUsage}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🔴 Red Tubes In Stock</span>
+              <span class="inv-stat-val stock">${tubeCounts.red}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🧪 Typhoid Test Kits</span>
+              <span class="inv-stat-val stock">${kitCounts.typhoid}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🦟 Malaria Test Kits</span>
+              <span class="inv-stat-val stock">${kitCounts.malaria}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
     }
     const statsModal = document.getElementById('statisticsModal');
     if (statsModal) statsModal.style.display = 'block';
@@ -1837,17 +1940,30 @@ ${patientInfoHTML}
     const historyItem = document.createElement('div');
     historyItem.className = 'history-item';
     historyItem.innerHTML = `
-      <div style="flex: 1;"><strong>#${item.serial} - ${item.patientName}</strong> (${item.patientAge}, ${item.patientGender}) -
-      ${item.patientId} - ${item.reportedDate} - Tests: ${testCount}
-      ${item.testCost && item.testCost !== 'Not specified' ? `<span class="history-cost">₹${item.testCost} (${item.paymentMode})</span>` : ''}
-      ${item.tubeUsed ? `<span style="margin-left: 10px; font-size: 12px; color: #666;">Tube: ${item.tubeUsed}</span>` : ''}</div>
-      <div>${item.testCost && item.testCost !== 'Not specified' ? `<button class="edit-cost" data-id="${item.id}">Edit Cost</button>` : ''}
-      <button class="edit-report" data-id="${item.id}">Edit Report</button>
-      <button class="delete-report" data-id="${item.id}">Delete</button></div>`;
+      <div class="history-item-main">
+        <div class="history-item-header">
+          <span class="history-serial-badge">#${item.serial}</span>
+          <span class="history-patient-name">${item.patientName}</span>
+          <span class="history-patient-demographics">(${item.patientAge}, ${item.patientGender})</span>
+        </div>
+        <div class="history-item-sub">
+          <span class="history-pill">🆔 ${item.patientId}</span>
+          <span class="history-pill">📅 ${item.reportedDate}</span>
+          <span class="history-pill">🧪 Tests: ${testCount}</span>
+          ${item.testCost && item.testCost !== 'Not specified' ? `<span class="history-cost-pill">💰 ₹${item.testCost} <small>(${item.paymentMode || 'Cash'})</small></span>` : ''}
+          ${item.tubeUsed ? `<span class="history-pill">🩸 ${item.tubeUsed} Tube</span>` : ''}
+        </div>
+      </div>
+      <div class="history-item-actions">
+        <button class="view-invoice" data-id="${item.id}" title="Generate / View Invoice">Invoice</button>
+        ${item.testCost && item.testCost !== 'Not specified' ? `<button class="edit-cost" data-id="${item.id}" title="Edit Cost">Edit Cost</button>` : ''}
+        <button class="edit-report" data-id="${item.id}" title="Edit Report">Edit Report</button>
+        <button class="delete-report" data-id="${item.id}" title="Delete Report">Delete</button>
+      </div>`;
     historyItem.addEventListener('click', function (e) {
-      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report')) {
+      if (!e.target.classList.contains('edit-cost') && !e.target.classList.contains('delete-report') && !e.target.classList.contains('edit-report') && !e.target.classList.contains('view-invoice')) {
         if (!document.getElementById('reportOutput')) {
-          window.location.href = `index.html?previewId=${item.id}`;
+          window.location.href = `create-report.html?previewId=${item.id}`;
         } else {
           showReport(item);
         }
@@ -1905,6 +2021,12 @@ ${patientInfoHTML}
   }
   // L2420
   function addHistoryItemEventListeners() {
+  document.querySelectorAll('.view-invoice').forEach(btn => {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      window.open(`invoice.html?id=${this.dataset.id}`, '_blank');
+    });
+  });
   document.querySelectorAll('.edit-cost').forEach(btn => {
     btn.addEventListener('click', function (e) { e.stopPropagation(); editReportCost(this.dataset.id); });
   });
@@ -1912,7 +2034,7 @@ ${patientInfoHTML}
     btn.addEventListener('click', function (e) {
       e.stopPropagation();
       if (!document.getElementById('patientName')) {
-        window.location.href = `index.html?editId=${this.dataset.id}`;
+        window.location.href = `create-report.html?editId=${this.dataset.id}`;
       } else {
         loadReportForEditing(parseInt(this.dataset.id));
       }
@@ -2068,7 +2190,8 @@ ${patientInfoHTML}
   document.querySelector('.patient-info').style.display = 'none';
   document.querySelector('.test-selection').style.display = 'none';
   document.querySelector('.cost-section').style.display = 'none';
-  document.querySelector('.test-stats').style.display = 'none';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'none';
   setPreviewButtonMode();
   }
   // L1500
@@ -2362,7 +2485,8 @@ ${patientInfoHTML}
   document.querySelector('.patient-info').style.display = 'grid';
   document.querySelector('.test-selection').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
-  document.querySelector('.test-stats').style.display = 'block';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'block';
   setFormButtonMode(isEditMode);
   }
   function bindMutualExclusivity() {
@@ -2458,7 +2582,8 @@ ${patientInfoHTML}
   document.getElementById('patientAge').addEventListener('input', autoUpdatePatientTitle);
   document.getElementById('patientAgeUnit').addEventListener('change', autoUpdatePatientTitle);
   document.getElementById('patientGender').addEventListener('change', autoUpdatePatientTitle);
-  document.getElementById('toggleBtn').addEventListener('click', toggleCollection);
+  const toggleBtn = document.getElementById('toggleBtn');
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleCollection);
   }
   function bindReportButtons() {
   document.getElementById('generateReport').addEventListener('click', generateReport);
@@ -2481,7 +2606,8 @@ ${patientInfoHTML}
         document.querySelector('.patient-info').style.display = 'grid';
         document.querySelector('.test-selection').style.display = 'block';
         document.querySelector('.cost-section').style.display = 'flex';
-        document.querySelector('.test-stats').style.display = 'block';
+        const testStats = document.querySelector('.test-stats');
+        if (testStats) testStats.style.display = 'block';
         const lastGenId = getLastGeneratedReportId();
         if (lastGenId) {
           toggleGenerateUpdateButton(true, lastGenId);
@@ -2514,7 +2640,7 @@ ${patientInfoHTML}
   document.getElementById('referredBy').value = 'SELF';
   if (document.getElementById('fastingStatus')) document.getElementById('fastingStatus').value = '';
   document.getElementById('testCost').value = '';
-  document.getElementById('paymentCash').checked = true;
+  document.getElementById('paymentCash').checked = false;
   document.getElementById('paymentOnline').checked = false;
   document.getElementById('tubePurple').checked = true;
   document.getElementById('tubeRed').checked = false;
@@ -2534,16 +2660,89 @@ ${patientInfoHTML}
     if (input.type !== 'checkbox') input.value = '';
   });
   document.getElementById('reportOutput').style.display = 'none';
+  const dash = document.getElementById('dashboardOverview');
+  if (dash) dash.style.display = 'none';
+  const navDash = document.getElementById('navDashboard');
+  const navCreate = document.getElementById('navCreateReport');
+  if (navDash) navDash.classList.remove('active');
+  if (navCreate) navCreate.classList.add('active');
   document.querySelector('.patient-info').style.display = 'grid';
   document.querySelector('.test-selection').style.display = 'block';
   document.querySelector('.test-inputs').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
-  document.querySelector('.test-stats').style.display = 'block';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'block';
   toggleGenerateUpdateButton(false);
   setFormButtonMode(false);
   validatePatientId();
   updateTodayReportCount();
   updateTestStats();
+  }
+
+  function showDashboardView() {
+    const dash = document.getElementById('dashboardOverview');
+    if (!dash) return;
+    dash.style.display = 'block';
+    ['.patient-info', '.test-selection', '.test-inputs', '.cost-section', '.buttons', '.test-stats'].forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el) el.style.display = 'none';
+    });
+    const output = document.getElementById('reportOutput');
+    if (output) output.style.display = 'none';
+
+    const navDash = document.getElementById('navDashboard');
+    const navCreate = document.getElementById('navCreateReport');
+    if (navDash) navDash.classList.add('active');
+    if (navCreate) navCreate.classList.remove('active');
+
+    const dateEl = document.getElementById('dashTodayDate');
+    if (dateEl) {
+      const now = new Date();
+      dateEl.textContent = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    refreshDashboard();
+  }
+
+  function showCreateReportView() {
+    const dash = document.getElementById('dashboardOverview');
+    if (dash) dash.style.display = 'none';
+
+    const patientInfo = document.querySelector('.patient-info');
+    if (patientInfo) patientInfo.style.display = 'grid';
+    const testSel = document.querySelector('.test-selection');
+    if (testSel) testSel.style.display = 'block';
+    const testInp = document.querySelector('.test-inputs');
+    if (testInp) testInp.style.display = 'block';
+    const costSec = document.querySelector('.cost-section');
+    if (costSec) costSec.style.display = 'flex';
+    const buttons = document.querySelector('.buttons');
+    if (buttons) buttons.style.display = 'flex';
+    const testStats = document.querySelector('.test-stats');
+    if (testStats) testStats.style.display = 'block';
+
+    const navDash = document.getElementById('navDashboard');
+    const navCreate = document.getElementById('navCreateReport');
+    if (navDash) navDash.classList.remove('active');
+    if (navCreate) navCreate.classList.add('active');
+  }
+
+  function bindHeaderNavigation() {
+    const navDash = document.getElementById('navDashboard');
+    if (navDash && navDash.tagName === 'BUTTON') {
+      navDash.addEventListener('click', showDashboardView);
+    }
+    const navCreate = document.getElementById('navCreateReport');
+    if (navCreate && navCreate.tagName === 'BUTTON') {
+      navCreate.addEventListener('click', showCreateReportView);
+    }
+    const dashBtnNewReport = document.getElementById('dashBtnNewReport');
+    if (dashBtnNewReport) {
+      dashBtnNewReport.addEventListener('click', function () {
+        showCreateReportView();
+        const newReportBtn = document.getElementById('newReport');
+        if (newReportBtn) newReportBtn.click();
+      });
+    }
   }
   function bindModals() {
     const viewHistoryBtn = document.getElementById('viewHistory');
@@ -2707,6 +2906,337 @@ ${patientInfoHTML}
       }
     });
   }
+
+  /* ===== Module: Invoice Generation & Billing ===== */
+  const INVOICE_TEST_CATALOG = {
+    cbc: { name: 'Complete Blood Count (CBC / Hemogram)', sample: 'EDTA Whole Blood', rate: 200 },
+    esr: { name: 'Erythrocyte Sedimentation Rate (ESR)', sample: 'EDTA Whole Blood', rate: 100 },
+    typhi: { name: 'Typhoid (Typhi-dot) Rapid Antibody Test', sample: 'Serum / Whole Blood', rate: 100 },
+    dengue: { name: 'Dengue NS1 Antigen & IgG/IgM Antibodies', sample: 'Serum / Whole Blood', rate: 400 },
+    malaria: { name: 'Malaria Antigen Rapid Test (Pv / Pf)', sample: 'Whole Blood', rate: 100 },
+    widal: { name: 'Widal Slide Agglutination Test (S. Typhi)', sample: 'Serum', rate: 100 },
+    bloodGroup: { name: 'ABO & Rh Blood Grouping', sample: 'Whole Blood', rate: 100 },
+    bilirubin: { name: 'Serum Bilirubin Profile (Total, Direct, Indirect)', sample: 'Serum', rate: 200 },
+    crp: { name: 'C-Reactive Protein (CRP) Quantitative', sample: 'Serum', rate: 250 }
+  };
+
+  function numberToIndianWords(num) {
+    const n = Math.floor(Math.abs(Number(num) || 0));
+    if (n === 0) return 'Zero Rupees Only';
+    const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+      'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    function convertTwoDigits(v) {
+      if (v < 20) return units[v];
+      const unit = v % 10;
+      return tens[Math.floor(v / 10)] + (unit ? ' ' + units[unit] : '');
+    }
+
+    function convertThreeDigits(v) {
+      let str = '';
+      const hundred = Math.floor(v / 100);
+      const rem = v % 100;
+      if (hundred > 0) str += units[hundred] + ' Hundred';
+      if (rem > 0) {
+        if (str) str += ' and ';
+        str += convertTwoDigits(rem);
+      }
+      return str;
+    }
+
+    let words = '';
+    const crore = Math.floor(n / 10000000);
+    let rem = n % 10000000;
+    const lakh = Math.floor(rem / 100000);
+    rem = rem % 100000;
+    const thousand = Math.floor(rem / 1000);
+    rem = rem % 1000;
+
+    if (crore > 0) words += convertThreeDigits(crore) + ' Crore ';
+    if (lakh > 0) words += convertTwoDigits(lakh) + ' Lakh ';
+    if (thousand > 0) words += convertTwoDigits(thousand) + ' Thousand ';
+    if (rem > 0) words += convertThreeDigits(rem);
+
+    return words.trim() + ' Rupees Only';
+  }
+
+  let activeInvoiceReport = null;
+
+  function initInvoicePage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const reportId = urlParams.get('id');
+
+    const printBtn = document.getElementById('btnPrintInvoice');
+    if (printBtn) {
+      printBtn.addEventListener('click', () => window.print());
+    }
+
+    const resetBtn = document.getElementById('btnResetInvoice');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (activeInvoiceReport && confirm('Reset all invoice edits to original report details?')) {
+          renderInvoice(activeInvoiceReport);
+        }
+      });
+    }
+
+    const addBtn = document.getElementById('btnAddItem');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => addInvoiceRow());
+    }
+
+    if (!reportId) {
+      showInvoiceEmptyState('No Report Selected', 'Please navigate to Report History and click the "Invoice" button on a specific report.');
+      return;
+    }
+
+    const history = loadHistoryData();
+    const report = history.find(item => String(item.id) === String(reportId));
+
+    if (!report) {
+      showInvoiceEmptyState('Report Not Found', `Unable to find report #${reportId} in local or synchronized records.`);
+      return;
+    }
+
+    activeInvoiceReport = report;
+    renderInvoice(report);
+  }
+
+  function renderInvoice(report) {
+    const invoiceContainer = document.getElementById('invoiceSheet');
+    const emptyState = document.getElementById('invoiceEmptyState');
+    if (emptyState) emptyState.style.display = 'none';
+    if (invoiceContainer) invoiceContainer.style.display = 'block';
+
+    const year = new Date().getFullYear();
+    const invNumberElem = document.getElementById('invNumber');
+    if (invNumberElem) invNumberElem.innerText = `INV-${year}-${String(report.serial || '001').padStart(4, '0')}`;
+
+    const invDateElem = document.getElementById('invDate');
+    if (invDateElem) invDateElem.innerText = report.reportedDate || report.collectionDate || new Date().toISOString().split('T')[0];
+
+    const invSerialElem = document.getElementById('invSerial');
+    if (invSerialElem) invSerialElem.innerText = `#${report.serial || 'N/A'}`;
+
+    const invPaymentModeElem = document.getElementById('invPaymentMode');
+    if (invPaymentModeElem) invPaymentModeElem.innerText = report.paymentMode || 'Cash';
+
+    const invPaymentStatusElem = document.getElementById('invPaymentStatus');
+    if (invPaymentStatusElem) invPaymentStatusElem.innerText = 'PAID';
+
+    const invPatientNameElem = document.getElementById('invPatientName');
+    if (invPatientNameElem) invPatientNameElem.innerText = report.patientName || 'Not specified';
+
+    const invPatientIdElem = document.getElementById('invPatientId');
+    if (invPatientIdElem) invPatientIdElem.innerText = report.patientId || 'N/A';
+
+    const ageGenderStr = [report.patientAge, report.patientGender].filter(Boolean).join(' / ') || 'N/A';
+    const invAgeGenderElem = document.getElementById('invAgeGender');
+    if (invAgeGenderElem) invAgeGenderElem.innerText = ageGenderStr;
+
+    const invPhoneElem = document.getElementById('invPhone');
+    if (invPhoneElem) invPhoneElem.innerText = report.patientPhone || 'N/A';
+
+    const invCityElem = document.getElementById('invCity');
+    if (invCityElem) invCityElem.innerText = report.patientCity || 'N/A';
+
+    const invReferredByElem = document.getElementById('invReferredBy');
+    if (invReferredByElem) invReferredByElem.innerText = report.referredBy || 'Self';
+
+    const invCollectionDateElem = document.getElementById('invCollectionDate');
+    if (invCollectionDateElem) invCollectionDateElem.innerText = report.collectionDate || report.reportedDate || 'N/A';
+
+    const tbody = document.getElementById('invTableBody');
+    if (tbody) {
+      tbody.innerHTML = '';
+      const selectedTests = [];
+
+      if (report.tests && typeof report.tests === 'object') {
+        Object.keys(report.tests).forEach(testKey => {
+          if (report.tests[testKey] === true && INVOICE_TEST_CATALOG[testKey]) {
+            selectedTests.push(INVOICE_TEST_CATALOG[testKey]);
+          }
+        });
+      }
+
+      if (selectedTests.length === 0) {
+        const fallbackCost = parseFloat(report.testCost) || 0;
+        selectedTests.push({
+          name: 'Diagnostic Clinical Investigation',
+          sample: 'Blood / Serum',
+          rate: fallbackCost
+        });
+      }
+
+      let subtotal = 0;
+      selectedTests.forEach((t, idx) => {
+        subtotal += t.rate;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="td-num">${idx + 1}</td>
+          <td><span contenteditable="true" class="editable-field td-desc">${t.name}</span></td>
+          <td><span contenteditable="true" class="editable-field td-sample">${t.sample}</span></td>
+          <td class="td-rate"><span contenteditable="true" class="editable-field td-rate-val">${t.rate}</span></td>
+          <td class="td-amount"><span contenteditable="true" class="editable-field td-amount-val">${t.rate}</span></td>
+          <td class="td-action no-print"><button type="button" class="item-delete-btn" title="Delete row">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const netCost = report.testCost && report.testCost !== 'Not specified' ? (parseFloat(report.testCost) || subtotal) : subtotal;
+      const discount = Math.max(0, subtotal - netCost);
+
+      updateInvoiceTotals(subtotal, discount, 0);
+      bindInvoiceTableEvents();
+    }
+  }
+
+  function bindInvoiceTableEvents() {
+    const tbody = document.getElementById('invTableBody');
+    if (!tbody) return;
+
+    tbody.addEventListener('input', function (e) {
+      if (e.target.classList.contains('td-amount-val') || e.target.classList.contains('td-rate-val')) {
+        recalculateInvoiceFromTable();
+      }
+    });
+
+    tbody.addEventListener('click', function (e) {
+      if (e.target.classList.contains('item-delete-btn')) {
+        const row = e.target.closest('tr');
+        if (row) {
+          row.remove();
+          reindexInvoiceRows();
+          recalculateInvoiceFromTable();
+        }
+      }
+    });
+
+    const discountElem = document.getElementById('invDiscount');
+    if (discountElem) {
+      discountElem.oninput = () => {
+        recalculateInvoiceFromTable();
+      };
+    }
+
+    const taxElem = document.getElementById('invTax');
+    if (taxElem) {
+      taxElem.oninput = () => {
+        recalculateInvoiceFromTable();
+      };
+    }
+
+    const netElem = document.getElementById('invNetTotal');
+    if (netElem) {
+      netElem.oninput = () => {
+        const net = parseFloat(netElem.innerText.replace(/[^0-9.-]/g, '')) || 0;
+        const wordsElem = document.getElementById('invAmountInWords');
+        if (wordsElem) wordsElem.innerText = numberToIndianWords(net);
+        const paidElem = document.getElementById('invPaidAmount');
+        if (paidElem) paidElem.innerText = `₹${net.toFixed(0)}`;
+      };
+    }
+  }
+
+  function addInvoiceRow() {
+    const tbody = document.getElementById('invTableBody');
+    if (!tbody) return;
+
+    const rowCount = tbody.querySelectorAll('tr').length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-num">${rowCount + 1}</td>
+      <td><span contenteditable="true" class="editable-field td-desc">Additional Diagnostic / Sample Charge</span></td>
+      <td><span contenteditable="true" class="editable-field td-sample">Blood / Serum</span></td>
+      <td class="td-rate"><span contenteditable="true" class="editable-field td-rate-val">100</span></td>
+      <td class="td-amount"><span contenteditable="true" class="editable-field td-amount-val">100</span></td>
+      <td class="td-action no-print"><button type="button" class="item-delete-btn" title="Delete row">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+    recalculateInvoiceFromTable();
+  }
+
+  function reindexInvoiceRows() {
+    const rows = document.querySelectorAll('#invTableBody tr');
+    rows.forEach((row, i) => {
+      const numCell = row.querySelector('.td-num');
+      if (numCell) numCell.innerText = i + 1;
+    });
+  }
+
+  function getInvoiceTableSubtotal() {
+    let subtotal = 0;
+    const amountCells = document.querySelectorAll('#invTableBody .td-amount-val');
+    amountCells.forEach(cell => {
+      const val = parseFloat(cell.innerText.replace(/[^0-9.-]/g, '')) || 0;
+      subtotal += val;
+    });
+    return subtotal;
+  }
+
+  function recalculateInvoiceFromTable() {
+    const subtotal = getInvoiceTableSubtotal();
+    const discountElem = document.getElementById('invDiscount');
+    const discount = discountElem ? (parseFloat(discountElem.innerText.replace(/[^0-9.-]/g, '')) || 0) : 0;
+    const taxElem = document.getElementById('invTax');
+    const tax = taxElem ? (parseFloat(taxElem.innerText.replace(/[^0-9.-]/g, '')) || 0) : 0;
+    updateInvoiceTotals(subtotal, discount, tax);
+  }
+
+  function updateInvoiceTotals(subtotal, discount, tax = 0) {
+    const taxable = Math.max(0, subtotal - discount);
+    const net = taxable + tax;
+
+    const subtotalElem = document.getElementById('invSubtotal');
+    if (subtotalElem) subtotalElem.innerText = `₹${subtotal.toFixed(0)}`;
+
+    const discountElem = document.getElementById('invDiscount');
+    if (discountElem && !discountElem.matches(':focus')) {
+      discountElem.innerText = discount > 0 ? `- ₹${discount.toFixed(0)}` : '₹0';
+    }
+
+    const taxableElem = document.getElementById('invTaxable');
+    if (taxableElem) taxableElem.innerText = `₹${taxable.toFixed(0)}`;
+
+    const taxElem = document.getElementById('invTax');
+    if (taxElem && !taxElem.matches(':focus')) {
+      taxElem.innerText = tax > 0 ? `₹${tax.toFixed(0)}` : '₹0';
+    }
+
+    const netElem = document.getElementById('invNetTotal');
+    if (netElem) netElem.innerText = `₹${net.toFixed(0)}`;
+
+    const paidElem = document.getElementById('invPaidAmount');
+    if (paidElem) paidElem.innerText = `₹${net.toFixed(0)}`;
+
+    const balanceElem = document.getElementById('invBalanceDue');
+    if (balanceElem) balanceElem.innerText = '₹0';
+
+    const wordsElem = document.getElementById('invAmountInWords');
+    if (wordsElem) wordsElem.innerText = numberToIndianWords(net);
+  }
+
+  function showInvoiceEmptyState(title, message) {
+    const sheet = document.getElementById('invoiceSheet');
+    if (sheet) sheet.style.display = 'none';
+
+    const emptyState = document.getElementById('invoiceEmptyState');
+    if (emptyState) {
+      emptyState.style.display = 'block';
+      emptyState.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; max-width: 600px; margin: 40px auto;">
+          <div style="font-size: 48px; margin-bottom: 16px;">🧾</div>
+          <h3 style="color: #0f172a; margin-bottom: 8px; font-size: 20px;">${title}</h3>
+          <p style="color: #64748b; font-size: 14px; margin-bottom: 24px; line-height: 1.5;">${message}</p>
+          <a href="history.html" class="invoice-btn invoice-btn-primary" style="display: inline-flex;">
+            📂 Open Report History
+          </a>
+        </div>
+      `;
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     // 1. History Page
     if (document.getElementById('historyList') && !document.getElementById('generateReport')) {
@@ -2715,6 +3245,7 @@ ${patientInfoHTML}
       setupSearchFunctionality();
       setupQuickFilters();
       bindModals();
+      updateTodayReportCount();
       syncReportsFromCloud();
       initRealtimeSync();
       return;
@@ -2724,12 +3255,44 @@ ${patientInfoHTML}
     if (document.getElementById('statisticsContent') && !document.getElementById('generateReport')) {
       renderStatistics();
       bindModals();
+      updateTodayReportCount();
       syncReportsFromCloud();
       initRealtimeSync();
       return;
     }
 
-    // 3. Main Generator Page (index.html)
+    // 3. Invoice Page
+    if (document.getElementById('invoiceSheet') && !document.getElementById('generateReport')) {
+      initInvoicePage();
+      bindModals();
+      updateTodayReportCount();
+      syncReportsFromCloud();
+      initRealtimeSync();
+      return;
+    }
+
+    // 4. Dashboard Page (dashboard.html)
+    if (document.getElementById('dashboardOverview') && !document.getElementById('generateReport')) {
+      const dateEl = document.getElementById('dashTodayDate');
+      if (dateEl) {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+      }
+      updateTodayTotal();
+      updateTodayReportCount();
+      updateTestStats();
+      bindModals();
+      syncReportsFromCloud();
+      initRealtimeSync();
+      return;
+    }
+
+    // 5. Landing Page (index.html) - exit early if no generator present
+    if (!document.getElementById('generateReport')) {
+      return;
+    }
+
+    // 6. Main Report Generator Page (create-report.html)
     setLoadHistoryHook(loadHistory);
     initDates();
     initPatientId();
@@ -2745,18 +3308,25 @@ ${patientInfoHTML}
     syncReportsFromCloud();
     initRealtimeSync();
 
-    // Check query params if redirected from history page
+    bindHeaderNavigation();
+
+    // Check query params if redirected from history page or dashboard tab
     const urlParams = new URLSearchParams(window.location.search);
     const editId = urlParams.get('editId');
     const previewId = urlParams.get('previewId');
+    const tab = urlParams.get('tab');
     if (editId) {
+      showCreateReportView();
       loadReportForEditing(parseInt(editId));
     } else if (previewId) {
+      showCreateReportView();
       const history = loadHistoryData();
       const item = history.find(h => h.id === parseInt(previewId));
       if (item) {
         showReport(item);
       }
+    } else if (tab === 'dashboard') {
+      showDashboardView();
     }
   });
 

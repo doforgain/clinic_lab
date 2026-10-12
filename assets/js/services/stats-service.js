@@ -61,18 +61,36 @@ export function getMonthlyTestStats() {
 
 // L2679
 export function updateTestStats() {
-  if (!document.getElementById('todayCBC')) return;
   const { todayCounts } = getMonthlyTestStats();
-  document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
-  document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
-  document.getElementById('todayTyphoid').innerText = `Typhoid: ${todayCounts.typhi}`;
-  document.getElementById('todayDengue').innerText = `Dengue: ${todayCounts.dengue}`;
-  document.getElementById('todayMalaria').innerText = `Malaria: ${todayCounts.malaria}`;
-  document.getElementById('todayWidal').innerText = `Widal: ${todayCounts.widal}`;
-  document.getElementById('todayBloodGroup').innerText = `Blood Group: ${todayCounts.bloodGroup}`;
-  document.getElementById('todayBilirubin').innerText = `Bilirubin: ${todayCounts.bilirubin}`;
-  document.getElementById('todayCRP').innerText = `CRP: ${todayCounts.crp}`;
-  hideZeroTodayTests();
+  if (document.getElementById('todayCBC')) {
+    document.getElementById('todayCBC').innerText = `CBC: ${todayCounts.cbc}`;
+    document.getElementById('todayESR').innerText = `ESR: ${todayCounts.esr}`;
+    document.getElementById('todayTyphoid').innerText = `Typhoid: ${todayCounts.typhi}`;
+    document.getElementById('todayDengue').innerText = `Dengue: ${todayCounts.dengue}`;
+    document.getElementById('todayMalaria').innerText = `Malaria: ${todayCounts.malaria}`;
+    document.getElementById('todayWidal').innerText = `Widal: ${todayCounts.widal}`;
+    document.getElementById('todayBloodGroup').innerText = `Blood Group: ${todayCounts.bloodGroup}`;
+    document.getElementById('todayBilirubin').innerText = `Bilirubin: ${todayCounts.bilirubin}`;
+    document.getElementById('todayCRP').innerText = `CRP: ${todayCounts.crp}`;
+    hideZeroTodayTests();
+  }
+
+  // Sync Dashboard Overview test chip counts
+  const dashMap = {
+    dashCBC: todayCounts.cbc,
+    dashESR: todayCounts.esr,
+    dashTyphoid: todayCounts.typhi,
+    dashDengue: todayCounts.dengue,
+    dashMalaria: todayCounts.malaria,
+    dashWidal: todayCounts.widal,
+    dashBloodGroup: todayCounts.bloodGroup,
+    dashBilirubin: todayCounts.bilirubin,
+    dashCRP: todayCounts.crp
+  };
+  Object.keys(dashMap).forEach(k => {
+    const el = document.getElementById(k);
+    if (el) el.innerText = dashMap[k];
+  });
 }
 
 // L2695
@@ -89,9 +107,14 @@ export function updateTodayReportCount() {
   const reportCount = getTodayReportCount();
   const displayElement = document.getElementById('todayTestCount');
   if (displayElement) {
-    displayElement.innerText = reportCount.toString().padStart(2, '0');
-    displayElement.style.display = 'none';
-    setTimeout(() => { displayElement.style.display = 'flex'; }, 0);
+    const formatted = reportCount.toString().padStart(2, '0');
+    displayElement.innerText = formatted;
+    const parent = displayElement.closest('.header-test-counter');
+    if (parent) parent.title = `Today's Reports Generated: ${formatted}`;
+  }
+  const dashTodayTests = document.getElementById('dashTodayTests');
+  if (dashTodayTests) {
+    dashTodayTests.innerText = reportCount.toString();
   }
 }
 
@@ -165,25 +188,90 @@ export function renderStatistics() {
   const statContent = document.getElementById('statisticsContent');
   if (statContent) {
     statContent.innerHTML = `
-    <div class="stats-summary"><h3>${currentMonthName} ${currentYear} Collection Summary</h3>
-    <table class="stats-table"><tr><th>Total Collection</th><td>₹${monthlyCollection.toFixed(2)}</td></tr>
-    <tr><th>Cash Collection</th><td>₹${monthlyCash.toFixed(2)}</td></tr>
-    <tr><th>Online Collection</th><td>₹${monthlyOnline.toFixed(2)}</td></tr>
-    <tr><th>Total Reports</th><td>${monthlyReports}</td></tr></table></div>
-    <div class="stats-summary"><h3>Test Statistics for ${currentMonthName}</h3>
-    <table class="stats-table">
-    <tr><th>CBC Tests</th><td>${testCounts.cbc}</td></tr><tr><th>ESR Tests</th><td>${testCounts.esr}</td></tr>
-    <tr><th>Typhoid Tests</th><td>${testCounts.typhi}</td></tr><tr><th>Dengue Tests</th><td>${testCounts.dengue}</td></tr>
-    <tr><th>Malaria Tests</th><td>${testCounts.malaria}</td></tr><tr><th>Widal Tests</th><td>${testCounts.widal}</td></tr>
-    <tr><th>Blood Group Tests</th><td>${testCounts.bloodGroup}</td></tr><tr><th>Bilirubin Tests</th><td>${testCounts.bilirubin}</td></tr>
-    <tr><th>CRP Tests</th><td>${testCounts.crp}</td></tr></table></div>
-    <div class="stats-summary"><h3>Tube Usage and Inventory</h3>
-    <table class="stats-table"><tr><th>Purple Tubes Used This Month</th><td>${purpleTubeUsage}</td></tr>
-    <tr><th>Red Tubes Used This Month</th><td>${redTubeUsage}</td></tr>
-    <tr><th>Purple Tubes Remaining</th><td>${tubeCounts.purple}</td></tr>
-    <tr><th>Red Tubes Remaining</th><td>${tubeCounts.red}</td></tr>
-    <tr><th>Typhoid Kits Remaining</th><td>${kitCounts.typhoid}</td></tr>
-    <tr><th>Malaria Kits Remaining</th><td>${kitCounts.malaria}</td></tr></table></div>`;
+      <!-- Monthly Financial KPI Summary Cards -->
+      <div class="stats-kpi-grid">
+        <div class="dash-card total">
+          <div class="dash-card-icon">💰</div>
+          <div class="dash-card-info">
+            <div class="dash-label">${currentMonthName} Total Collection</div>
+            <div class="dash-val">₹${monthlyCollection.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dash-card cash">
+          <div class="dash-card-icon">💵</div>
+          <div class="dash-card-info">
+            <div class="dash-label">Cash Collection</div>
+            <div class="dash-val">₹${monthlyCash.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dash-card online">
+          <div class="dash-card-icon">📱</div>
+          <div class="dash-card-info">
+            <div class="dash-label">Online Payments</div>
+            <div class="dash-val">₹${monthlyOnline.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dash-card tests">
+          <div class="dash-card-icon">📋</div>
+          <div class="dash-card-info">
+            <div class="dash-label">Total Reports (${currentMonthName})</div>
+            <div class="dash-val">${monthlyReports}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Breakdown Panels -->
+      <div class="stats-panels-grid">
+        <div class="stats-panel-card">
+          <div class="stats-panel-header">
+            <h4><span>🧪</span> Diagnostic Tests Breakdown (${currentMonthName} ${currentYear})</h4>
+          </div>
+          <div class="dashboard-chips-grid stats-chips-grid">
+            <div class="test-chip"><span>CBC:</span> <span class="chip-count">${testCounts.cbc}</span></div>
+            <div class="test-chip"><span>ESR:</span> <span class="chip-count">${testCounts.esr}</span></div>
+            <div class="test-chip"><span>Typhoid:</span> <span class="chip-count">${testCounts.typhi}</span></div>
+            <div class="test-chip"><span>Dengue:</span> <span class="chip-count">${testCounts.dengue}</span></div>
+            <div class="test-chip"><span>Malaria:</span> <span class="chip-count">${testCounts.malaria}</span></div>
+            <div class="test-chip"><span>Widal:</span> <span class="chip-count">${testCounts.widal}</span></div>
+            <div class="test-chip"><span>Blood Group:</span> <span class="chip-count">${testCounts.bloodGroup}</span></div>
+            <div class="test-chip"><span>Bilirubin:</span> <span class="chip-count">${testCounts.bilirubin}</span></div>
+            <div class="test-chip"><span>CRP:</span> <span class="chip-count">${testCounts.crp}</span></div>
+          </div>
+        </div>
+
+        <div class="stats-panel-card">
+          <div class="stats-panel-header">
+            <h4><span>📦</span> Tube Consumption & Remaining Stock</h4>
+          </div>
+          <div class="stats-inventory-grid">
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🟣 Purple Tubes Used</span>
+              <span class="inv-stat-val usage">${purpleTubeUsage}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🟣 Purple Tubes In Stock</span>
+              <span class="inv-stat-val stock">${tubeCounts.purple}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🔴 Red Tubes Used</span>
+              <span class="inv-stat-val usage">${redTubeUsage}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🔴 Red Tubes In Stock</span>
+              <span class="inv-stat-val stock">${tubeCounts.red}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🧪 Typhoid Test Kits</span>
+              <span class="inv-stat-val stock">${kitCounts.typhoid}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🦟 Malaria Test Kits</span>
+              <span class="inv-stat-val stock">${kitCounts.malaria}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }
   const statsModal = document.getElementById('statisticsModal');
   if (statsModal) statsModal.style.display = 'block';

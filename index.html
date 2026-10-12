@@ -4,541 +4,703 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SHAMS HEALTH CARE - Lab Report Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>SHAMS HEALTH CARE - Clinical Laboratory Management & Diagnostic Reporting</title>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
-<body>
-    <div class="container">
-        <header>
-            <div class="logo-container">
-                <div class="logo">SHC</div>
-                <h1>SHAMS HEALTH CARE</h1>
-                <div class="today-report-count" id="todayTestCount">0</div>
-            </div>
-            <p>Laboratory Diagnostic Services</p>
-        </header>
+<body class="landing-page">
+    <!-- Top Navigation Bar -->
+    <header class="landing-nav-bar">
+        <div class="landing-nav-inner">
+            <a href="index.html" class="brand-group" title="SHAMS HEALTH CARE Home">
+                <div class="brand-logo">SHC</div>
+                <div class="brand-text">
+                    <h1>SHAMS <span>HEALTH CARE</span></h1>
+                    <span class="brand-subtitle">Laboratory Diagnostic Services</span>
+                </div>
+            </a>
 
-        <div class="patient-info">
-            <div class="form-group">
-                <label for="patientName" class="required">Patient Name</label>
-                <div style="display: flex; gap: 6px;">
-                    <select id="patientTitle" style="width: 85px;">
-                        <option value="Mr.">Mr.</option>
-                        <option value="Mrs.">Mrs.</option>
-                        <option value="Miss">Miss</option>
-                        <option value="Master">Master</option>
-                        <option value="Baby">Baby</option>
-                        <option value="B/O">B/O</option>
-                    </select>
-                    <input type="text" id="patientName" placeholder="Full Name" required style="flex: 1;">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="guardianName">Relation / Guardian <small style="font-weight: normal; color: #666;">(Optional)</small></label>
-                <div style="display: flex; gap: 6px;">
-                    <select id="relationType" style="width: 85px;">
-                        <option value="S/O">S/O</option>
-                        <option value="W/O">W/O</option>
-                        <option value="D/O">D/O</option>
-                        <option value="C/O">C/O</option>
-                    </select>
-                    <input type="text" id="guardianName" placeholder="Father / Husband Name" style="flex: 1;">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="patientAge" class="required">Age</label>
-                <div style="display: flex; gap: 6px;">
-                    <input type="number" id="patientAge" min="0" required placeholder="Age" style="flex: 1;">
-                    <select id="patientAgeUnit" style="width: 95px;">
-                        <option value="Yrs">Yrs</option>
-                        <option value="Months">Months</option>
-                        <option value="Days">Days</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="patientGender" class="required">Gender</label>
-                <select id="patientGender" required>
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="patientId" class="required">Patient ID</label>
-                <input type="text" id="patientId" required>
-                <small class="patient-id-warning" id="patientIdWarning" style="display: none; color: red;">This Patient
-                    ID already exists!</small>
-            </div>
-            <div class="form-group">
-                <label for="patientPhone">Contact No. <small style="font-weight: normal; color: #666;">(Optional)</small></label>
-                <input type="tel" id="patientPhone" placeholder="Mobile / Phone Number">
-            </div>
-            <div class="form-group">
-                <label for="patientCity">City / Locality <small style="font-weight: normal; color: #666;">(Optional)</small></label>
-                <input type="text" id="patientCity" placeholder="City or Town">
-            </div>
-            <div class="form-group">
-                <label for="collectionDate" class="required">Collection Date</label>
-                <input type="date" id="collectionDate" required>
-            </div>
-            <div class="form-group">
-                <label for="receivedDate" class="required">Received Date</label>
-                <input type="date" id="receivedDate" required>
-            </div>
-            <div class="form-group">
-                <label for="reportedDate" class="required">Reported Date</label>
-                <input type="date" id="reportedDate" required>
-            </div>
-            <div class="form-group">
-                <label for="referredBy">Referred By</label>
-                <input type="text" id="referredBy" value="SELF" placeholder="Doctor's Name">
-            </div>
-            <div class="form-group">
-                <label for="fastingStatus">Fasting Status <small style="font-weight: normal; color: #666;">(Optional)</small></label>
-                <select id="fastingStatus">
-                    <option value="">Not Specified</option>
-                    <option value="Random">Random</option>
-                    <option value="Fasting">Fasting</option>
-                    <option value="Post-Prandial (PP)">Post-Prandial (PP)</option>
-                </select>
+            <nav>
+                <ul class="landing-nav-links">
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#diagnostic-suite">Diagnostic Panels</a></li>
+                    <li><a href="#workflow">Workflow</a></li>
+                    <li><a href="#about">About Lab</a></li>
+                </ul>
+            </nav>
+
+            <div class="landing-nav-actions">
+                <button type="button" class="landing-btn-signup" id="landingSignupBtn"
+                    title="Register New Laboratory">Sign Up</button>
+                <button type="button" class="landing-btn-login" id="landingLoginBtn"
+                    title="Direct Login to Lab Dashboard">
+                    <span>🔐</span> Login
+                </button>
             </div>
         </div>
+    </header>
 
-        <div class="test-selection">
-            <h3>Select Tests</h3>
-            <div class="test-options">
-                <div class="test-option">
-                    <input type="checkbox" id="testCBC" checked>
-                    <label for="testCBC">CBC</label>
+    <!-- Hero Section -->
+    <section class="landing-hero">
+        <div class="landing-hero-grid">
+            <div class="landing-hero-content">
+                <div class="landing-hero-badge">
+                    <span>🏥</span> Next-Gen Clinical Laboratory Information System
                 </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testESR">
-                    <label for="testESR">ESR</label>
+                <h1 class="landing-hero-title">
+                    Precision Diagnostics &amp; <span>Automated Clinical</span> Report Management
+                </h1>
+                <p class="landing-hero-desc">
+                    A comprehensive, high-velocity diagnostic reporting platform engineered for clinical pathology
+                    laboratories.
+                    Featuring real-time hematology calculations, Dr. Shahid Khan authorized master A4 clinical reports,
+                    automated consumables tracking, and robust offline-ready cloud synchronization.
+                </p>
+                <div class="landing-hero-actions">
+                    <button type="button" class="landing-cta-primary" id="heroLoginCta">
+                        <span>🚀</span> Enter Dashboard / Login
+                    </button>
+                    <a href="#features" class="landing-cta-secondary">
+                        <span>🔍</span> Explore System Features
+                    </a>
                 </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testTyphi" checked>
-                    <label for="testTyphi">Typhoid</label>
+            </div>
+
+            <!-- Hero Showcase Mockup -->
+            <div class="landing-hero-card">
+                <div class="hero-card-header">
+                    <div>
+                        <div class="hero-card-title">Live Diagnostic Engine</div>
+                        <small style="color: #64748b;">Clinical Report Generator Module</small>
+                    </div>
+                    <div class="hero-card-badge">
+                        <span class="dot"></span> Online &amp; Sync Ready
+                    </div>
                 </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testDengue">
-                    <label for="testDengue">Dengue</label>
+
+                <div class="hero-indices-grid">
+                    <div class="hero-index-item">
+                        <div class="hero-index-name">MCV Index</div>
+                        <div class="hero-index-val">85.5 <small>fL</small></div>
+                        <div class="hero-index-status">✓ Normal (83 - 101)</div>
+                    </div>
+                    <div class="hero-index-item">
+                        <div class="hero-index-name">MCH Index</div>
+                        <div class="hero-index-val">29.4 <small>pg</small></div>
+                        <div class="hero-index-status">✓ Normal (27 - 32)</div>
+                    </div>
+                    <div class="hero-index-item">
+                        <div class="hero-index-name">MCHC Index</div>
+                        <div class="hero-index-val">34.2 <small>g/dL</small></div>
+                        <div class="hero-index-status">✓ Normal (31.5 - 34.5)</div>
+                    </div>
+                    <div class="hero-index-item">
+                        <div class="hero-index-name">Platelet Count</div>
+                        <div class="hero-index-val">2.45 <small>Lakhs/cumm</small></div>
+                        <div class="hero-index-status">✓ Adequate</div>
+                    </div>
                 </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testMalaria" checked>
-                    <label for="testMalaria">Malaria Parasite</label>
-                </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testWidal">
-                    <label for="testWidal">Widal</label>
-                </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testBloodGroup">
-                    <label for="testBloodGroup">Blood Group</label>
-                </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testBilirubin">
-                    <label for="testBilirubin">Bilirubin</label>
-                </div>
-                <div class="test-option">
-                    <input type="checkbox" id="testCRP">
-                    <label for="testCRP">CRP</label>
+
+                <div class="hero-signature-preview">
+                    <div class="hero-doc-details">
+                        <strong>Dr. Shahid Khan</strong>
+                        <span>MBBS • Consultant Physician</span>
+                    </div>
+                    <div class="hero-seal-badge">
+                        <span>🛡️</span> Verified Clinical Seal
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="test-inputs">
-            <div id="cbcInputs" class="test-section">
-                <h3>CBC Test Parameters</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="hemoglobin">Hemoglobin (g/dL)</label>
-                        <input type="number" id="hemoglobin" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="tlc">Total Leucocyte Count (cells/cumm)</label>
-                        <input type="number" id="tlc">
-                    </div>
-                    <div class="form-group">
-                        <label for="neutrophils">Neutrophils (%)</label>
-                        <input type="number" id="neutrophils" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="lymphocytes">Lymphocytes (%)</label>
-                        <input type="number" id="lymphocytes" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="mid">Mid (%)</label>
-                        <input type="number" id="mid" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="rbcCount">RBC Count (million/cumm)</label>
-                        <input type="number" id="rbcCount" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="mcv">MCV (fL)</label>
-                        <input type="number" id="mcv" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="platelet">Platelet Count (lakhs/cumm)</label>
-                        <input type="number" id="platelet" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label for="absoluteNeutrophils">Absolute Neutrophils (cells/cumm)</label>
-                        <input type="number" id="absoluteNeutrophils">
-                    </div>
-                    <div class="form-group">
-                        <label for="absoluteLymphocytes">Absolute Lymphocytes (cells/cumm)</label>
-                        <input type="number" id="absoluteLymphocytes">
-                    </div>
-                    <div class="form-group">
-                        <label for="absoluteMid">Absolute Mid (cells/cumm)</label>
-                        <input type="number" id="absoluteMid">
-                    </div>
-                    <!-- <div class="form-group">
-                        <label for="eosinophils">Eosinophils (%)</label>
-                        <input type="number" id="eosinophils" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="monocytes">Monocytes (%)</label>
-                        <input type="number" id="monocytes" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="basophils">Basophils (%)</label>
-                        <input type="number" id="basophils" step="0.1">
-                    </div> -->
-                    <div class="form-group">
-                        <label for="pcv">PCV (%)</label>
-                        <input type="number" id="pcv" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="mch">MCH (pg)</label>
-                        <input type="number" id="mch" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="mchc">MCHC (g/dL)</label>
-                        <input type="number" id="mchc" step="0.1">
-                    </div>
-                </div>
+    <!-- Key Metrics Strip -->
+    <section class="landing-metrics-strip">
+        <div class="landing-metrics-container">
+            <div class="metric-stat-item">
+                <div class="metric-stat-number">9+</div>
+                <div class="metric-stat-label">Core Diagnostic Panels</div>
             </div>
-
-            <div id="esrInputs" class="test-section" style="display: none;">
-                <h3>ESR Test Parameter</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="esr">ESR (mm/hr)</label>
-                        <input type="number" id="esr">
-                    </div>
-                </div>
+            <div class="metric-stat-item">
+                <div class="metric-stat-number">&lt; 60s</div>
+                <div class="metric-stat-label">Rapid Report Turnaround</div>
             </div>
-
-            <div id="typhiInputs" class="test-section" style="display: none;">
-                <h3>Typhoid Test</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="typhiResult">Result</label>
-                        <select id="typhiResult">
-                            <option value="Negative">Negative</option>
-                            <option value="Positive">Positive</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="typhiSubtypeContainer" style="display: none;">
-                        <label for="typhiSubtype">Typhoid Subtype</label>
-                        <select id="typhiSubtype">
-                            <option value="IgM">IgM</option>
-                            <option value="IgG">IgG</option>
-                            <option value="Both">Both (IgM and IgG)</option>
-                        </select>
-                    </div>
-                </div>
+            <div class="metric-stat-item">
+                <div class="metric-stat-number">100%</div>
+                <div class="metric-stat-label">Offline-First Zero-Build</div>
             </div>
-
-            <div id="dengueInputs" class="test-section" style="display: none;">
-                <h3>Dengue Test</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="dengueResult">Result</label>
-                        <select id="dengueResult">
-                            <option value="Negative">Negative</option>
-                            <option value="Positive">Positive</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div id="malariaInputs" class="test-section" style="display: none;">
-                <h3>Malaria Parasite Test</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="malariaResult">Result</label>
-                        <select id="malariaResult">
-                            <option value="Negative">Negative</option>
-                            <option value="Positive">Positive</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="malariaSubtypeContainer" style="display: none;">
-                        <label for="malariaSubtype">Malaria Subtype</label>
-                        <select id="malariaSubtype">
-                            <option value="Pf">Pf</option>
-                            <option value="Pv">Pv</option>
-                            <option value="Both">Both (Pf and Pv)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div id="widalInputs" class="test-section" style="display: none;">
-                <h3>Widal Test Parameters</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="oAntigen">O Antigen (Titer)</label>
-                        <input type="text" id="oAntigen" placeholder="e.g., 1:80">
-                    </div>
-                    <div class="form-group">
-                        <label for="hAntigen">H Antigen (Titer)</label>
-                        <input type="text" id="hAntigen" placeholder="e.g., 1:160">
-                    </div>
-                    <div class="form-group">
-                        <label for="ahAntigen">AH Antigen (Titer)</label>
-                        <input type="text" id="ahAntigen" placeholder="e.g., 1:80">
-                    </div>
-                    <div class="form-group">
-                        <label for="bhAntigen">BH Antigen (Titer)</label>
-                        <input type="text" id="bhAntigen" placeholder="e.g., 1:80">
-                    </div>
-                </div>
-            </div>
-
-            <div id="bloodGroupInputs" class="test-section" style="display: none;">
-                <h3>Blood Group Test</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="bloodGroup">Blood Group</label>
-                        <select id="bloodGroup">
-                            <option value="">Select Blood Group</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div id="bilirubinInputs" class="test-section" style="display: none;">
-                <h3>Bilirubin Test Parameters</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="totalBilirubin">Total Bilirubin (mg/dL)</label>
-                        <input type="number" id="totalBilirubin" step="0.1" min="0" max="50">
-                    </div>
-                    <div class="form-group">
-                        <label for="directBilirubin">Direct Bilirubin (mg/dL)</label>
-                        <input type="number" id="directBilirubin" step="0.1" min="0" max="50">
-                    </div>
-                    <div class="form-group">
-                        <label for="indirectBilirubin">Indirect Bilirubin (mg/dL)</label>
-                        <input type="number" id="indirectBilirubin" step="0.1" min="0" max="50" readonly
-                            style="background-color: #f5f5f5;">
-                    </div>
-                </div>
-            </div>
-
-            <div id="crpInputs" class="test-section" style="display: none;">
-                <h3>CRP Test Parameter</h3>
-                <div class="test-fields">
-                    <div class="form-group">
-                        <label for="crp">CRP (mg/L)</label>
-                        <input type="number" id="crp" step="0.1">
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="cost-section">
-            <div class="cost-info">
-                <h3>Cost Information</h3>
-                <div class="cost-row">
-                    <div class="cost-input">
-                        <label for="testCost">Test Cost (₹)</label>
-                        <input type="number" id="testCost" placeholder="Enter price in rupees">
-                    </div>
-                    <div class="payment-options">
-                        <label>Payment Mode (Select one)</label>
-                        <div class="payment-option">
-                            <input type="checkbox" id="paymentCash" checked>
-                            <label for="paymentCash">Cash</label>
-                        </div>
-                        <div class="payment-option">
-                            <input type="checkbox" id="paymentOnline">
-                            <label for="paymentOnline">Online</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="tube-options">
-                    <label>Tube Used (Select one)</label>
-                    <div class="tube-option">
-                        <input type="checkbox" id="tubePurple" checked>
-                        <label for="tubePurple">Purple (EDTA)</label>
-                    </div>
-                    <div class="tube-option">
-                        <input type="checkbox" id="tubeRed">
-                        <label for="tubeRed">Red (Plain)</label>
-                    </div>
-                </div>
-            </div>
-
-            <div class="today-total">
-                <div class="section-header">
-                    <h3>Today's Collection</h3>
-                    <button id="toggleBtn">✖ Show</button>
-                </div>
-                <div id="collectionContent" class="blurred">
-                    <div class="total-row">
-                        <div class="total-item">
-                            <div class="today-total-amount" id="todayTotal">₹0</div>
-                            <p>Total ₹</p>
-                        </div>
-                        <div class="total-item">
-                            <div class="today-total-amount1" id="todayCashTotal">₹0</div>
-                            <p>Today's Cash</p>
-                        </div>
-                        <div class="total-item">
-                            <div class="today-total-amount2" id="todayOnlineTotal">₹0</div>
-                            <p>Today's Online</p>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="metric-stat-item">
+                <div class="metric-stat-number">Realtime</div>
+                <div class="metric-stat-label">Supabase Cloud Sync</div>
             </div>
         </div>
+    </section>
 
-        <div class="buttons">
-            <button id="generateReport">Generate Report</button>
-            <button id="updateReport" style="display: none;">Update Report</button>
-            <button id="editReport" style="display: none;">Edit Report</button>
-            <button id="printReport">Print Report</button>
-            <button id="savePDF">Save as PDF</button>
-            <button id="newReport">New Report</button>
-            <button id="viewHistory">View History</button>
-            <button id="statisticsBtn">Statistics</button>
+    <!-- Core Features Section -->
+    <section id="features" class="landing-section">
+        <div class="landing-section-header">
+            <span class="landing-section-tag">Key Capabilities</span>
+            <h2 class="landing-section-title">Designed for Accuracy, Speed &amp; Clinical Precision</h2>
+            <p class="landing-section-desc">
+                Everything required to run clinical laboratory testing smoothly—from specimen collection and automated
+                hematology calculations to doctor-signed printable A4 outputs.
+            </p>
         </div>
 
-        <div class="test-stats">
-            <h3>Test Statistics</h3>
-            <div class="stats-grid">
-                <div class="stats-box1">
-                    <h4>Today's Tests</h4>
-                    <p id="todayCBC">CBC: 0</p>
-                    <p id="todayESR">ESR: 0</p>
-                    <p id="todayTyphoid">Typhoid: 0</p>
-                    <p id="todayDengue">Dengue: 0</p>
-                    <p id="todayMalaria">Malaria: 0</p>
-                    <p id="todayWidal">Widal: 0</p>
-                    <p id="todayBloodGroup">Blood Group: 0</p>
-                    <p id="todayBilirubin">Bilirubin: 0</p>
-                    <p id="todayCRP">CRP: 0</p>
+        <div class="landing-features-grid">
+            <div class="landing-feature-card">
+                <div class="feature-icon-box">🔬</div>
+                <h3 class="feature-title">Automated Clinical Calculators</h3>
+                <p class="feature-text">
+                    Eliminates manual hematology math. Automatically computes MCV, MCH, MCHC, and PCV from RBC count and
+                    hemoglobin in real time with abnormal boundary detection.
+                </p>
+            </div>
+
+            <div class="landing-feature-card">
+                <div class="feature-icon-box">🖨️</div>
+                <h3 class="feature-title">Master A4 Clinical Reports</h3>
+                <p class="feature-text">
+                    Pixel-perfect international A4 standard printing with Dr. Shahid Khan (MBBS) authorized signature
+                    block, custom barcodes, and direct client-side PDF export.
+                </p>
+            </div>
+
+            <div class="landing-feature-card">
+                <div class="feature-icon-box">📦</div>
+                <h3 class="feature-title">Smart Consumables Tracking</h3>
+                <p class="feature-text">
+                    Automatic decrement tracking of purple EDTA tubes, red plain tubes, Typhoid kits, and Malaria rapid
+                    test kits with PIN-protected inventory reconciliation.
+                </p>
+            </div>
+
+            <div class="landing-feature-card">
+                <div class="feature-icon-box">💰</div>
+                <h3 class="feature-title">Financial &amp; Revenue Auditing</h3>
+                <p class="feature-text">
+                    Accurate segregation of Cash vs. Online payments, real-time daily totals, PIN-gated privacy views,
+                    and integrated patient diagnostic bill &amp; invoice generation.
+                </p>
+            </div>
+
+            <div class="landing-feature-card">
+                <div class="feature-icon-box">⚡</div>
+                <h3 class="feature-title">Dual-Mode Offline &amp; Cloud</h3>
+                <p class="feature-text">
+                    Runs completely offline via local browser storage (`file:///` protocol) and synchronizes seamlessly
+                    in the background with Supabase PostgreSQL cloud database.
+                </p>
+            </div>
+
+            <div class="landing-feature-card">
+                <div class="feature-icon-box">📂</div>
+                <h3 class="feature-title">Patient Archives &amp; Deep Search</h3>
+                <p class="feature-text">
+                    Instantly search, retrieve, and filter historical diagnostic records by Patient ID, Name, Contact
+                    Number, or Date Range with one-click preview and editing.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Diagnostic Panels Showcase -->
+    <section id="diagnostic-suite" class="diagnostic-suite-section">
+        <div class="diagnostic-suite-container">
+            <div class="landing-section-header">
+                <span class="landing-section-tag">Diagnostic Suite</span>
+                <h2 class="landing-section-title">Comprehensive Laboratory Testing Panels</h2>
+                <p class="landing-section-desc">
+                    Built-in standardized templates and reference ranges configured specifically for clinical pathology
+                    diagnostic workflows.
+                </p>
+            </div>
+
+            <div class="test-panels-grid">
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>🩸</span> Complete Blood Count (CBC)</div>
+                        <span class="panel-card-specimen">EDTA Blood</span>
+                    </div>
+                    <p class="panel-card-desc">Comprehensive hemogram with 11 hematological parameters, differential
+                        count, and red cell indices.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">Hb</span>
+                        <span class="param-pill">TLC</span>
+                        <span class="param-pill">Neutrophils</span>
+                        <span class="param-pill">Lymphocytes</span>
+                        <span class="param-pill">Platelets</span>
+                        <span class="param-pill">MCV / MCH / MCHC</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>⏱️</span> ESR (Westergren)</div>
+                        <span class="panel-card-specimen">EDTA Blood</span>
+                    </div>
+                    <p class="panel-card-desc">Standardized Westergren 1-hour sedimentation rate for inflammatory and
+                        systemic evaluation.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">1-Hour ESR</span>
+                        <span class="param-pill">Gender-Specific Ranges</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>🧪</span> Typhoid Rapid Antibody</div>
+                        <span class="panel-card-specimen">Serum / Whole Blood</span>
+                    </div>
+                    <p class="panel-card-desc">Qualitative immunochromatographic assay for acute and convalescent
+                        Salmonella typhi antibodies.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">IgM Antibody</span>
+                        <span class="param-pill">IgG Antibody</span>
+                        <span class="param-pill">Combined Titer</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>🦟</span> Dengue Duo Rapid Combo</div>
+                        <span class="panel-card-specimen">Serum / Whole Blood</span>
+                    </div>
+                    <p class="panel-card-desc">Rapid differential detection of Dengue NS1 antigen and differential
+                        IgM/IgG antibodies.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">NS1 Antigen</span>
+                        <span class="param-pill">IgM Antibody</span>
+                        <span class="param-pill">IgG Antibody</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>🔬</span> Malaria Parasite (Pv / Pf)</div>
+                        <span class="panel-card-specimen">Whole Blood</span>
+                    </div>
+                    <p class="panel-card-desc">High-sensitivity chromatographic test for Plasmodium falciparum and
+                        Plasmodium vivax antigens.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">P. vivax (Pv)</span>
+                        <span class="param-pill">P. falciparum (Pf)</span>
+                        <span class="param-pill">Dual Infection</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>🌡️</span> Widal Agglutination Test</div>
+                        <span class="panel-card-specimen">Serum</span>
+                    </div>
+                    <p class="panel-card-desc">Semi-quantitative slide and tube agglutination titers for enteric fever
+                        diagnosis.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">S. Typhi O</span>
+                        <span class="param-pill">S. Typhi H</span>
+                        <span class="param-pill">S. Paratyphi AH</span>
+                        <span class="param-pill">S. Paratyphi BH</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>💉</span> ABO &amp; Rh Blood Grouping</div>
+                        <span class="panel-card-specimen">Whole Blood</span>
+                    </div>
+                    <p class="panel-card-desc">Determination of forward ABO blood group antigens and Rh factor (D
+                        antigen) agglutination.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">A, B, AB, O</span>
+                        <span class="param-pill">Rh Positive (+)</span>
+                        <span class="param-pill">Rh Negative (-)</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>🟡</span> Serum Bilirubin Profile</div>
+                        <span class="panel-card-specimen">Serum</span>
+                    </div>
+                    <p class="panel-card-desc">Quantitative photometric estimation of Total, Direct, and automatically
+                        derived Indirect Bilirubin.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">Total Bilirubin</span>
+                        <span class="param-pill">Direct Bilirubin</span>
+                        <span class="param-pill">Indirect Bilirubin</span>
+                    </div>
+                </div>
+
+                <div class="test-panel-card">
+                    <div class="panel-card-head">
+                        <div class="panel-card-title"><span>📈</span> C-Reactive Protein (CRP)</div>
+                        <span class="panel-card-specimen">Serum</span>
+                    </div>
+                    <p class="panel-card-desc">Quantitative turbidimetric measurement of acute phase inflammatory
+                        marker.</p>
+                    <div class="panel-card-params">
+                        <span class="param-pill">Quantitative mg/L</span>
+                        <span class="param-pill">Inflammation Tiers</span>
+                    </div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div id="reportOutput" class="report-output"></div>
-    </div>
+    <!-- Workflow Section -->
+    <section id="workflow" class="landing-section">
+        <div class="landing-section-header">
+            <span class="landing-section-tag">Clinical Workflow</span>
+            <h2 class="landing-section-title">Streamlined 3-Step Operation</h2>
+            <p class="landing-section-desc">
+                From patient reception to final authorized report delivery in less than one minute.
+            </p>
+        </div>
 
-    <!-- Collection Password Modal -->
-    <div id="collectionPasswordModal" class="collection-password-modal">
-        <div class="collection-password-content">
-            <span class="close-collection-password" id="closeCollectionPassword">&times;</span>
-            <div class="collection-modal-header">
-                <div class="collection-lock-icon">🔒</div>
-                <h3>Today's Collection</h3>
-                <p>Enter the security password to view today's collection amounts.</p>
+        <div class="workflow-steps-grid">
+            <div class="workflow-step-card">
+                <div class="step-number-bubble">1</div>
+                <h3 class="step-card-title">Intake &amp; Selection</h3>
+                <p class="step-card-desc">
+                    Register patient details with auto-generated chronological Patient IDs and select required
+                    diagnostic tests with one click.
+                </p>
             </div>
-            <form id="collectionPasswordForm">
-                <div class="password-input-wrapper">
-                    <input type="password" id="collectionPasswordInput" placeholder="Enter password" autocomplete="off">
+
+            <div class="workflow-step-card">
+                <div class="step-number-bubble">2</div>
+                <h3 class="step-card-title">Automated Computation</h3>
+                <p class="step-card-desc">
+                    Enter test results. Formulas instantly compute MCV, MCH, MCHC, and indirect bilirubin with automatic
+                    reference-range alerts.
+                </p>
+            </div>
+
+            <div class="workflow-step-card">
+                <div class="step-number-bubble">3</div>
+                <h3 class="step-card-title">Doctor-Signed Report</h3>
+                <p class="step-card-desc">
+                    Instantly preview, print A4 master report with Dr. Shahid Khan's signature, issue patient invoice,
+                    and sync securely to the cloud.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Lab Section -->
+    <section id="about" class="landing-section" style="padding-top: 20px;">
+        <div class="landing-section-header">
+            <span class="landing-section-tag">About The System</span>
+            <h2 class="landing-section-title">Shams Health Care Laboratory Services</h2>
+            <p class="landing-section-desc">
+                Authorized Diagnostic Excellence Directed by Dr. Shahid Khan, MBBS.
+            </p>
+        </div>
+
+        <div
+            style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 36px; max-width: 960px; margin: 0 auto; box-shadow: 0 4px 16px rgba(0,0,0,0.03);">
+            <div style="display: flex; gap: 30px; align-items: center; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 280px;">
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin: 0 0 12px;">Quality Policy
+                        &amp; Clinical Governance</h3>
+                    <p style="font-size: 14.5px; color: #475569; line-height: 1.7; margin: 0 0 16px;">
+                        Shams Health Care provides high-precision pathology and laboratory diagnostics. Our system
+                        enforces standardized reference intervals, strict specimen tracking, duplicate patient detection
+                        within 30-minute test cycles, and verified medical signatory validation.
+                    </p>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <span
+                            style="background: #f1f5f9; padding: 6px 14px; border-radius: 9999px; font-size: 12.5px; font-weight: 600; color: #334155;">✓
+                            Dr. Shahid Khan, MBBS Authorized</span>
+                        <span
+                            style="background: #f1f5f9; padding: 6px 14px; border-radius: 9999px; font-size: 12.5px; font-weight: 600; color: #334155;">✓
+                            HIPAA-Conscious Local Storage</span>
+                        <span
+                            style="background: #f1f5f9; padding: 6px 14px; border-radius: 9999px; font-size: 12.5px; font-weight: 600; color: #334155;">✓
+                            Zero Dependencies</span>
+                    </div>
                 </div>
-                <div id="collectionPasswordError" class="modal-error-message">Incorrect password. Please try again.</div>
-                <div class="collection-modal-buttons">
-                    <button type="button" id="cancelCollectionPassword" class="btn-cancel">Cancel</button>
-                    <button type="submit" id="submitCollectionPassword" class="btn-unlock">Unlock</button>
-                </div>
-            </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bottom CTA Banner -->
+    <div class="landing-cta-banner">
+        <div class="landing-cta-box">
+            <h2 class="cta-box-title">Ready to Access the Laboratory Portal?</h2>
+            <p class="cta-box-desc">
+                Log into the Shams Health Care Laboratory management dashboard to view daily test summaries, manage
+                reagent inventory, and generate patient reports.
+            </p>
+            <div class="cta-box-actions">
+                <button type="button" class="cta-btn-white" id="footerLoginCta">
+                    <span>🔐</span> Login to Laboratory Dashboard
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Inventory Password Modal -->
-    <div id="inventoryPasswordModal" class="auth-password-modal">
-        <div class="auth-password-content">
-            <span class="close-auth-password" id="closeInventoryPassword">&times;</span>
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="landing-footer-container">
+            <div>
+                <div class="footer-brand-title">SHAMS <span>HEALTH CARE</span></div>
+                <p class="footer-brand-desc">
+                    Advanced clinical pathology, hematology, and serology diagnostic information management system.
+                </p>
+                <div style="font-size: 13px; color: #64748b; line-height: 1.6;">
+                    <strong>Authorized Medical Officer:</strong> Dr. Shahid Khan, MBBS<br>
+                    <strong>Facility:</strong> Shams Health Care Laboratory &amp; Diagnostic Center
+                </div>
+            </div>
+
+            <div>
+                <div class="footer-section-title">Laboratory Portals</div>
+                <ul class="footer-links-list">
+                    <li><a href="dashboard.html">Laboratory Dashboard</a></li>
+                    <li><a href="create-report.html">Generate Diagnostic Report</a></li>
+                    <li><a href="history.html">Patient Report Archives</a></li>
+                    <li><a href="statistics.html">Monthly Test Analytics</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="footer-section-title">System &amp; Architecture</div>
+                <ul class="footer-links-list">
+                    <li><a href="#features">Automated Calculators</a></li>
+                    <li><a href="#diagnostic-suite">Diagnostic Panels</a></li>
+                    <li><a href="#workflow">Clinical Workflow</a></li>
+                    <li><a href="#about">Clinical Governance</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom-bar">
+            <div>© 2026 Shams Health Care. All rights reserved. Diagnostic Laboratory Information System.</div>
+            <div>Built for Zero-Build Portability • Clinical Master A4 Certified</div>
+        </div>
+    </footer>
+
+    <!-- Login Authentication Modal -->
+    <div id="loginPasswordModal" class="auth-password-modal" style="display: none;">
+        <div class="auth-password-content" style="max-width: 440px;">
+            <span class="close-auth-password" id="closeLoginPassword">&times;</span>
             <div class="auth-modal-header">
-                <div class="auth-lock-icon">📦</div>
-                <h3>Inventory Management</h3>
-                <p>Enter the security password to update stock quantities.</p>
+                <div class="auth-lock-icon">🔐</div>
+                <h3>Staff Sign In</h3>
+                <p>Enter your laboratory credentials to access the system.</p>
             </div>
-            <form id="inventoryPasswordForm">
-                <div class="password-input-wrapper">
-                    <input type="password" id="inventoryPasswordInput" placeholder="Enter password" autocomplete="off">
+            <form id="loginPasswordForm">
+                <div class="password-input-wrapper" style="margin-bottom: 14px; text-align: left;">
+                    <label for="loginUsernameInput"
+                        style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">Username</label>
+                    <input type="text" id="loginUsernameInput" placeholder="Enter username (e.g. staff)"
+                        autocomplete="username" required
+                        style="width: 100%; padding: 11px 14px; border: 1.5px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
                 </div>
-                <div id="inventoryPasswordError" class="modal-error-message">Incorrect password. Please try again.</div>
+                <div class="password-input-wrapper" style="margin-bottom: 14px; text-align: left;">
+                    <label for="loginPasswordInput"
+                        style="display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px;">Password</label>
+                    <input type="password" id="loginPasswordInput" placeholder="Enter password"
+                        autocomplete="current-password" required
+                        style="width: 100%; padding: 11px 14px; border: 1.5px solid #ccc; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+                </div>
+                <div id="loginPasswordError" class="modal-error-message">Invalid username or password. Please try again.
+                </div>
                 <div class="auth-modal-buttons">
-                    <button type="button" id="cancelInventoryPassword" class="btn-cancel">Cancel</button>
-                    <button type="submit" id="submitInventoryPassword" class="btn-unlock">Unlock</button>
+                    <button type="button" id="cancelLoginPassword" class="btn-cancel">Cancel</button>
+                    <button type="submit" id="submitLoginPassword" class="btn-unlock">Sign In ➔</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Update Inventory Quantities Modal -->
-    <div id="updateInventoryModal" class="inventory-edit-modal">
-        <div class="inventory-edit-content">
-            <span class="close-inventory-edit" id="closeUpdateInventory">&times;</span>
-            <div class="inventory-edit-header">
-                <div class="inventory-edit-icon">📦</div>
-                <h3>Update Stock Quantities</h3>
-                <p>Adjust current stock levels for collection tubes and test kits.</p>
+    <!-- Sign Up Modal (Private Preview / Inactive) -->
+    <div id="signupModal" class="signup-modal" style="display: none;">
+        <div class="signup-modal-content">
+            <span class="close-signup-modal" id="closeSignupModal">&times;</span>
+            <div class="signup-modal-header">
+                <div class="signup-modal-icon">🏥</div>
+                <h3>Register Laboratory / Clinic</h3>
+                <p>Create an account to join the Shams Health Care diagnostic network.</p>
             </div>
-            <form id="updateInventoryForm">
-                <div class="inventory-form-grid">
-                    <div class="inventory-field-group">
-                        <label for="invPurpleTubes">🟣 Purple (EDTA) Tubes</label>
-                        <input type="number" id="invPurpleTubes" min="0" required placeholder="Quantity">
+            <form id="signupForm" onsubmit="event.preventDefault();">
+                <div class="signup-form-grid">
+                    <div class="signup-field">
+                        <label for="signupLabName">Facility / Laboratory Name</label>
+                        <input type="text" id="signupLabName" placeholder="e.g. Shams Diagnostic Lab" required>
                     </div>
-                    <div class="inventory-field-group">
-                        <label for="invRedTubes">🔴 Red (Plain) Tubes</label>
-                        <input type="number" id="invRedTubes" min="0" required placeholder="Quantity">
+                    <div class="signup-field">
+                        <label for="signupDoctorName">Pathologist / Medical Director</label>
+                        <input type="text" id="signupDoctorName" placeholder="e.g. Dr. Shahid Khan, MBBS" required>
                     </div>
-                    <div class="inventory-field-group">
-                        <label for="invTyphoidKits">🧪 Typhoid Test Kits</label>
-                        <input type="number" id="invTyphoidKits" min="0" required placeholder="Quantity">
+                    <div class="signup-field">
+                        <label for="signupEmail">Email Address</label>
+                        <input type="email" id="signupEmail" placeholder="admin@shamslab.com" required>
                     </div>
-                    <div class="inventory-field-group">
-                        <label for="invMalariaKits">🦟 Malaria Test Kits</label>
-                        <input type="number" id="invMalariaKits" min="0" required placeholder="Quantity">
+                    <div class="signup-field">
+                        <label for="signupPhone">Contact Number</label>
+                        <input type="tel" id="signupPhone" placeholder="Mobile / Phone Number" required>
+                    </div>
+                    <div class="signup-field">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" placeholder="Create password" required>
+                    </div>
+                    <div class="signup-field">
+                        <label for="signupConfirmPassword">Confirm Password</label>
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm password" required>
                     </div>
                 </div>
-                <div id="inventoryEditError" class="modal-error-message">Please enter valid positive numbers for all quantities.</div>
-                <div class="inventory-edit-buttons">
-                    <button type="button" id="cancelUpdateInventory" class="btn-cancel">Cancel</button>
-                    <button type="submit" id="saveUpdateInventory" class="btn-save">Save Inventory</button>
+
+                <div class="signup-notice-box">
+                    <span class="notice-icon">ℹ️</span>
+                    <div>
+                        <strong>Registration Status: Private Preview</strong>
+                        <p>Self-registration is currently inactive. New facility onboarding and multi-tenant instances
+                            are provisioned by the system administrator.</p>
+                    </div>
+                </div>
+
+                <div class="signup-modal-buttons">
+                    <button type="button" id="cancelSignup" class="btn-cancel">Close</button>
+                    <button type="button" id="submitSignupInactive" class="btn-disabled"
+                        title="Registration currently managed by administrator" disabled>Register Facility (Invite
+                        Only)</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="assets/js/bundle.js"></script>
+    <!-- Landing Page Interactions & Auth -->
+    <script>
+        const STAFF_USERNAME = 'staff124';
+        const STAFF_PASSWORD = 'admin124';
+        const AUTH_SESSION_KEY = 'shc_auth_session';
+
+        function openLoginPasswordModal(customMessage) {
+            const modal = document.getElementById('loginPasswordModal');
+            const usernameInput = document.getElementById('loginUsernameInput');
+            const passwordInput = document.getElementById('loginPasswordInput');
+            const error = document.getElementById('loginPasswordError');
+            if (modal) {
+                modal.style.display = 'flex';
+                if (error) {
+                    if (customMessage) {
+                        error.textContent = customMessage;
+                        error.style.display = 'block';
+                    } else {
+                        error.style.display = 'none';
+                    }
+                }
+                if (usernameInput) {
+                    usernameInput.value = '';
+                    setTimeout(() => usernameInput.focus(), 60);
+                }
+                if (passwordInput) passwordInput.value = '';
+            }
+        }
+
+        function closeLoginPasswordModal() {
+            const modal = document.getElementById('loginPasswordModal');
+            const usernameInput = document.getElementById('loginUsernameInput');
+            const passwordInput = document.getElementById('loginPasswordInput');
+            const error = document.getElementById('loginPasswordError');
+            if (modal) modal.style.display = 'none';
+            if (usernameInput) usernameInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+            if (error) error.style.display = 'none';
+        }
+
+        function submitLoginPassword(e) {
+            if (e) e.preventDefault();
+            const usernameInput = document.getElementById('loginUsernameInput');
+            const passwordInput = document.getElementById('loginPasswordInput');
+            const error = document.getElementById('loginPasswordError');
+            if (!usernameInput || !passwordInput) return;
+
+            const u = usernameInput.value.trim();
+            const p = passwordInput.value;
+
+            if (u === STAFF_USERNAME && p === STAFF_PASSWORD) {
+                const sessionData = {
+                    user: STAFF_USERNAME,
+                    role: 'staff',
+                    loginAt: Date.now()
+                };
+                sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(sessionData));
+                window.location.href = 'dashboard.html';
+            } else {
+                if (error) {
+                    error.textContent = 'Invalid username or password. Please try again.';
+                    error.style.display = 'block';
+                }
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        }
+
+        function openSignupModal() {
+            const modal = document.getElementById('signupModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeSignupModal() {
+            const modal = document.getElementById('signupModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Check if redirected due to expired session or back button
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auth_required') === 'true') {
+                openLoginPasswordModal('Session expired or authentication required. Please sign in to continue.');
+            } else if (urlParams.get('logged_out') === 'true') {
+                sessionStorage.removeItem(AUTH_SESSION_KEY);
+            }
+
+            // Attach login triggers
+            ['landingLoginBtn', 'heroLoginCta', 'footerLoginCta'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('click', () => openLoginPasswordModal());
+            });
+
+            // Attach signup triggers
+            const signupBtn = document.getElementById('landingSignupBtn');
+            if (signupBtn) signupBtn.addEventListener('click', openSignupModal);
+
+            // Close buttons
+            const closeLogin = document.getElementById('closeLoginPassword');
+            if (closeLogin) closeLogin.addEventListener('click', closeLoginPasswordModal);
+            const cancelLogin = document.getElementById('cancelLoginPassword');
+            if (cancelLogin) cancelLogin.addEventListener('click', closeLoginPasswordModal);
+
+            const closeSignup = document.getElementById('closeSignupModal');
+            if (closeSignup) closeSignup.addEventListener('click', closeSignupModal);
+            const cancelSignup = document.getElementById('cancelSignup');
+            if (cancelSignup) cancelSignup.addEventListener('click', closeSignupModal);
+
+            // Login form submit
+            const loginForm = document.getElementById('loginPasswordForm');
+            if (loginForm) loginForm.addEventListener('submit', submitLoginPassword);
+
+            // Backdrop click
+            window.addEventListener('click', function (e) {
+                if (e.target === document.getElementById('loginPasswordModal')) closeLoginPasswordModal();
+                if (e.target === document.getElementById('signupModal')) closeSignupModal();
+            });
+
+            // Escape key
+            window.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeLoginPasswordModal();
+                    closeSignupModal();
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
-
-

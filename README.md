@@ -129,11 +129,12 @@ The project is structured with clean separation of concerns, featuring an ES6 mo
 
 ```text
 Lab/
-├── index.html                   # Main diagnostic report generator interface
-├── history.html                 # Standalone report history & record viewer
-├── statistics.html              # Standalone statistical analytics & inventory page
-├── reference/
-│   └── index.legacy.html        # Monolithic legacy baseline
+├── index.html                   # Modern landing page & web app introduction (Login / Sign Up)
+├── dashboard.html               # Dedicated laboratory operations & daily summary dashboard
+├── create-report.html           # Diagnostic report generator interface & live calculations
+├── history.html                 # Standalone report history & record archive
+├── statistics.html              # Standalone statistical analytics & revenue metrics
+├── invoice.html                 # Diagnostic bill & patient invoice generator
 └── assets/
     ├── css/
     │   ├── style.css            # Stylesheet aggregator

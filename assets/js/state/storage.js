@@ -32,20 +32,20 @@ export function setGlobalSerial(n) {
 export function updateCloudStatusBadge(status, text) {
   let badge = document.getElementById('cloudStatusBadge');
   if (!badge) {
-    const logoContainer = document.querySelector('.logo-container');
-    if (logoContainer) {
+    const container = document.querySelector('.header-status-area') || document.querySelector('.logo-container');
+    if (container) {
       badge = document.createElement('div');
       badge.id = 'cloudStatusBadge';
       badge.className = 'cloud-status-badge';
-      logoContainer.appendChild(badge);
+      container.prepend(badge);
     }
   }
   if (badge) {
     badge.setAttribute('data-status', status);
-    badge.innerHTML = text;
+    badge.innerHTML = '<span class="status-dot"></span>';
     badge.title = status === 'connected' 
-      ? 'Connected to Supabase Cloud - reports sync across all devices' 
-      : 'Working locally in browser';
+      ? 'Cloud Synced - Supabase Connected' 
+      : 'Local Mode - Working locally';
   }
 }
 

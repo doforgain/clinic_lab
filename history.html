@@ -6,32 +6,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHAMS HEALTH CARE - Report History</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        if (!sessionStorage.getItem('shc_auth_session')) {
+            window.location.replace('index.html?auth_required=true');
+        }
+        window.addEventListener('pageshow', function (event) {
+            if (!sessionStorage.getItem('shc_auth_session')) {
+                window.location.replace('index.html?auth_required=true');
+            }
+        });
+    </script>
 </head>
 
 <body>
-    <div class="history-page-wrapper">
-        <div class="history-content">
-            <a href="index.html" class="close-history" title="Back to Lab Generator">&times;</a>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #3cc4ad; padding-bottom: 10px;">
-                <h2 style="margin: 0; color: #3cc4ad;">Report History</h2>
-                <a href="index.html" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 4px; font-size: 14px; font-weight: 600; background-color: #6c757d; color: white;">← Back to Lab</a>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="index.html" class="brand-group" title="SHAMS HEALTH CARE Home">
+                    <div class="brand-logo">SHC</div>
+                    <div class="brand-text">
+                        <h1>SHAMS <span>HEALTH CARE</span></h1>
+                        <span class="brand-subtitle">Laboratory Diagnostic Services</span>
+                    </div>
+                </a>
+
+                <nav class="header-nav" aria-label="Main Navigation">
+                    <a href="dashboard.html" class="nav-tab" id="navDashboard">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-label">Dashboard</span>
+                    </a>
+                    <a href="create-report.html" class="nav-tab" id="navCreateReport">
+                        <span class="tab-icon">📝</span>
+                        <span class="tab-label">Create Report</span>
+                    </a>
+                    <a href="history.html" class="nav-tab active" id="navViewHistory">
+                        <span class="tab-icon">📂</span>
+                        <span class="tab-label">View History</span>
+                    </a>
+                    <a href="statistics.html" class="nav-tab" id="navStatistics">
+                        <span class="tab-icon">📈</span>
+                        <span class="tab-label">Statistics</span>
+                    </a>
+                </nav>
+
+                <div class="header-status-area">
+                    <div id="cloudStatusBadge" class="cloud-status-badge" data-status="offline" title="Local Mode (Working locally)">
+                        <span class="status-dot"></span>
+                    </div>
+                    <div class="header-test-counter" title="Today's Reports Generated: 00">
+                        <span class="counter-badge" id="todayTestCount">00</span>
+                    </div>
+                    <a href="index.html" class="header-logout-btn" id="headerLogoutBtn" title="Logout" aria-label="Logout" onclick="sessionStorage.removeItem('shc_auth_session'); window.location.replace('index.html?logged_out=true'); return false;">
+                        <svg class="logout-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="page-content history-page-content">
+            <div class="page-section-header">
+                <div class="section-title-group">
+                    <div class="section-title-icon">📂</div>
+                    <div>
+                        <h2>Patient Report History</h2>
+                        <p class="section-subtitle">Search, filter, view, and manage archived diagnostic reports</p>
+                    </div>
+                </div>
+                <div class="section-actions">
+                    <a href="create-report.html" class="dash-btn dash-btn-primary">
+                        <span>📝</span> + Create New Report
+                    </a>
+                </div>
             </div>
 
-            <div class="enhanced-search-section">
-                <input type="text" id="searchHistory" placeholder="Search by name, patient ID, date, or doctor...">
-                <button id="clearSearch">Clear</button>
-                <button id="advancedSearchBtn" class="advanced-search-btn">Advanced Search</button>
-            </div>
+            <div class="history-search-card">
+                <div class="enhanced-search-section">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchHistory" placeholder="Search by patient name, ID, date, or doctor...">
+                    </div>
+                    <button type="button" id="clearSearch" class="btn-search-clear">Clear</button>
+                    <button type="button" id="advancedSearchBtn" class="advanced-search-btn">⚙️ Advanced Search</button>
+                </div>
 
-            <div class="quick-filters">
-                <button class="quick-filter-btn" data-days="1">Today</button>
-                <button class="quick-filter-btn" data-days="7">Last 7 Days</button>
-                <button class="quick-filter-btn" data-days="30">Last 30 Days</button>
-                <button class="quick-filter-btn" data-test="cbc">CBC Tests</button>
-                <button class="quick-filter-btn" data-test="typhi">Typhoid Tests</button>
-                <button class="quick-filter-btn" data-test="crp">CRP Tests</button>
-                <button class="quick-filter-btn" data-payment="Cash">Cash Payments</button>
-                <button class="quick-filter-btn" data-payment="Online">Online Payments</button>
+                <div class="quick-filters">
+                    <span class="quick-filter-label">Quick Filters:</span>
+                    <button type="button" class="quick-filter-btn" data-days="1">Today</button>
+                    <button type="button" class="quick-filter-btn" data-days="7">Last 7 Days</button>
+                    <button type="button" class="quick-filter-btn" data-days="30">Last 30 Days</button>
+                    <button type="button" class="quick-filter-btn" data-test="cbc">CBC Tests</button>
+                    <button type="button" class="quick-filter-btn" data-test="typhi">Typhoid Tests</button>
+                    <button type="button" class="quick-filter-btn" data-test="crp">CRP Tests</button>
+                    <button type="button" class="quick-filter-btn" data-payment="Cash">Cash Payments</button>
+                    <button type="button" class="quick-filter-btn" data-payment="Online">Online Payments</button>
+                </div>
             </div>
 
             <div id="searchSummary" class="search-summary" style="display: none;">
@@ -39,9 +111,11 @@
                 <div class="active-filters" id="activeFilters"></div>
             </div>
 
-            <p style="margin-top: 15px; color: #666; font-size: 14px;">Click on a report to view / print it</p>
+            <div class="history-list-header">
+                <span class="history-hint">💡 Click any report row to view and print the diagnostic sheet</span>
+            </div>
             <div id="historyList" class="history-list"></div>
-        </div>
+        </main>
     </div>
 
     <!-- Advanced Search Modal -->

@@ -39,22 +39,26 @@
             color: #000;
         }
 
+        /* Statistics Page Wrapper Compatibility */
         .statistics-page-wrapper {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 10px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
         }
 
         .statistics-page-wrapper .statistics-content {
             margin: 0 auto;
             width: 100%;
-            max-width: 900px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e0e0e0;
+            max-width: 1400px;
+            box-shadow: none;
+            border: none;
+            padding: 0;
         }
 
-        .no-print {
-            display: none;
+        @media print {
+            .no-print {
+                display: none;
+            }
         }
 
         .stats-summary {

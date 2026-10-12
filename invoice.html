@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHAMS HEALTH CARE - Diagnostic Bill & Invoice</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        if (!sessionStorage.getItem('shc_auth_session')) {
+            window.location.replace('index.html?auth_required=true');
+        }
+        window.addEventListener('pageshow', function (event) {
+            if (!sessionStorage.getItem('shc_auth_session')) {
+                window.location.replace('index.html?auth_required=true');
+            }
+        });
+    </script>
+</head>
+
+<body class="invoice-page-body">
+    <div class="container">
+        <!-- Top Application Navigation Header (Hidden on Print) -->
+        <header class="app-header no-print">
+            <div class="header-inner">
+                <a href="index.html" class="brand-group" title="SHAMS HEALTH CARE Home">
+                    <div class="brand-logo">SHC</div>
+                    <div class="brand-text">
+                        <h1>SHAMS <span>HEALTH CARE</span></h1>
+                        <span class="brand-subtitle">Laboratory Diagnostic Services</span>
+                    </div>
+                </a>
+
+                <nav class="header-nav" aria-label="Main Navigation">
+                    <a href="dashboard.html" class="nav-tab" id="navDashboard">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-label">Dashboard</span>
+                    </a>
+                    <a href="create-report.html" class="nav-tab" id="navCreateReport">
+                        <span class="tab-icon">📝</span>
+                        <span class="tab-label">Create Report</span>
+                    </a>
+                    <a href="history.html" class="nav-tab" id="navViewHistory">
+                        <span class="tab-icon">📂</span>
+                        <span class="tab-label">View History</span>
+                    </a>
+                    <a href="statistics.html" class="nav-tab" id="navStatistics">
+                        <span class="tab-icon">📈</span>
+                        <span class="tab-label">Statistics</span>
+                    </a>
+                </nav>
+
+                <div class="header-status-area">
+                    <div id="cloudStatusBadge" class="cloud-status-badge" data-status="offline" title="Local Mode (Working locally)">
+                        <span class="status-dot"></span>
+                    </div>
+                    <div class="header-test-counter" title="Today's Reports Generated: 00">
+                        <span class="counter-badge" id="todayTestCount">00</span>
+                    </div>
+                    <a href="index.html" class="header-logout-btn" id="headerLogoutBtn" title="Logout" aria-label="Logout" onclick="sessionStorage.removeItem('shc_auth_session'); window.location.replace('index.html?logged_out=true'); return false;">
+                        <svg class="logout-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="page-content invoice-page-content">
+            <!-- Screen Toolbar (Hidden on Print) -->
+            <div class="invoice-toolbar no-print">
+                <div class="invoice-toolbar-left">
+                    <button type="button" id="btnPrintInvoice" class="invoice-btn invoice-btn-primary" title="Print Invoice or Save as PDF (Ctrl + P)">
+                        <span>🖨️</span> Print Invoice / Save PDF
+                    </button>
+                    <button type="button" id="btnResetInvoice" class="invoice-btn invoice-btn-secondary" title="Reset all changes back to original report values">
+                        <span>🔄</span> Reset to Original
+                    </button>
+                </div>
+                <div class="invoice-toolbar-right">
+                    <a href="history.html" class="invoice-btn invoice-btn-secondary">
+                        <span>📂</span> Back to History
+                    </a>
+                </div>
+            </div>
+
+            <!-- Inline Editing Hint Banner (Hidden on Print) -->
+            <div class="invoice-edit-hint no-print">
+                <span class="icon">✏️</span>
+                <span><strong>Direct Editing Enabled:</strong> Click any detail, patient info, test row, or amount below to customize before printing. Outlines will not appear on print.</span>
+            </div>
+
+            <!-- Empty State (Shown if ID is missing or invalid) -->
+            <div id="invoiceEmptyState" style="display: none;"></div>
+
+            <!-- Master Invoice Sheet -->
+            <div id="invoiceSheet" class="invoice-sheet">
+                <!-- Clinic Header -->
+                <header class="inv-header">
+                    <div class="inv-brand-row">
+                        <div class="inv-brand-info">
+                            <h1>SHAMS <span>HEALTH CARE</span></h1>
+                            <div class="inv-brand-subtitle">Laboratory Diagnostic Services & Clinical Pathology</div>
+                            <div class="inv-clinic-meta">Nuh Road, Tauru, Haryana - 122105 | Helpline: +91 8901469099</div>
+                        </div>
+                        <div class="inv-title-badge-block">
+                            <span class="inv-type-title">TAX INVOICE / RECEIPT</span>
+                            <span class="inv-status-pill inv-status-paid editable-field" id="invPaymentStatus" contenteditable="true" title="Click to edit status">PAID</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Invoice Meta Bar -->
+                <div class="inv-meta-bar">
+                    <div class="inv-meta-item">
+                        <span class="inv-meta-label">Invoice No:</span>
+                        <span class="inv-meta-val editable-field" id="invNumber" contenteditable="true">-</span>
+                    </div>
+                    <div class="inv-meta-item">
+                        <span class="inv-meta-label">Billing Date:</span>
+                        <span class="inv-meta-val editable-field" id="invDate" contenteditable="true">-</span>
+                    </div>
+                    <div class="inv-meta-item">
+                        <span class="inv-meta-label">Lab Serial:</span>
+                        <span class="inv-meta-val editable-field" id="invSerial" contenteditable="true">-</span>
+                    </div>
+                    <div class="inv-meta-item">
+                        <span class="inv-meta-label">Payment Mode:</span>
+                        <span class="inv-meta-val editable-field" id="invPaymentMode" contenteditable="true">Cash</span>
+                    </div>
+                </div>
+
+                <!-- Patient Demographics Section -->
+                <div class="inv-patient-section">
+                    <div class="inv-section-title">Patient Demographic & Clinical Information</div>
+                    <div class="inv-patient-grid">
+                        <div class="inv-patient-field">
+                            <strong>Patient Name:</strong>
+                            <span class="editable-field" id="invPatientName" contenteditable="true">-</span>
+                        </div>
+                        <div class="inv-patient-field">
+                            <strong>Patient ID:</strong>
+                            <span class="editable-field" id="invPatientId" contenteditable="true">-</span>
+                        </div>
+                        <div class="inv-patient-field">
+                            <strong>Age / Gender:</strong>
+                            <span class="editable-field" id="invAgeGender" contenteditable="true">-</span>
+                        </div>
+                        <div class="inv-patient-field">
+                            <strong>Contact No:</strong>
+                            <span class="editable-field" id="invPhone" contenteditable="true">-</span>
+                        </div>
+                        <div class="inv-patient-field">
+                            <strong>City / Area:</strong>
+                            <span class="editable-field" id="invCity" contenteditable="true">-</span>
+                        </div>
+                        <div class="inv-patient-field">
+                            <strong>Referred By:</strong>
+                            <span class="editable-field" id="invReferredBy" contenteditable="true">-</span>
+                        </div>
+                        <div class="inv-patient-field">
+                            <strong>Collection Date:</strong>
+                            <span class="editable-field" id="invCollectionDate" contenteditable="true">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Itemized Diagnostic Tests Table -->
+                <div class="inv-table-wrapper">
+                    <table class="inv-table">
+                        <thead>
+                            <tr>
+                                <th class="th-num">#</th>
+                                <th>Investigation / Diagnostic Test Description</th>
+                                <th>Sample / Specimen</th>
+                                <th class="th-rate">Rate (₹)</th>
+                                <th class="th-amount">Amount (₹)</th>
+                                <th class="th-action no-print">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invTableBody">
+                            <!-- Populated dynamically by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="inv-table-actions-row no-print">
+                    <button type="button" id="btnAddItem" class="btn-add-item">
+                        <span>➕</span> Add Extra Charge / Test Item
+                    </button>
+                </div>
+
+                <!-- Summary & Financial Totals Section -->
+                <div class="inv-summary-layout">
+                    <!-- Left: Amount in Words & Notes -->
+                    <div>
+                        <div class="inv-words-block">
+                            <div class="inv-words-label">Amount in Words:</div>
+                            <div class="inv-words-val editable-field" id="invAmountInWords" contenteditable="true">Zero Rupees Only</div>
+                        </div>
+
+                        <div class="inv-terms-block editable-field" contenteditable="true">
+                            <p>• Computer-generated billing receipt for clinical pathology testing.</p>
+                            <p>• Please correlate laboratory results clinically with your consulting physician.</p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Numerical Totals Card -->
+                    <div class="inv-totals-card">
+                        <div class="inv-totals-row">
+                            <span>Gross Subtotal:</span>
+                            <span id="invSubtotal">₹0</span>
+                        </div>
+                        <div class="inv-totals-row discount-row">
+                            <span>Package Discount:</span>
+                            <span class="editable-field" id="invDiscount" contenteditable="true">₹0</span>
+                        </div>
+                        <div class="inv-totals-row taxable-row">
+                            <span>Taxable Value:</span>
+                            <span id="invTaxable">₹0</span>
+                        </div>
+                        <div class="inv-totals-row tax-row">
+                            <span>GST / Tax (0% / Exempt):</span>
+                            <span class="editable-field" id="invTax" contenteditable="true">₹0</span>
+                        </div>
+                        <div class="inv-totals-row net-total-row">
+                            <span>Net Total Payable:</span>
+                            <span class="editable-field" id="invNetTotal" contenteditable="true">₹0</span>
+                        </div>
+                        <div class="inv-totals-row">
+                            <span>Amount Received:</span>
+                            <span class="editable-field" id="invPaidAmount" contenteditable="true">₹0</span>
+                        </div>
+                        <div class="inv-totals-row">
+                            <span>Balance Due:</span>
+                            <span class="editable-field" id="invBalanceDue" contenteditable="true">₹0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signatory Section -->
+                <div class="inv-sign-row">
+                    <div class="inv-biller-sig-box">
+                        <div class="sig-line"></div>
+                        <div class="sig-name editable-field" contenteditable="true">Authorized Signatory / Cashier</div>
+                        <div class="sig-sub-note">Computer Generated Invoice • Valid without physical signature</div>
+                    </div>
+                </div>
+
+                <!-- Page Footer -->
+                <div class="inv-page-footer">
+                    SHAMS HEALTH CARE • Nuh Road, Tauru, Haryana • Phone: 8901469099 • Thank You For Trusting Our Care
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/bundle.js"></script>
+</body>
+
+</html>

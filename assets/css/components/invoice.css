@@ -1,0 +1,677 @@
+/* ==========================================================================
+   SHAMS HEALTH CARE - INVOICE & BILLING COMPONENT
+   Optimized for Single-Page A4 Precision & Screen-to-Print Parity
+   ========================================================================== */
+
+.invoice-page-content {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 10px 0 30px 0;
+}
+
+/* Screen Action Toolbar */
+.invoice-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 10px 16px;
+    border-radius: 8px;
+}
+
+.invoice-toolbar-left,
+.invoice-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.invoice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    line-height: 1.4;
+}
+
+.invoice-btn-primary {
+    background: #059669;
+    color: #ffffff;
+    border-color: #047857;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.invoice-btn-primary:hover {
+    background: #047857;
+    box-shadow: 0 3px 6px rgba(5, 150, 105, 0.25);
+    transform: translateY(-1px);
+}
+
+.invoice-btn-secondary {
+    background: #ffffff;
+    color: #334155;
+    border-color: #cbd5e1;
+}
+
+.invoice-btn-secondary:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.invoice-btn-outline {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+}
+
+.invoice-btn-outline:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+/* Editability Notice Banner */
+.invoice-edit-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fefce8;
+    border: 1px solid #fef08a;
+    color: #854d0e;
+    padding: 7px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.invoice-edit-hint span.icon {
+    font-size: 14px;
+}
+
+/* Master Invoice Sheet - Fits Standard Single A4 Page */
+.invoice-sheet {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 20px 24px;
+    color: #1e293b;
+    font-size: 12.5px;
+    position: relative;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Header Section */
+.inv-header {
+    border-bottom: 2px solid #0f766e;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.inv-brand-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.inv-brand-info h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f766e;
+    margin: 0;
+    letter-spacing: -0.4px;
+    line-height: 1.15;
+}
+
+.inv-brand-info h1 span {
+    color: #14b8a6;
+}
+
+.inv-brand-subtitle {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin-top: 1px;
+    margin-bottom: 1px;
+}
+
+.inv-clinic-meta {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.35;
+}
+
+.inv-title-badge-block {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.inv-type-title {
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    color: #0f172a;
+    text-transform: uppercase;
+    background: #f1f5f9;
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    line-height: 1.3;
+}
+
+.inv-status-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.inv-status-paid {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+
+/* Meta Data Bar */
+.inv-meta-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+.inv-meta-item {
+    font-size: 11.5px;
+}
+
+.inv-meta-label {
+    display: block;
+    color: #64748b;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 1px;
+}
+
+.inv-meta-val {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* Patient Demographics Card */
+.inv-patient-section {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+}
+
+.inv-section-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #0f766e;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+    border-bottom: 1px dashed #e2e8f0;
+    padding-bottom: 2px;
+}
+
+.inv-patient-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px 12px;
+}
+
+.inv-patient-field {
+    font-size: 11.5px;
+    line-height: 1.35;
+}
+
+.inv-patient-field strong {
+    color: #475569;
+    font-weight: 600;
+    font-size: 11px;
+    display: inline-block;
+    min-width: 82px;
+}
+
+/* Itemized Table */
+.inv-table-wrapper {
+    margin-bottom: 6px;
+    overflow-x: auto;
+}
+
+.inv-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+}
+
+.inv-table th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    text-align: left;
+    padding: 6px 8px;
+    border-top: 1px solid #cbd5e1;
+    border-bottom: 2px solid #94a3b8;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.inv-table th.th-num {
+    text-align: center;
+    width: 38px;
+}
+
+.inv-table th.th-amount,
+.inv-table th.th-rate {
+    text-align: right;
+    width: 95px;
+}
+
+.inv-table th.th-action {
+    text-align: center;
+    width: 40px;
+}
+
+.inv-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.inv-table tr:hover {
+    background: #fafafa;
+}
+
+.inv-table td.td-num {
+    text-align: center;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.inv-table td.td-amount,
+.inv-table td.td-rate {
+    text-align: right;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.inv-table td.td-action {
+    text-align: center;
+}
+
+.item-delete-btn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    transition: background 0.15s;
+}
+
+.item-delete-btn:hover {
+    background: #fee2e2;
+}
+
+.inv-table-actions-row {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.btn-add-item {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    color: #0f766e;
+    padding: 4px 12px;
+    font-size: 11.5px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-add-item:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+}
+
+/* Summary & Totals Section */
+.inv-summary-layout {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 16px;
+    margin-bottom: 10px;
+    padding-top: 6px;
+    border-top: 1px solid #cbd5e1;
+}
+
+.inv-words-block {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.inv-words-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 2px;
+}
+
+.inv-words-val {
+    font-weight: 700;
+    color: #0f766e;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.inv-terms-block {
+    margin-top: 6px;
+    font-size: 10px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.inv-totals-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+.inv-totals-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2.5px 0;
+    font-size: 11.5px;
+    color: #334155;
+}
+
+.inv-totals-row.discount-row {
+    color: #b45309;
+}
+
+.inv-totals-row.taxable-row {
+    font-weight: 500;
+    color: #334155;
+}
+
+.inv-totals-row.tax-row {
+    color: #475569;
+}
+
+.inv-totals-row.net-total-row {
+    border-top: 2px solid #0f766e;
+    margin-top: 4px;
+    padding-top: 5px;
+    font-size: 13.5px;
+    font-weight: 800;
+    color: #0f766e;
+}
+
+/* Signatory & Footer Section */
+.inv-sign-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    margin-top: 14px;
+    padding-top: 6px;
+}
+
+.inv-biller-sig-box {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.sig-line {
+    width: 170px;
+    border-top: 1px dashed #94a3b8;
+    margin-bottom: 4px;
+}
+
+.sig-name {
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 12px;
+}
+
+.sig-sub-note {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+.inv-page-footer {
+    text-align: center;
+    margin-top: 10px;
+    padding-top: 6px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+/* ==========================================================================
+   EDITABLE FIELDS STYLING (Screen vs Print)
+   ========================================================================== */
+
+.editable-field,
+[contenteditable="true"] {
+    outline: none;
+    border-radius: 3px;
+    padding: 1px 3px;
+    transition: background 0.15s, box-shadow 0.15s;
+    display: inline-block;
+    min-width: 16px;
+}
+
+.editable-field:hover,
+[contenteditable="true"]:hover {
+    background-color: #f1f5f9;
+    box-shadow: 0 0 0 1px #94a3b8;
+    cursor: text;
+}
+
+.editable-field:focus,
+[contenteditable="true"]:focus {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px #0f766e;
+    cursor: text;
+}
+
+/* Responsive Styles (Screen Only - never apply to print) */
+@media screen and (max-width: 768px) {
+    .invoice-sheet {
+        padding: 14px 12px;
+    }
+
+    .inv-meta-bar {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .inv-patient-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inv-summary-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .inv-brand-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .inv-title-badge-block {
+        text-align: left;
+        align-items: flex-start;
+    }
+}
+
+/* ==========================================================================
+   PRINT MEDIA STYLES - 100% VISUAL PARITY WITH SCREEN ON SINGLE A4 PAGE
+   ========================================================================== */
+
+@media print {
+    body.invoice-page-body * {
+        visibility: visible !important;
+    }
+
+    body.invoice-page-body .no-print,
+    body.invoice-page-body .app-header,
+    body.invoice-page-body .invoice-toolbar,
+    body.invoice-page-body .invoice-edit-hint,
+    body.invoice-page-body .item-delete-btn,
+    body.invoice-page-body .inv-table-actions-row,
+    body.invoice-page-body .th-action,
+    body.invoice-page-body .td-action {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    body.invoice-page-body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        height: auto !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    body.invoice-page-body .container {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    body.invoice-page-body .invoice-page-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+
+    /* Retain exact visual card frame as screen */
+    body.invoice-page-body .invoice-sheet {
+        position: static !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        padding: 6mm 8mm !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        max-height: 275mm !important;
+    }
+
+    /* Enforce exact same column layout & alignment as screen */
+    body.invoice-page-body .inv-brand-row {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+    }
+
+    body.invoice-page-body .inv-title-badge-block {
+        text-align: right !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+    }
+
+    body.invoice-page-body .inv-meta-bar {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    body.invoice-page-body .inv-patient-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    body.invoice-page-body .inv-summary-layout {
+        display: grid !important;
+        grid-template-columns: 1.35fr 1fr !important;
+        gap: 16px !important;
+    }
+
+    body.invoice-page-body .inv-sign-row {
+        display: flex !important;
+        justify-content: flex-end !important;
+        align-items: flex-end !important;
+    }
+
+    body.invoice-page-body .inv-biller-sig-box {
+        text-align: right !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-end !important;
+    }
+
+    .editable-field,
+    [contenteditable="true"] {
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        outline: none !important;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 6mm 8mm;
+    }
+}

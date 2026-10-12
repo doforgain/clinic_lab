@@ -1,0 +1,594 @@
+/* assets/css/components/header.css - Modern Clinical Header & Unified Navigation */
+
+.app-header {
+    background: #ffffff;
+    border-bottom: 2px solid #3cc4ad;
+    padding: 14px 22px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+.header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+}
+
+/* Brand Group (Left) */
+.brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+    flex-shrink: 0;
+}
+
+.brand-logo {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #3cc4ad 0%, #209f87 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    box-shadow: 0 4px 10px rgba(60, 196, 173, 0.35);
+    flex-shrink: 0;
+}
+
+.brand-text {
+    white-space: nowrap;
+}
+
+.brand-text h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1f2937;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+}
+
+.brand-text h1 span {
+    color: #3cc4ad;
+}
+
+.brand-subtitle {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+/* Navigation Pill Bar (Center) */
+.header-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f1f5f9;
+    padding: 5px 6px;
+    border-radius: 9999px;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #475569;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.nav-tab .tab-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.nav-tab:hover {
+    color: #0f766e;
+    background: rgba(226, 232, 240, 0.8);
+    transform: translateY(-1px);
+}
+
+.nav-tab.active {
+    background: linear-gradient(135deg, #3cc4ad 0%, #209f87 100%);
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(60, 196, 173, 0.38);
+}
+
+.nav-tab.active .tab-icon {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+}
+
+/* Right Status Indicators Area - Compact Icon Toolbar */
+.header-status-area {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* Base Shared Dimensions for Status Indicators */
+.header-status-area .cloud-status-badge,
+.header-status-area .header-test-counter,
+.header-status-area .header-logout-btn {
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    cursor: default;
+}
+
+/* 1. Server Connectivity Indicator */
+.header-status-area .cloud-status-badge {
+    margin: 0;
+    width: 34px;
+    padding: 0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    position: relative;
+}
+
+.cloud-status-badge .status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Local / Offline: Yellow Dot with Warm Glow */
+.cloud-status-badge[data-status="offline"] {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.35);
+}
+
+.cloud-status-badge[data-status="offline"] .status-dot {
+    background: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2), 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+/* Connected / Online: Green Ball with Pulse Animation */
+.cloud-status-badge[data-status="connected"] {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.35);
+}
+
+.cloud-status-badge[data-status="connected"] .status-dot {
+    background: #10b981;
+    animation: serverPulse 2s infinite ease-in-out;
+}
+
+@keyframes serverPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7), 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0), 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+}
+
+/* 2. Today's Lab Count: Sharp Rectengalish Badge */
+.header-test-counter {
+    min-width: 44px;
+    padding: 0 8px;
+    background: #f0fdf4;
+    border: 1px solid #86efac;
+    box-shadow: 0 1px 2px rgba(16, 185, 129, 0.08);
+}
+
+.header-test-counter:hover {
+    border-color: #4ade80;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.15);
+}
+
+.header-test-counter .counter-badge {
+    background: transparent;
+    color: #15803d;
+    padding: 0;
+    font-size: 14.5px;
+    font-weight: 800;
+    font-family: ui-monospace, SFMono-Regular, "Roboto Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    text-align: center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: geometricPrecision;
+}
+
+/* 3. Header Logout Button: Squarish Icon */
+.header-logout-btn {
+    width: 34px;
+    padding: 0;
+    background: #fff1f2;
+    color: #e11d48 !important;
+    border: 1px solid #fecdd3;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.header-logout-btn:hover {
+    background: #ffe4e6;
+    color: #be123c !important;
+    border-color: #fda4af;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(225, 29, 72, 0.18);
+}
+
+.header-logout-btn:active {
+    transform: translateY(0);
+}
+
+.header-logout-btn .logout-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+}
+
+/* Dashboard Overview Panel Styles */
+.dashboard-overview-panel {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 25px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+.dashboard-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-header .dashboard-date {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Page load fade-in transition for smooth navigation */
+@keyframes pageFadeIn {
+    from {
+        opacity: 0.92;
+        transform: translateY(1px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.container {
+    animation: pageFadeIn 0.16s ease-out;
+}
+
+/* Unified Page Section Header (used across History, Statistics & Reports) */
+.page-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #f1f5f9;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.page-section-header .section-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-section-header .section-title-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(60, 196, 173, 0.15) 0%, rgba(32, 159, 135, 0.15) 100%);
+    color: #209f87;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.page-section-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-section-header .section-subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 3px;
+    margin-bottom: 0;
+}
+
+.page-section-header .section-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dash-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dash-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.dash-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.dash-card.tests .dash-card-icon {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.dash-card.total .dash-card-icon {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.dash-card.cash .dash-card-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.dash-card.online .dash-card-icon {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.dash-card-info {
+    flex: 1;
+}
+
+.dash-card-info .dash-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.dash-card-info .dash-val {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+}
+
+.dashboard-actions-banner {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(60, 196, 173, 0.08) 0%, rgba(32, 159, 135, 0.12) 100%);
+    border: 1px dashed #3cc4ad;
+    padding: 16px 20px;
+    border-radius: 10px;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.dashboard-actions-text h3 {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    color: #0f766e;
+}
+
+.dashboard-actions-text p {
+    margin: 0;
+    font-size: 13px;
+    color: #475569;
+}
+
+.dashboard-action-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.dash-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.dash-btn-primary {
+    background: #3cc4ad;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(60, 196, 173, 0.35);
+}
+
+.dash-btn-primary:hover {
+    background: #209f87;
+    transform: translateY(-1px);
+}
+
+.dash-btn-secondary {
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+.dash-btn-secondary:hover {
+    background: #f8fafc;
+    color: #0f766e;
+    border-color: #3cc4ad;
+}
+
+/* Dashboard Test Breakdown List */
+.dashboard-breakdown-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 18px 20px;
+}
+
+.dashboard-breakdown-card h4 {
+    margin: 0 0 14px 0;
+    font-size: 14.5px;
+    color: #334155;
+    font-weight: 700;
+}
+
+.dashboard-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.test-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+}
+
+.test-chip .chip-count {
+    background: #e2e8f0;
+    color: #0f766e;
+    font-weight: 800;
+    padding: 1px 7px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1120px) {
+    .header-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+    .brand-group {
+        justify-content: center;
+    }
+    .header-nav {
+        justify-content: center;
+    }
+    .header-status-area {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-header {
+        padding: 12px;
+    }
+    .header-nav {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        border-radius: 12px;
+        gap: 6px;
+    }
+    .nav-tab {
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 12.5px;
+    }
+    .header-status-area {
+        flex-direction: row;
+        justify-content: center;
+        width: auto;
+    }
+}
+
+/* A4 Print Protection: explicitly guaranteed no-print */
+@media print {
+    .app-header,
+    .dashboard-overview-panel {
+        display: none !important;
+        visibility: hidden !important;
+    }
+}

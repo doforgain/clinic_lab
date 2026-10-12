@@ -6,23 +6,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SHAMS HEALTH CARE - Test Statistics and Monthly Collection</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script>
+        if (!sessionStorage.getItem('shc_auth_session')) {
+            window.location.replace('index.html?auth_required=true');
+        }
+        window.addEventListener('pageshow', function (event) {
+            if (!sessionStorage.getItem('shc_auth_session')) {
+                window.location.replace('index.html?auth_required=true');
+            }
+        });
+    </script>
 </head>
 
 <body>
-    <div class="statistics-page-wrapper">
-        <div class="statistics-content">
-            <a href="index.html" class="close-statistics" title="Back to Lab Generator">&times;</a>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #3cc4ad; padding-bottom: 10px;">
-                <h2 style="margin: 0; color: #3cc4ad;">Test Statistics and Monthly Collection</h2>
-                <a href="index.html" class="btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px; padding: 6px 14px; border-radius: 4px; font-size: 14px; font-weight: 600; background-color: #6c757d; color: white;">← Back to Lab</a>
+    <div class="container">
+        <header class="app-header">
+            <div class="header-inner">
+                <a href="index.html" class="brand-group" title="SHAMS HEALTH CARE Home">
+                    <div class="brand-logo">SHC</div>
+                    <div class="brand-text">
+                        <h1>SHAMS <span>HEALTH CARE</span></h1>
+                        <span class="brand-subtitle">Laboratory Diagnostic Services</span>
+                    </div>
+                </a>
+
+                <nav class="header-nav" aria-label="Main Navigation">
+                    <a href="dashboard.html" class="nav-tab" id="navDashboard">
+                        <span class="tab-icon">📊</span>
+                        <span class="tab-label">Dashboard</span>
+                    </a>
+                    <a href="create-report.html" class="nav-tab" id="navCreateReport">
+                        <span class="tab-icon">📝</span>
+                        <span class="tab-label">Create Report</span>
+                    </a>
+                    <a href="history.html" class="nav-tab" id="navViewHistory">
+                        <span class="tab-icon">📂</span>
+                        <span class="tab-label">View History</span>
+                    </a>
+                    <a href="statistics.html" class="nav-tab active" id="navStatistics">
+                        <span class="tab-icon">📈</span>
+                        <span class="tab-label">Statistics</span>
+                    </a>
+                </nav>
+
+                <div class="header-status-area">
+                    <div id="cloudStatusBadge" class="cloud-status-badge" data-status="offline" title="Local Mode (Working locally)">
+                        <span class="status-dot"></span>
+                    </div>
+                    <div class="header-test-counter" title="Today's Reports Generated: 00">
+                        <span class="counter-badge" id="todayTestCount">00</span>
+                    </div>
+                    <a href="index.html" class="header-logout-btn" id="headerLogoutBtn" title="Logout" aria-label="Logout" onclick="sessionStorage.removeItem('shc_auth_session'); window.location.replace('index.html?logged_out=true'); return false;">
+                        <svg class="logout-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="page-content statistics-page-content">
+            <div class="page-section-header">
+                <div class="section-title-group">
+                    <div class="section-title-icon">📈</div>
+                    <div>
+                        <h2>Test Statistics & Analytics</h2>
+                        <p class="section-subtitle">Monthly financial collections, test volumes, and consumable inventory</p>
+                    </div>
+                </div>
+                <div class="section-actions">
+                    <button type="button" id="updateTubeInventory" class="dash-btn dash-btn-primary">
+                        <span>📦</span> Update Inventory
+                    </button>
+                </div>
             </div>
 
             <div id="statisticsContent"></div>
-
-            <div style="text-align: center; margin-top: 20px;">
-                <button id="updateTubeInventory" class="update-tube-btn">Update Inventory</button>
-            </div>
-        </div>
+        </main>
     </div>
 
     <!-- Inventory Password Modal -->

@@ -5,7 +5,9 @@
     }
 
     .report-output,
-    .report-output * {
+    .report-output *,
+    .invoice-sheet,
+    .invoice-sheet * {
         visibility: visible;
     }
 
@@ -24,7 +26,7 @@
     }
 
     .buttons,
-    .container>*:not(.report-output) {
+    .container>*:not(.report-output):not(.invoice-page-content) {
         display: none !important;
     }
 
@@ -33,7 +35,7 @@
         margin: 0.1cm 0.8cm 1.1cm 0.8cm;
     }
 
-    body {
+    body:not(.invoice-page-body) {
         width: 21cm;
         min-height: 29.7cm;
         font-size: 12pt;

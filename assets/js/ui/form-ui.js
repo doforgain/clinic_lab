@@ -127,7 +127,8 @@ export function hideReportShowForm(isEditMode = false) {
   document.querySelector('.patient-info').style.display = 'grid';
   document.querySelector('.test-selection').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
-  document.querySelector('.test-stats').style.display = 'block';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'block';
   setFormButtonMode(isEditMode);
 }
 

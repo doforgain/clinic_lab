@@ -93,8 +93,8 @@ function bindCalculatorInputs() {
   });
   document.getElementById('patientAge').addEventListener('input', autoUpdatePatientTitle);
   document.getElementById('patientAgeUnit').addEventListener('change', autoUpdatePatientTitle);
-  document.getElementById('patientGender').addEventListener('change', autoUpdatePatientTitle);
-  document.getElementById('toggleBtn').addEventListener('click', toggleCollection);
+  const toggleBtn = document.getElementById('toggleBtn');
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleCollection);
 }
 
 function bindReportButtons() {
@@ -118,7 +118,8 @@ function bindReportButtons() {
         document.querySelector('.patient-info').style.display = 'grid';
         document.querySelector('.test-selection').style.display = 'block';
         document.querySelector('.cost-section').style.display = 'flex';
-        document.querySelector('.test-stats').style.display = 'block';
+        const testStats = document.querySelector('.test-stats');
+        if (testStats) testStats.style.display = 'block';
         const lastGenId = getLastGeneratedReportId();
         if (lastGenId) {
           toggleGenerateUpdateButton(true, lastGenId);
@@ -152,7 +153,7 @@ function handleNewReport() {
   document.getElementById('referredBy').value = 'SELF';
   if (document.getElementById('fastingStatus')) document.getElementById('fastingStatus').value = '';
   document.getElementById('testCost').value = '';
-  document.getElementById('paymentCash').checked = true;
+  document.getElementById('paymentCash').checked = false;
   document.getElementById('paymentOnline').checked = false;
   document.getElementById('tubePurple').checked = true;
   document.getElementById('tubeRed').checked = false;
@@ -172,16 +173,89 @@ function handleNewReport() {
     if (input.type !== 'checkbox') input.value = '';
   });
   document.getElementById('reportOutput').style.display = 'none';
+  const dash = document.getElementById('dashboardOverview');
+  if (dash) dash.style.display = 'none';
+  const navDash = document.getElementById('navDashboard');
+  const navCreate = document.getElementById('navCreateReport');
+  if (navDash) navDash.classList.remove('active');
+  if (navCreate) navCreate.classList.add('active');
   document.querySelector('.patient-info').style.display = 'grid';
   document.querySelector('.test-selection').style.display = 'block';
   document.querySelector('.test-inputs').style.display = 'block';
   document.querySelector('.cost-section').style.display = 'flex';
-  document.querySelector('.test-stats').style.display = 'block';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'block';
   toggleGenerateUpdateButton(false);
   setFormButtonMode(false);
   validatePatientId();
   updateTodayReportCount();
   updateTestStats();
+}
+
+function showDashboardView() {
+  const dash = document.getElementById('dashboardOverview');
+  if (!dash) return;
+  dash.style.display = 'block';
+  ['.patient-info', '.test-selection', '.test-inputs', '.cost-section', '.buttons', '.test-stats'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+  const output = document.getElementById('reportOutput');
+  if (output) output.style.display = 'none';
+
+  const navDash = document.getElementById('navDashboard');
+  const navCreate = document.getElementById('navCreateReport');
+  if (navDash) navDash.classList.add('active');
+  if (navCreate) navCreate.classList.remove('active');
+
+  const dateEl = document.getElementById('dashTodayDate');
+  if (dateEl) {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+  }
+  refreshDashboard();
+}
+
+function showCreateReportView() {
+  const dash = document.getElementById('dashboardOverview');
+  if (dash) dash.style.display = 'none';
+
+  const patientInfo = document.querySelector('.patient-info');
+  if (patientInfo) patientInfo.style.display = 'grid';
+  const testSel = document.querySelector('.test-selection');
+  if (testSel) testSel.style.display = 'block';
+  const testInp = document.querySelector('.test-inputs');
+  if (testInp) testInp.style.display = 'block';
+  const costSec = document.querySelector('.cost-section');
+  if (costSec) costSec.style.display = 'flex';
+  const buttons = document.querySelector('.buttons');
+  if (buttons) buttons.style.display = 'flex';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'block';
+
+  const navDash = document.getElementById('navDashboard');
+  const navCreate = document.getElementById('navCreateReport');
+  if (navDash) navDash.classList.remove('active');
+  if (navCreate) navCreate.classList.add('active');
+}
+
+function bindHeaderNavigation() {
+  const navDash = document.getElementById('navDashboard');
+  if (navDash && navDash.tagName === 'BUTTON') {
+    navDash.addEventListener('click', showDashboardView);
+  }
+  const navCreate = document.getElementById('navCreateReport');
+  if (navCreate && navCreate.tagName === 'BUTTON') {
+    navCreate.addEventListener('click', showCreateReportView);
+  }
+  const dashBtnNewReport = document.getElementById('dashBtnNewReport');
+  if (dashBtnNewReport) {
+    dashBtnNewReport.addEventListener('click', function () {
+      showCreateReportView();
+      const newReportBtn = document.getElementById('newReport');
+      if (newReportBtn) newReportBtn.click();
+    });
+  }
 }
 
 function bindModals() {
@@ -354,6 +428,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupSearchFunctionality();
     setupQuickFilters();
     bindModals();
+    updateTodayReportCount();
     return;
   }
 
@@ -361,10 +436,30 @@ document.addEventListener('DOMContentLoaded', function () {
   if (document.getElementById('statisticsContent') && !document.getElementById('generateReport')) {
     renderStatistics();
     bindModals();
+    updateTodayReportCount();
     return;
   }
 
-  // 3. Main Generator Page (index.html)
+  // 3. Dashboard Page (dashboard.html)
+  if (document.getElementById('dashboardOverview') && !document.getElementById('generateReport')) {
+    const dateEl = document.getElementById('dashTodayDate');
+    if (dateEl) {
+      const now = new Date();
+      dateEl.textContent = now.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    updateTodayTotal();
+    updateTodayReportCount();
+    updateTestStats();
+    bindModals();
+    return;
+  }
+
+  // 4. If landing page (no generateReport, no dashboardOverview), exit early
+  if (!document.getElementById('generateReport')) {
+    return;
+  }
+
+  // 5. Main Report Generator Page (create-report.html)
   setLoadHistoryHook(loadHistory); // breaks search<->history cycle, preserves behaviour
   initDates();
   initPatientId();
@@ -378,17 +473,24 @@ document.addEventListener('DOMContentLoaded', function () {
   bindModals();
   setupSearchFunctionality();
 
-  // Check query params if redirected from history page
+  bindHeaderNavigation();
+
+  // Check query params if redirected from history page or dashboard
   const urlParams = new URLSearchParams(window.location.search);
   const editId = urlParams.get('editId');
   const previewId = urlParams.get('previewId');
+  const tab = urlParams.get('tab');
   if (editId) {
+    showCreateReportView();
     loadReportForEditing(parseInt(editId));
   } else if (previewId) {
+    showCreateReportView();
     const history = JSON.parse(localStorage.getItem('labReportsHistory')) || [];
     const item = history.find(h => h.id === parseInt(previewId));
     if (item) {
       showReport(item);
     }
+  } else if (tab === 'dashboard') {
+    showDashboardView();
   }
 });

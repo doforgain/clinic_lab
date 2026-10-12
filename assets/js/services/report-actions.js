@@ -35,7 +35,8 @@ function showGeneratedReport(reportHTML) {
   document.querySelector('.patient-info').style.display = 'none';
   document.querySelector('.test-selection').style.display = 'none';
   document.querySelector('.cost-section').style.display = 'none';
-  document.querySelector('.test-stats').style.display = 'none';
+  const testStats = document.querySelector('.test-stats');
+  if (testStats) testStats.style.display = 'none';
   setPreviewButtonMode();
 }
 
