@@ -28,6 +28,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 20px;
 }
 
@@ -56,6 +57,61 @@
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+/* Hamburger toggle: hidden on desktop, revealed in the mobile breakpoint below */
+.landing-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f766e;
+    background: #f0fdf4;
+    border: 1.5px solid #a7f3d0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.landing-nav-toggle:hover {
+    background: #dcfce7;
+}
+
+/* Mobile dropdown menu: hidden on desktop regardless of toggle state */
+.landing-mobile-menu {
+    display: none;
+}
+
+.landing-mobile-menu.is-open {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 16px 16px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+}
+
+.landing-mobile-menu a {
+    color: #334155;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 10px 8px;
+    border-radius: 8px;
+}
+
+.landing-mobile-menu a:hover {
+    background: #f0fdfa;
+    color: #0f766e;
+}
+
+@media (min-width: 641px) {
+    .landing-mobile-menu.is-open {
+        display: none;
+    }
 }
 
 .landing-btn-login {
@@ -225,6 +281,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
     padding-bottom: 16px;
     border-bottom: 1px solid #f1f5f9;
     margin-bottom: 20px;
@@ -305,6 +363,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
     padding-top: 16px;
     border-top: 1px dashed #e2e8f0;
 }
@@ -490,6 +550,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-bottom: 10px;
 }
 
@@ -621,6 +683,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 16px;
 }
 
@@ -746,8 +809,46 @@
 }
 
 @media (max-width: 640px) {
+    .landing-nav-inner {
+        padding: 10px 16px;
+        gap: 12px;
+    }
+    /* Scoped shrink of the shared desktop brand lockup (header.css stays untouched) */
+    .landing-nav-bar .brand-group {
+        gap: 8px;
+        min-width: 0;
+        flex-shrink: 1;
+    }
+    .landing-nav-bar .brand-logo {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+    .landing-nav-bar .brand-text {
+        min-width: 0;
+    }
+    .landing-nav-bar .brand-text h1 {
+        font-size: 16px;
+    }
+    .landing-nav-bar .brand-subtitle {
+        font-size: 9px;
+        letter-spacing: 0.4px;
+    }
     .landing-nav-links {
         display: none;
+    }
+    .landing-nav-toggle {
+        display: inline-flex;
+    }
+    .landing-nav-actions {
+        gap: 8px;
+        margin-left: auto;
+    }
+    .landing-btn-login,
+    .landing-btn-signup {
+        padding: 8px 14px;
+        font-size: 13px;
     }
     .landing-hero {
         padding: 40px 16px;
@@ -755,17 +856,70 @@
     .landing-hero-title {
         font-size: 30px;
     }
+    .landing-hero-actions .landing-cta-primary,
+    .landing-hero-actions .landing-cta-secondary {
+        width: 100%;
+        justify-content: center;
+    }
     .landing-features-grid,
     .test-panels-grid,
     .workflow-steps-grid,
     .landing-metrics-container {
         grid-template-columns: 1fr;
     }
+    .landing-section {
+        padding: 56px 16px;
+    }
+    .diagnostic-suite-section {
+        padding: 56px 16px;
+    }
+    .landing-about-card {
+        padding: 24px 20px;
+    }
     .landing-cta-box {
         padding: 36px 20px;
     }
     .cta-box-title {
         font-size: 26px;
+    }
+    .cta-box-actions {
+        flex-wrap: wrap;
+    }
+    .cta-btn-white {
+        width: 100%;
+        justify-content: center;
+    }
+    .signup-modal-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 480px) {
+    .landing-nav-bar .brand-subtitle {
+        display: none;
+    }
+    .landing-nav-bar .brand-text h1 {
+        font-size: 15px;
+    }
+    .landing-btn-signup {
+        display: none;
+    }
+    .landing-hero-title {
+        font-size: 26px;
+        letter-spacing: -0.5px;
+    }
+    .landing-hero-desc {
+        font-size: 16px;
+    }
+    .metric-stat-number {
+        font-size: 28px;
+    }
+    .landing-section-title {
+        font-size: 28px;
+    }
+    .hero-indices-grid {
+        grid-template-columns: 1fr;
     }
 }
 

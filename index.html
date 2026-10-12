@@ -34,10 +34,18 @@
                     title="Register New Laboratory">Sign Up</button>
                 <button type="button" class="landing-btn-login" id="landingLoginBtn"
                     title="Direct Login to Lab Dashboard">
-                    <span>🔐</span> Login
+                    <span aria-hidden="true">🔐</span> Login
                 </button>
+                <button type="button" class="landing-nav-toggle" id="landingNavToggle" aria-expanded="false"
+                    aria-controls="landingMobileMenu" aria-label="Open navigation menu" title="Menu">☰</button>
             </div>
         </div>
+        <nav class="landing-mobile-menu" id="landingMobileMenu" aria-label="Mobile navigation">
+            <a href="#features">Features</a>
+            <a href="#diagnostic-suite">Diagnostic Panels</a>
+            <a href="#workflow">Workflow</a>
+            <a href="#about">About Lab</a>
+        </nav>
     </header>
 
     <!-- Hero Section -->
@@ -687,11 +695,29 @@
                 if (e.target === document.getElementById('signupModal')) closeSignupModal();
             });
 
+            // Mobile hamburger navigation
+            const navToggle = document.getElementById('landingNavToggle');
+            const mobileMenu = document.getElementById('landingMobileMenu');
+            function setMobileMenu(open) {
+                if (!navToggle || !mobileMenu) return;
+                mobileMenu.classList.toggle('is-open', open);
+                navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                navToggle.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+                navToggle.textContent = open ? '✕' : '☰';
+            }
+            if (navToggle) navToggle.addEventListener('click', function () {
+                setMobileMenu(!mobileMenu.classList.contains('is-open'));
+            });
+            if (mobileMenu) mobileMenu.querySelectorAll('a').forEach(a => {
+                a.addEventListener('click', () => setMobileMenu(false));
+            });
+
             // Escape key
             window.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') {
                     closeLoginPasswordModal();
                     closeSignupModal();
+                    setMobileMenu(false);
                 }
             });
         });
