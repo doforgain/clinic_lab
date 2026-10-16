@@ -69,7 +69,7 @@ export function loadHistoryData() {
       .filter(item => {
         if (!item || typeof item !== 'object') return false;
         const idStr = String(item.id);
-        if (tombstones.has(idStr) || item.is_deleted === true) return false;
+        if (tombstones.has(idStr) || item.is_deleted === true || (item.data && item.data.is_deleted === true)) return false;
         return true;
       })
       .map(item => {
@@ -180,14 +180,28 @@ export async function deleteReportFromCloud(id) {
   if (!client) return;
   const numericId = /^\d+$/.test(strId) ? Number(strId) : strId;
   try {
-    // Attempt soft-delete via is_deleted flag; fallback to delete if column does not exist
+    // 1. Attempt soft-delete by setting is_deleted: true on the record and in data JSONB
     let { error } = await client
       .from('lab_reports')
-      .upsert({
-        id: numericId,
-        is_deleted: true
-      });
+      .update({
+        is_deleted: true,
+        data: { id: strId, is_deleted: true }
+      })
+      .eq('id', numericId);
+
+    // If is_deleted column is not in schema cache (PGRST204), update JSONB data column
     if (error && (error.code === 'PGRST204' || (error.message && error.message.includes('is_deleted')))) {
+      const dataUpdateRes = await client
+        .from('lab_reports')
+        .update({
+          data: { id: strId, is_deleted: true }
+        })
+        .eq('id', numericId);
+      error = dataUpdateRes.error;
+    }
+
+    // 2. Fallback to hard delete if update fails or table enforces delete
+    if (error) {
       const delRes = await client.from('lab_reports').delete().eq('id', numericId);
       error = delRes.error;
     }
@@ -229,17 +243,26 @@ export async function syncReportsFromCloud(callbacks = {}, retryCount = 0) {
     updateCloudStatusBadge('connected', '🟢 Cloud Synced');
 
     if (data) {
-      // Record any deleted rows as local tombstones
+      // 1. Record any deleted rows from cloud as local tombstones, and sync pending offline deletes
       const tombstones = new Set(getDeletedReportIds().map(String));
       data.forEach(row => {
-        if (row.is_deleted === true || tombstones.has(String(row.id))) {
+        const isCloudDeleted = row.is_deleted === true || (row.data && row.data.is_deleted === true);
+        if (isCloudDeleted || tombstones.has(String(row.id))) {
           addTombstone(String(row.id));
+          // If deleted locally while offline but still active in cloud, propagate delete to cloud
+          if (!isCloudDeleted && tombstones.has(String(row.id))) {
+            deleteReportFromCloud(String(row.id)).catch(e => console.warn('Sync offline tombstone error:', e));
+          }
         }
       });
       const activeTombstones = new Set(getDeletedReportIds().map(String));
 
+      // 2. Active reports from cloud (not soft-deleted and not in tombstones)
       const cloudReports = data
-        .filter(row => row.is_deleted !== true && !activeTombstones.has(String(row.id)))
+        .filter(row => {
+          const isDeleted = row.is_deleted === true || (row.data && row.data.is_deleted === true);
+          return !isDeleted && !activeTombstones.has(String(row.id));
+        })
         .map(row => {
           const r = row.data || row.report_data;
           if (r) {
@@ -254,15 +277,23 @@ export async function syncReportsFromCloud(callbacks = {}, retryCount = 0) {
       const cloudReportMap = new Map();
       cloudReports.forEach(r => cloudReportMap.set(String(r.id), r));
 
-      // Merge local reports: any local report not yet in the cloud is preserved
+      // 3. Merge local reports: ONLY preserve genuine offline unsynced reports.
+      // If a local report was already previously synced (_synced === true) but is no longer present
+      // in the cloud database, it was deleted on another device or in the database!
+      // NEVER resurrect it! Tombstone it locally and discard it from local history.
       const localReports = loadHistoryData();
       for (const localItem of localReports) {
         if (!localItem || localItem.id === undefined || localItem.id === null) continue;
         const sId = String(localItem.id);
-        if (activeTombstones.has(sId)) continue; // Tombstoned, skip
+        if (activeTombstones.has(sId)) continue; // Already tombstoned, skip
 
         if (!cloudReportMap.has(sId)) {
-          // Exists locally but not in cloud yet; keep it and trigger upload
+          if (localItem._synced === true) {
+            // Deleted from cloud on another device! Tombstone locally and drop.
+            addTombstone(sId);
+            continue;
+          }
+          // Genuine new report created while offline on this device: keep and upload
           syncReportToCloud(localItem).catch(e => console.warn('Background sync error:', e));
           cloudReportMap.set(sId, localItem);
         }
@@ -312,6 +343,14 @@ export function initRealtimeSync(callbacks = {}, retryCount = 0) {
       .channel('public:lab_reports')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lab_reports' }, (payload) => {
         console.log('Cloud change detected from another device:', payload ? payload.eventType : 'event');
+        if (payload) {
+          // If a DELETE or soft-delete event is received, immediately record tombstone locally
+          if (payload.eventType === 'DELETE' && payload.old && payload.old.id) {
+            addTombstone(String(payload.old.id));
+          } else if (payload.new && (payload.new.is_deleted === true || (payload.new.data && payload.new.data.is_deleted === true))) {
+            addTombstone(String(payload.new.id));
+          }
+        }
         syncReportsFromCloud(callbacks);
       })
       .subscribe((status) => {

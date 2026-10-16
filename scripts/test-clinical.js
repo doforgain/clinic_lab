@@ -557,6 +557,18 @@ async function runTests() {
     'storage.js gracefully handles RLS 401/policy errors and supports schema fallback (data || report_data) (B01)'
   );
 
+  // Multi-Device Deletion & Anti-Resurrection Guard
+  assert(
+    storageCodeLive.includes('localItem._synced === true') &&
+    storageCodeLive.includes('addTombstone(sId)'),
+    'storage.js implements anti-resurrection guard to prevent other devices from re-uploading deleted reports'
+  );
+  assert(
+    storageCodeLive.includes('data.is_deleted === true') &&
+    storageCodeLive.includes('deleteReportFromCloud'),
+    'storage.js supports JSONB data.is_deleted soft-delete and multi-device tombstone propagation'
+  );
+
   // ----------------------------------------------------
   // SUITE 13: Code Hygiene & Dual-Execution Sign-Off Gate (Phase 5: B09, B10, B11, B15, B23)
   // ----------------------------------------------------

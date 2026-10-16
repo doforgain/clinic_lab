@@ -2,7 +2,7 @@
  * Split notes: inventory part delegates to inventory-state; filter/stats to search/stats services.
  * Depends on ui/form-ui for view helpers (one-way: services->ui, ui never imports services). */
 import { getCurrentFilters, setCurrentFilters, toggleGenerateUpdateButton } from '../state/app-state.js';
-import { STORAGE_KEYS, loadHistoryData, saveHistoryData, getGlobalSerial, setGlobalSerial, syncReportToCloud, deleteReportFromCloud } from '../state/storage.js';
+import { STORAGE_KEYS, loadHistoryData, saveHistoryData, getGlobalSerial, setGlobalSerial, syncReportToCloud, deleteReportFromCloud, addTombstone } from '../state/storage.js';
 import { decrementTube, incrementTube, decrementKits, incrementKits, adjustKitsForEdit } from '../state/inventory-state.js';
 import { applyAdvancedFilters, updateSearchSummary } from './search-service.js';
 import { calculateSearchStatistics } from './stats-service.js';
@@ -331,15 +331,16 @@ export function loadReportForEditing(id) {
 export function deleteReport(id) {
   if (!confirm('Are you sure you want to delete this report? This action cannot be undone.')) return;
   const strId = String(id);
+  addTombstone(strId);
   let history = loadHistoryData();
   const itemIndex = history.findIndex(item => String(item.id) === strId);
   if (itemIndex !== -1) {
     const item = history[itemIndex];
     if (item.tubeUsed) incrementTube(item.tubeUsed);
     if (item.tests) incrementKits(item.tests);
-    history = history.filter(item => String(item.id) !== strId);
-    saveHistoryData(history);
-    deleteReportFromCloud(strId);
-    loadHistory(); updateTodayTotal(); updateTodayReportCount(); updateTestStats();
   }
+  history = history.filter(item => String(item.id) !== strId);
+  saveHistoryData(history);
+  deleteReportFromCloud(strId);
+  loadHistory(); updateTodayTotal(); updateTodayReportCount(); updateTestStats();
 }
