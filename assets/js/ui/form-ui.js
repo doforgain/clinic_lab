@@ -2,26 +2,52 @@ import { updateSuggestedCost } from '../config/pricing-config.js';
 import { setCurrentPreviewHistoryId } from '../state/app-state.js';
 
 // L962
-export function autoUpdatePatientTitle() {
-  const ageInput = document.getElementById('patientAge').value.trim();
-  const ageVal = parseFloat(ageInput);
-  const ageUnit = document.getElementById('patientAgeUnit').value;
-  const gender = document.getElementById('patientGender').value;
-  const titleSelect = document.getElementById('patientTitle');
-  if (isNaN(ageVal) || ageVal < 0) return;
+export function computePatientTitle({ ageVal, ageUnit = 'Yrs', gender = '' } = {}) {
+  const hasValidAge = typeof ageVal === 'number' && !isNaN(ageVal) && ageVal >= 0;
+
+  if (!hasValidAge) {
+    if (gender === 'Male') return 'Mr.';
+    if (gender === 'Female') return 'Miss';
+    return null;
+  }
+
   if (ageUnit === 'Days' || ageUnit === 'Months' || (ageUnit === 'Yrs' && ageVal < 1)) {
-    titleSelect.value = 'Baby';
-  } else if (ageUnit === 'Yrs') {
+    return 'Baby';
+  }
+
+  if (ageUnit === 'Yrs') {
     if (ageVal <= 12) {
-      if (gender === 'Male') titleSelect.value = 'Master';
-      else if (gender === 'Female') titleSelect.value = 'Baby';
+      if (gender === 'Male') return 'Master';
+      if (gender === 'Female') return ageVal < 2 ? 'Baby' : 'Miss';
     } else if (ageVal >= 13 && ageVal <= 17) {
-      if (gender === 'Male') titleSelect.value = 'Mr.';
-      else if (gender === 'Female') titleSelect.value = 'Miss';
+      if (gender === 'Male') return 'Mr.';
+      if (gender === 'Female') return 'Miss';
     } else if (ageVal >= 18) {
-      if (gender === 'Male') titleSelect.value = 'Mr.';
-      else if (gender === 'Female') titleSelect.value = 'Mrs.';
+      if (gender === 'Male') return 'Mr.';
+      if (gender === 'Female') return 'Mrs.';
     }
+  }
+
+  return null;
+}
+
+export function autoUpdatePatientTitle() {
+  const titleSelect = document.getElementById('patientTitle');
+  if (!titleSelect) return;
+
+  const genderEl = document.getElementById('patientGender');
+  const gender = genderEl ? genderEl.value : '';
+
+  const ageInputEl = document.getElementById('patientAge');
+  const ageInput = ageInputEl ? ageInputEl.value.trim() : '';
+  const ageVal = parseFloat(ageInput);
+
+  const ageUnitEl = document.getElementById('patientAgeUnit');
+  const ageUnit = ageUnitEl ? ageUnitEl.value : 'Yrs';
+
+  const newTitle = computePatientTitle({ ageVal, ageUnit, gender });
+  if (newTitle) {
+    titleSelect.value = newTitle;
   }
 }
 

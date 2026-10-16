@@ -42,6 +42,7 @@ const MODULE_ORDER = [
   'assets/js/services/history-service.js',
   'assets/js/services/report-actions.js',
   'assets/js/services/inventory-service.js',
+  'assets/js/services/idle-service.js',
   'assets/js/ui/form-ui.js',
   'assets/js/services/invoice-service.js',
   'assets/js/app.js'

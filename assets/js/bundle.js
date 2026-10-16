@@ -1076,17 +1076,25 @@
     const currentDate = new Date();
     const currentMonth = currentDate.toLocaleString('default', { month: 'short' }).toUpperCase();
     const currentYear = currentDate.getFullYear();
+    const prefix = `${currentMonth}-${currentYear}-`;
     const history = loadHistoryData();
     let maxSerial = 0;
     history.forEach(item => {
-      if (item && item.patientId && item.patientId.startsWith(`${currentMonth}-${currentYear}-`)) {
-        const serialStr = item.patientId.split('-')[2];
-        const serial = parseInt(serialStr);
-        if (!isNaN(serial) && serial > maxSerial) maxSerial = serial;
+      if (item && item.patientId && String(item.patientId).toUpperCase().startsWith(prefix)) {
+        const parts = String(item.patientId).split('-');
+        if (parts.length >= 3) {
+          const serial = parseInt(parts[2], 10);
+          if (!isNaN(serial) && serial > maxSerial) maxSerial = serial;
+        }
       }
     });
-    const nextSerial = maxSerial + 1;
-    return `${currentMonth}-${currentYear}-${nextSerial.toString().padStart(4, '0')}`;
+    let nextSerial = maxSerial + 1;
+    let candidateId = `${prefix}${nextSerial.toString().padStart(4, '0')}`;
+    while (isPatientIdExists(candidateId)) {
+      nextSerial++;
+      candidateId = `${prefix}${nextSerial.toString().padStart(4, '0')}`;
+    }
+    return candidateId;
   }
   
   function isPatientIdExists(patientId, excludeId = null) {
@@ -2895,28 +2903,206 @@
     openInventoryPasswordModal();
   }
 
+  /* ===== Module: assets/js/services/idle-service.js ===== */
+  /**
+   * assets/js/services/idle-service.js
+   *
+   * Inactivity Detection & Operational Privacy Lock Service.
+   * - Monitors user movement (mouse, keyboard, touch, scroll) across all application pages.
+   * - If inactive for 5 minutes (300,000 ms) on any non-dashboard page, redirects to dashboard.html with screen lock.
+   * - In dashboard.html, displays full-screen privacy blur over the entire screen until user moves/types/touches.
+   * - On interaction, triggers an immediate hard refresh (cache-busting reload) while keeping the 4 collection cards blurred until clicked.
+   */
+  
+  const INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+  const IDLE_LOCK_STORAGE_KEY = 'shc_idle_locked';
+  const COLLECTION_BLUR_KEY = 'shc_collection_blurred';
+  
+  let idleTimer = null;
+  let isFullBlurActive = false;
+  
+  function isDashboardPage() {
+    return !!document.getElementById('dashboardOverview');
+  }
+  
+  function blurCollectionCards() {
+    const cards = document.querySelectorAll('.dashboard-cards-grid .dash-card');
+    cards.forEach(card => card.classList.add('cards-privacy-blurred'));
+  }
+  
+  function unblurCollectionCards() {
+    const cards = document.querySelectorAll('.dashboard-cards-grid .dash-card');
+    cards.forEach(card => card.classList.remove('cards-privacy-blurred'));
+    try {
+      sessionStorage.removeItem(COLLECTION_BLUR_KEY);
+    } catch (e) {}
+  }
+  
+  function showScreenPrivacyOverlay() {
+    if (document.getElementById('screenPrivacyOverlay')) return;
+    isFullBlurActive = true;
+    blurCollectionCards();
+  
+    // Directly apply full-screen blur class to body
+    document.body.classList.add('screen-idle-locked');
+  
+    const overlay = document.createElement('div');
+    overlay.id = 'screenPrivacyOverlay';
+    overlay.className = 'screen-privacy-overlay';
+    overlay.setAttribute('role', 'alert');
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.innerHTML = `
+      <div class="screen-privacy-card">
+        <div class="privacy-lock-icon">🔒</div>
+        <h3>Screen Inactivity Privacy Lock</h3>
+        <p>Laboratory counter privacy engaged due to 5 minutes of inactivity.</p>
+        <div class="privacy-hint">Move mouse, press any key, or touch screen to resume</div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  
+    let startX = null;
+    let startY = null;
+  
+    const onMouseMove = (e) => {
+      if (startX === null || startY === null) {
+        startX = e.clientX;
+        startY = e.clientY;
+        return;
+      }
+      const dist = Math.hypot(e.clientX - startX, e.clientY - startY);
+      if (dist > 15) {
+        dismissFullscreenBlur();
+      }
+    };
+  
+    const dismissFullscreenBlur = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('keydown', dismissFullscreenBlur);
+      window.removeEventListener('touchstart', dismissFullscreenBlur);
+      window.removeEventListener('click', dismissFullscreenBlur);
+  
+      // Persist collection privacy blur across the hard refresh
+      try {
+        sessionStorage.setItem(COLLECTION_BLUR_KEY, 'true');
+        sessionStorage.removeItem(IDLE_LOCK_STORAGE_KEY);
+      } catch (e) {}
+  
+      // Immediate hard refresh (cache-busting reload)
+      window.location.replace('dashboard.html?_t=' + Date.now());
+    };
+  
+    // Attach dismiss listeners after slight delay to ignore synthetic initial events
+    setTimeout(() => {
+      window.addEventListener('mousemove', onMouseMove, { passive: true });
+      window.addEventListener('keydown', dismissFullscreenBlur, { passive: true, once: true });
+      window.addEventListener('touchstart', dismissFullscreenBlur, { passive: true, once: true });
+      window.addEventListener('click', dismissFullscreenBlur, { passive: true, once: true });
+    }, 400);
+  }
+  
+  function handleInactivityTimeout() {
+    if (isDashboardPage()) {
+      showScreenPrivacyOverlay();
+    } else {
+      try {
+        sessionStorage.setItem(IDLE_LOCK_STORAGE_KEY, 'true');
+      } catch (e) {}
+      window.location.href = 'dashboard.html?idle_lock=true';
+    }
+  }
+  
+  function resetInactivityTimer() {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(handleInactivityTimeout, INACTIVITY_TIMEOUT_MS);
+  }
+  
+  function initInactivityWatcher() {
+    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'input'];
+    events.forEach(eventName => {
+      window.addEventListener(eventName, () => {
+        if (!isFullBlurActive) {
+          resetInactivityTimer();
+        }
+      }, { passive: true });
+    });
+  
+    resetInactivityTimer();
+  
+    // If on Dashboard, check if we arrived via idle lock or reload with cards privacy
+    if (isDashboardPage()) {
+      let wasIdle = false;
+      let keepCardsBlurred = false;
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        wasIdle = urlParams.get('idle_lock') === 'true' || sessionStorage.getItem(IDLE_LOCK_STORAGE_KEY) === 'true';
+        keepCardsBlurred = sessionStorage.getItem(COLLECTION_BLUR_KEY) === 'true';
+      } catch (e) {}
+  
+      if (wasIdle) {
+        showScreenPrivacyOverlay();
+      } else if (keepCardsBlurred) {
+        blurCollectionCards();
+      }
+  
+      // Attach click listener to collection cards to unblur them when clicked
+      const cards = document.querySelectorAll('.dashboard-cards-grid .dash-card');
+      cards.forEach(card => {
+        card.addEventListener('click', function () {
+          unblurCollectionCards();
+        });
+      });
+    }
+  }
+
   /* ===== Module: assets/js/ui/form-ui.js ===== */
   // L962
-  function autoUpdatePatientTitle() {
-    const ageInput = document.getElementById('patientAge').value.trim();
-    const ageVal = parseFloat(ageInput);
-    const ageUnit = document.getElementById('patientAgeUnit').value;
-    const gender = document.getElementById('patientGender').value;
-    const titleSelect = document.getElementById('patientTitle');
-    if (isNaN(ageVal) || ageVal < 0) return;
+  function computePatientTitle({ ageVal, ageUnit = 'Yrs', gender = '' } = {}) {
+    const hasValidAge = typeof ageVal === 'number' && !isNaN(ageVal) && ageVal >= 0;
+  
+    if (!hasValidAge) {
+      if (gender === 'Male') return 'Mr.';
+      if (gender === 'Female') return 'Miss';
+      return null;
+    }
+  
     if (ageUnit === 'Days' || ageUnit === 'Months' || (ageUnit === 'Yrs' && ageVal < 1)) {
-      titleSelect.value = 'Baby';
-    } else if (ageUnit === 'Yrs') {
+      return 'Baby';
+    }
+  
+    if (ageUnit === 'Yrs') {
       if (ageVal <= 12) {
-        if (gender === 'Male') titleSelect.value = 'Master';
-        else if (gender === 'Female') titleSelect.value = 'Baby';
+        if (gender === 'Male') return 'Master';
+        if (gender === 'Female') return ageVal < 2 ? 'Baby' : 'Miss';
       } else if (ageVal >= 13 && ageVal <= 17) {
-        if (gender === 'Male') titleSelect.value = 'Mr.';
-        else if (gender === 'Female') titleSelect.value = 'Miss';
+        if (gender === 'Male') return 'Mr.';
+        if (gender === 'Female') return 'Miss';
       } else if (ageVal >= 18) {
-        if (gender === 'Male') titleSelect.value = 'Mr.';
-        else if (gender === 'Female') titleSelect.value = 'Mrs.';
+        if (gender === 'Male') return 'Mr.';
+        if (gender === 'Female') return 'Mrs.';
       }
+    }
+  
+    return null;
+  }
+  
+  function autoUpdatePatientTitle() {
+    const titleSelect = document.getElementById('patientTitle');
+    if (!titleSelect) return;
+  
+    const genderEl = document.getElementById('patientGender');
+    const gender = genderEl ? genderEl.value : '';
+  
+    const ageInputEl = document.getElementById('patientAge');
+    const ageInput = ageInputEl ? ageInputEl.value.trim() : '';
+    const ageVal = parseFloat(ageInput);
+  
+    const ageUnitEl = document.getElementById('patientAgeUnit');
+    const ageUnit = ageUnitEl ? ageUnitEl.value : 'Yrs';
+  
+    const newTitle = computePatientTitle({ ageVal, ageUnit, gender });
+    if (newTitle) {
+      titleSelect.value = newTitle;
     }
   }
   
@@ -3422,13 +3608,49 @@
   }
   
   function initPatientId() {
+    let forceFresh = false;
+    try {
+      if (sessionStorage.getItem('shc_fresh_report_request') === 'true') {
+        forceFresh = true;
+        sessionStorage.removeItem('shc_fresh_report_request');
+        sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
+      }
+    } catch (e) {}
+  
     let patientId = sessionStorage.getItem(SESSION_KEYS.CURRENT_PATIENT_ID);
-    if (!patientId) {
+    if (!patientId || forceFresh || isPatientIdExists(patientId)) {
       patientId = generatePatientId();
       sessionStorage.setItem(SESSION_KEYS.CURRENT_PATIENT_ID, patientId);
     }
     document.getElementById('patientId').value = patientId;
     document.getElementById('patientId').addEventListener('input', () => validatePatientId());
+  }
+  
+  function bindNavigationPatientId() {
+    const dashBtn = document.getElementById('dashBtnNewReport');
+    if (dashBtn) {
+      dashBtn.addEventListener('click', function () {
+        try {
+          sessionStorage.setItem('shc_fresh_report_request', 'true');
+          sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
+        } catch (e) {}
+      });
+    }
+  
+    const navCreate = document.getElementById('navCreateReport');
+    if (navCreate) {
+      navCreate.addEventListener('click', function (e) {
+        if (document.getElementById('generateReport')) {
+          e.preventDefault();
+          handleNewReport();
+        } else {
+          try {
+            sessionStorage.setItem('shc_fresh_report_request', 'true');
+            sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
+          } catch (e) {}
+        }
+      });
+    }
   }
   
   function initInventory() {
@@ -3478,8 +3700,12 @@
     ['totalBilirubin','directBilirubin'].forEach(id => {
       document.getElementById(id).addEventListener('input', calculateIndirectBilirubin);
     });
-    document.getElementById('patientAge').addEventListener('input', autoUpdatePatientTitle);
-    document.getElementById('patientAgeUnit').addEventListener('change', autoUpdatePatientTitle);
+    const ageEl = document.getElementById('patientAge');
+    if (ageEl) ageEl.addEventListener('input', autoUpdatePatientTitle);
+    const ageUnitEl = document.getElementById('patientAgeUnit');
+    if (ageUnitEl) ageUnitEl.addEventListener('change', autoUpdatePatientTitle);
+    const genderEl = document.getElementById('patientGender');
+    if (genderEl) genderEl.addEventListener('change', autoUpdatePatientTitle);
     const toggleBtn = document.getElementById('toggleBtn');
     if (toggleBtn) toggleBtn.addEventListener('click', toggleCollection);
   }
@@ -3708,6 +3934,11 @@
   }
   
   document.addEventListener('DOMContentLoaded', function () {
+    if (document.getElementById('headerLogoutBtn')) {
+      initInactivityWatcher();
+      bindNavigationPatientId();
+    }
+  
     // 1. History Page
     if (document.getElementById('historyList') && !document.getElementById('generateReport')) {
       setLoadHistoryHook(loadHistory);

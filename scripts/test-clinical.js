@@ -45,6 +45,7 @@ async function runTests() {
   const pricingModule = await import('../assets/js/config/pricing-config.js');
   const domHelpersModule = await import('../assets/js/utils/dom-helpers.js');
   const searchModule = await import('../assets/js/services/search-service.js');
+  const formUiModule = await import('../assets/js/ui/form-ui.js');
 
   const { formatPlateletValue } = cbcModule;
   const {
@@ -57,6 +58,7 @@ async function runTests() {
   const { computeSuggestedCost } = pricingModule;
   const { escapeHtml } = domHelpersModule;
   const { applyAdvancedFilters } = searchModule;
+  const { computePatientTitle } = formUiModule;
 
   // ----------------------------------------------------
   // SUITE 1: Platelet Count Formatting (B18)
@@ -654,6 +656,100 @@ async function runTests() {
   assert(
     dashHtmlLive.includes('<span class="tab-icon" aria-hidden="true">'),
     'Navigation tab icons include aria-hidden="true" for screen reader accessibility (B09)'
+  );
+
+  // ----------------------------------------------------
+  // SUITE 14: Inactivity Screen Lock & Dynamic Patient ID Workflow
+  // ----------------------------------------------------
+  suite('14. Inactivity Screen Lock & Dynamic Patient ID Workflow');
+
+  const idleServiceCode = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'services', 'idle-service.js'), 'utf8');
+  assert(
+    idleServiceCode.includes('INACTIVITY_TIMEOUT_MS = 5 * 60 * 1000') || idleServiceCode.includes('300000'),
+    'idle-service.js defines 5-minute (300,000 ms) inactivity timeout'
+  );
+  assert(
+    idleServiceCode.includes('shc_idle_locked'),
+    'idle-service.js uses shc_idle_locked session key'
+  );
+  assert(
+    idleServiceCode.includes('COLLECTION_BLUR_KEY') && idleServiceCode.includes('shc_collection_blurred'),
+    'idle-service.js defines COLLECTION_BLUR_KEY for persistent cards privacy across hard refresh'
+  );
+  assert(
+    idleServiceCode.includes('cards-privacy-blurred'),
+    'idle-service.js manages cards-privacy-blurred class on collection cards'
+  );
+  assert(
+    idleServiceCode.includes('screen-privacy-overlay'),
+    'idle-service.js injects screen-privacy-overlay on dashboard'
+  );
+
+  const headerCssContent = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'css', 'components', 'header.css'), 'utf8');
+  assert(
+    headerCssContent.includes('.cards-privacy-blurred') && headerCssContent.includes('filter: blur'),
+    'header.css contains .cards-privacy-blurred with CSS blur filter'
+  );
+  assert(
+    headerCssContent.includes('.screen-privacy-overlay') && headerCssContent.includes('backdrop-filter: blur'),
+    'header.css contains .screen-privacy-overlay with backdrop blur'
+  );
+
+  const patientIdCode = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'utils', 'patient-id.js'), 'utf8');
+  assert(
+    patientIdCode.includes('while (isPatientIdExists(candidateId))'),
+    'patient-id.js implements while-loop collision guard for sequential ID generation'
+  );
+
+  const bundlePathLive = path.join(ROOT_DIR, 'assets', 'js', 'bundle.js');
+  const bundleLiveUpdated2 = fs.readFileSync(bundlePathLive, 'utf8');
+  assert(
+    bundleLiveUpdated2.includes('initInactivityWatcher') && bundleLiveUpdated2.includes('bindNavigationPatientId'),
+    'bundle.js incorporates initInactivityWatcher and bindNavigationPatientId'
+  );
+
+  // ----------------------------------------------------
+  // SUITE 15: Patient Title Auto-Selection by Gender & Age
+  // ----------------------------------------------------
+  suite('15. Patient Title Auto-Selection by Gender & Age');
+
+  // 1. Gender-first selection (age not yet provided)
+  assert(computePatientTitle({ gender: 'Male' }) === 'Mr.', 'Male with no age returns "Mr."');
+  assert(computePatientTitle({ gender: 'Female' }) === 'Miss', 'Female with no age returns "Miss"');
+  assert(computePatientTitle({ gender: '' }) === null, 'Empty gender with no age returns null');
+
+  // 2. Infants (Days / Months / Yrs < 1)
+  assert(computePatientTitle({ ageVal: 10, ageUnit: 'Days', gender: 'Male' }) === 'Baby', 'Male 10 Days returns "Baby"');
+  assert(computePatientTitle({ ageVal: 10, ageUnit: 'Days', gender: 'Female' }) === 'Baby', 'Female 10 Days returns "Baby"');
+  assert(computePatientTitle({ ageVal: 6, ageUnit: 'Months', gender: 'Male' }) === 'Baby', 'Male 6 Months returns "Baby"');
+  assert(computePatientTitle({ ageVal: 6, ageUnit: 'Months', gender: 'Female' }) === 'Baby', 'Female 6 Months returns "Baby"');
+  assert(computePatientTitle({ ageVal: 0, ageUnit: 'Yrs', gender: 'Male' }) === 'Baby', 'Male 0 Yrs returns "Baby"');
+
+  // 3. Children (1 - 12 Yrs)
+  assert(computePatientTitle({ ageVal: 1, ageUnit: 'Yrs', gender: 'Female' }) === 'Baby', 'Female 1 Yr returns "Baby"');
+  assert(computePatientTitle({ ageVal: 5, ageUnit: 'Yrs', gender: 'Male' }) === 'Master', 'Male 5 Yrs returns "Master"');
+  assert(computePatientTitle({ ageVal: 5, ageUnit: 'Yrs', gender: 'Female' }) === 'Miss', 'Female 5 Yrs returns "Miss"');
+  assert(computePatientTitle({ ageVal: 12, ageUnit: 'Yrs', gender: 'Male' }) === 'Master', 'Male 12 Yrs returns "Master"');
+  assert(computePatientTitle({ ageVal: 12, ageUnit: 'Yrs', gender: 'Female' }) === 'Miss', 'Female 12 Yrs returns "Miss"');
+
+  // 4. Adolescents (13 - 17 Yrs)
+  assert(computePatientTitle({ ageVal: 15, ageUnit: 'Yrs', gender: 'Male' }) === 'Mr.', 'Male 15 Yrs returns "Mr."');
+  assert(computePatientTitle({ ageVal: 15, ageUnit: 'Yrs', gender: 'Female' }) === 'Miss', 'Female 15 Yrs returns "Miss"');
+
+  // 5. Adults (≥ 18 Yrs)
+  assert(computePatientTitle({ ageVal: 25, ageUnit: 'Yrs', gender: 'Male' }) === 'Mr.', 'Male 25 Yrs returns "Mr."');
+  assert(computePatientTitle({ ageVal: 25, ageUnit: 'Yrs', gender: 'Female' }) === 'Mrs.', 'Female 25 Yrs returns "Mrs."');
+
+  // 6. Source file and bundle event binding checks
+  const appJsCode = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'app.js'), 'utf8');
+  assert(
+    appJsCode.includes("genderEl.addEventListener('change', autoUpdatePatientTitle)"),
+    'app.js attaches change event listener to patientGender'
+  );
+  const bundleJsCode = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'bundle.js'), 'utf8');
+  assert(
+    bundleJsCode.includes("genderEl.addEventListener('change', autoUpdatePatientTitle)"),
+    'bundle.js incorporates patientGender change event listener'
   );
 
   // ----------------------------------------------------

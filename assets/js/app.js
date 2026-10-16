@@ -2,7 +2,7 @@
  * Wires all modules. Compiled into assets/js/bundle.js for zero-build execution.
  * Cycle-free: app.js is the only file allowed to import services + ui together. */
 import { getTodayDate } from './utils/date-helpers.js';
-import { generatePatientId, validatePatientId } from './utils/patient-id.js';
+import { generatePatientId, validatePatientId, isPatientIdExists } from './utils/patient-id.js';
 import { getAppState, toggleGenerateUpdateButton, getLastGeneratedReportId, setLastGeneratedReportId, getCurrentPreviewHistoryId, setCurrentPreviewHistoryId } from './state/app-state.js';
 import { STORAGE_KEYS, SESSION_KEYS, loadHistoryData, syncReportsFromCloud, initRealtimeSync } from './state/storage.js';
 import { calculateCBCParameters, calculateIndirectBilirubin, CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from './calculators/cbc-calculator.js';
@@ -16,6 +16,7 @@ import { showAdvancedSearch, applyAdvancedSearch, resetAdvancedSearch, closeAdva
 import { updateTestStats, updateTodayReportCount, renderStatistics, closeStatisticsPasswordModal } from './services/stats-service.js';
 import { updateTubeInventoryWithPassword, closeInventoryPasswordModal, submitInventoryPassword, closeUpdateInventoryModal, saveInventoryChanges } from './services/inventory-service.js';
 import { initInvoicePage } from './services/invoice-service.js';
+import { initInactivityWatcher } from './services/idle-service.js';
 
 function initDates() {
   const today = getTodayDate();
@@ -26,13 +27,49 @@ function initDates() {
 }
 
 function initPatientId() {
+  let forceFresh = false;
+  try {
+    if (sessionStorage.getItem('shc_fresh_report_request') === 'true') {
+      forceFresh = true;
+      sessionStorage.removeItem('shc_fresh_report_request');
+      sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
+    }
+  } catch (e) {}
+
   let patientId = sessionStorage.getItem(SESSION_KEYS.CURRENT_PATIENT_ID);
-  if (!patientId) {
+  if (!patientId || forceFresh || isPatientIdExists(patientId)) {
     patientId = generatePatientId();
     sessionStorage.setItem(SESSION_KEYS.CURRENT_PATIENT_ID, patientId);
   }
   document.getElementById('patientId').value = patientId;
   document.getElementById('patientId').addEventListener('input', () => validatePatientId());
+}
+
+function bindNavigationPatientId() {
+  const dashBtn = document.getElementById('dashBtnNewReport');
+  if (dashBtn) {
+    dashBtn.addEventListener('click', function () {
+      try {
+        sessionStorage.setItem('shc_fresh_report_request', 'true');
+        sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
+      } catch (e) {}
+    });
+  }
+
+  const navCreate = document.getElementById('navCreateReport');
+  if (navCreate) {
+    navCreate.addEventListener('click', function (e) {
+      if (document.getElementById('generateReport')) {
+        e.preventDefault();
+        handleNewReport();
+      } else {
+        try {
+          sessionStorage.setItem('shc_fresh_report_request', 'true');
+          sessionStorage.removeItem(SESSION_KEYS.CURRENT_PATIENT_ID);
+        } catch (e) {}
+      }
+    });
+  }
 }
 
 function initInventory() {
@@ -82,8 +119,12 @@ function bindCalculatorInputs() {
   ['totalBilirubin','directBilirubin'].forEach(id => {
     document.getElementById(id).addEventListener('input', calculateIndirectBilirubin);
   });
-  document.getElementById('patientAge').addEventListener('input', autoUpdatePatientTitle);
-  document.getElementById('patientAgeUnit').addEventListener('change', autoUpdatePatientTitle);
+  const ageEl = document.getElementById('patientAge');
+  if (ageEl) ageEl.addEventListener('input', autoUpdatePatientTitle);
+  const ageUnitEl = document.getElementById('patientAgeUnit');
+  if (ageUnitEl) ageUnitEl.addEventListener('change', autoUpdatePatientTitle);
+  const genderEl = document.getElementById('patientGender');
+  if (genderEl) genderEl.addEventListener('change', autoUpdatePatientTitle);
   const toggleBtn = document.getElementById('toggleBtn');
   if (toggleBtn) toggleBtn.addEventListener('click', toggleCollection);
 }
@@ -312,6 +353,11 @@ function bindModals() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
+  if (document.getElementById('headerLogoutBtn')) {
+    initInactivityWatcher();
+    bindNavigationPatientId();
+  }
+
   // 1. History Page
   if (document.getElementById('historyList') && !document.getElementById('generateReport')) {
     setLoadHistoryHook(loadHistory);

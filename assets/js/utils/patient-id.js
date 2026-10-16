@@ -5,17 +5,25 @@ export function generatePatientId() {
   const currentDate = new Date();
   const currentMonth = currentDate.toLocaleString('default', { month: 'short' }).toUpperCase();
   const currentYear = currentDate.getFullYear();
+  const prefix = `${currentMonth}-${currentYear}-`;
   const history = loadHistoryData();
   let maxSerial = 0;
   history.forEach(item => {
-    if (item && item.patientId && item.patientId.startsWith(`${currentMonth}-${currentYear}-`)) {
-      const serialStr = item.patientId.split('-')[2];
-      const serial = parseInt(serialStr);
-      if (!isNaN(serial) && serial > maxSerial) maxSerial = serial;
+    if (item && item.patientId && String(item.patientId).toUpperCase().startsWith(prefix)) {
+      const parts = String(item.patientId).split('-');
+      if (parts.length >= 3) {
+        const serial = parseInt(parts[2], 10);
+        if (!isNaN(serial) && serial > maxSerial) maxSerial = serial;
+      }
     }
   });
-  const nextSerial = maxSerial + 1;
-  return `${currentMonth}-${currentYear}-${nextSerial.toString().padStart(4, '0')}`;
+  let nextSerial = maxSerial + 1;
+  let candidateId = `${prefix}${nextSerial.toString().padStart(4, '0')}`;
+  while (isPatientIdExists(candidateId)) {
+    nextSerial++;
+    candidateId = `${prefix}${nextSerial.toString().padStart(4, '0')}`;
+  }
+  return candidateId;
 }
 
 export function isPatientIdExists(patientId, excludeId = null) {
