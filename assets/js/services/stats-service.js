@@ -1,7 +1,6 @@
 /* Extracted from index.html L725-729, L2571-2932. */
 import { getTodayDate, getCurrentMonthName, formatDisplayDate } from '../utils/date-helpers.js';
 import { getTubeCounts, getKitCounts } from '../state/inventory-state.js';
-import { INVENTORY_PASSWORD } from '../config/auth-config.js';
 import { loadHistoryData } from '../state/storage.js';
 
 // L725
@@ -120,21 +119,7 @@ export function updateTodayReportCount() {
   }
 }
 
-// Password modal controls for Statistics
-export function openStatisticsPasswordModal() {
-  const modal = document.getElementById('statisticsPasswordModal');
-  const input = document.getElementById('statisticsPasswordInput');
-  const error = document.getElementById('statisticsPasswordError');
-  if (modal) {
-    modal.style.display = 'flex';
-    if (error) error.style.display = 'none';
-    if (input) {
-      input.value = '';
-      setTimeout(() => input.focus(), 50);
-    }
-  }
-}
-
+// Password modal close kept for Escape handler (modal removed in multi-page split)
 export function closeStatisticsPasswordModal() {
   const modal = document.getElementById('statisticsPasswordModal');
   const input = document.getElementById('statisticsPasswordInput');
@@ -142,21 +127,6 @@ export function closeStatisticsPasswordModal() {
   if (modal) modal.style.display = 'none';
   if (input) input.value = '';
   if (error) error.style.display = 'none';
-}
-
-export function submitStatisticsPassword() {
-  const input = document.getElementById('statisticsPasswordInput');
-  const error = document.getElementById('statisticsPasswordError');
-  if (input && input.value === INVENTORY_PASSWORD) {
-    closeStatisticsPasswordModal();
-    renderStatistics();
-  } else {
-    if (error) error.style.display = 'block';
-    if (input) {
-      input.focus();
-      input.select();
-    }
-  }
 }
 
 export function renderStatistics() {
@@ -278,10 +248,5 @@ export function renderStatistics() {
   }
   const statsModal = document.getElementById('statisticsModal');
   if (statsModal) statsModal.style.display = 'block';
-}
-
-// L2723 — open password modal
-export function showStatistics() {
-  openStatisticsPasswordModal();
 }
 

@@ -2,7 +2,7 @@
  * Split notes: inventory part delegates to inventory-state; filter/stats to search/stats services.
  * Depends on ui/form-ui for view helpers (one-way: services->ui, ui never imports services). */
 import { getCurrentFilters, setCurrentFilters, toggleGenerateUpdateButton } from '../state/app-state.js';
-import { STORAGE_KEYS, loadHistoryData, saveHistoryData, getGlobalSerial, setGlobalSerial, syncReportToCloud, deleteReportFromCloud, addTombstone } from '../state/storage.js';
+import { loadHistoryData, saveHistoryData, getGlobalSerial, setGlobalSerial, syncReportToCloud, deleteReportFromCloud, addTombstone } from '../state/storage.js';
 import { decrementTube, incrementTube, decrementKits, incrementKits, adjustKitsForEdit } from '../state/inventory-state.js';
 import { applyAdvancedFilters, updateSearchSummary } from './search-service.js';
 import { calculateSearchStatistics } from './stats-service.js';
@@ -12,7 +12,6 @@ import { validatePatientId } from '../utils/patient-id.js';
 import { updateSuggestedCost } from '../config/pricing-config.js';
 import { toggleTestInputs, showReport, setFormButtonMode } from '../ui/form-ui.js';
 import { formatPointValue, formatPlateletValue, formatCBCDecimalInputs, calculateCBCParameters } from '../calculators/cbc-calculator.js';
-import { HISTORY_PASSWORD } from '../config/auth-config.js';
 import { escapeHtml } from '../utils/dom-helpers.js';
 
 // Fixed checkbox map (v2 §6 bugfix): legacy `test${Cap}` produced testCbc/testEsr (broken).
@@ -140,21 +139,7 @@ export function loadHistory(filters = null) {
   addHistoryItemEventListeners();
 }
 
-// Password modal controls for Report History
-export function openHistoryPasswordModal() {
-  const modal = document.getElementById('historyPasswordModal');
-  const input = document.getElementById('historyPasswordInput');
-  const error = document.getElementById('historyPasswordError');
-  if (modal) {
-    modal.style.display = 'flex';
-    if (error) error.style.display = 'none';
-    if (input) {
-      input.value = '';
-      setTimeout(() => input.focus(), 50);
-    }
-  }
-}
-
+// Password modal close kept for Escape handler (modal removed in multi-page split)
 export function closeHistoryPasswordModal() {
   const modal = document.getElementById('historyPasswordModal');
   const input = document.getElementById('historyPasswordInput');
@@ -162,29 +147,6 @@ export function closeHistoryPasswordModal() {
   if (modal) modal.style.display = 'none';
   if (input) input.value = '';
   if (error) error.style.display = 'none';
-}
-
-export function submitHistoryPassword() {
-  const input = document.getElementById('historyPasswordInput');
-  const error = document.getElementById('historyPasswordError');
-  if (input && input.value === HISTORY_PASSWORD) {
-    closeHistoryPasswordModal();
-    showHistory();
-  } else {
-    if (error) error.style.display = 'block';
-    if (input) {
-      input.focus();
-      input.select();
-    }
-  }
-}
-
-// L2409
-export function showHistory() {
-  loadHistory();
-  const histModal = document.getElementById('historyModal');
-  if (histModal) histModal.style.display = 'block';
-  setTimeout(() => { import('./search-service.js').then(m => m.setupQuickFilters()); }, 100);
 }
 
 // L2420

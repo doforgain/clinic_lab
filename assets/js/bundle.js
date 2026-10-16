@@ -26,13 +26,7 @@
   const AUTH_SESSION_KEY = 'shc_auth_session';
   
   const INVENTORYUPDATE_PASSWORD = '9211';
-  const HISTORY_PASSWORD = 'admin1';
-  const INVENTORY_PASSWORD = 'admin1';
   const COLLECTION_PASSWORD = 'admin1';
-  
-  // Consolidated aliases for convenience
-  const VIEW_PASSWORD = HISTORY_PASSWORD; // history + stats + collection gates
-  const UPDATE_PASSWORD = INVENTORYUPDATE_PASSWORD;
 
   /* ===== Module: assets/js/config/test-constants.js ===== */
   /* Extracted from index.html L1673-2013 (createReportHTML) — reference ranges single source of truth.
@@ -75,13 +69,6 @@
       return regex.test(str);
     });
   }
-  
-  // index.html L1962-1966
-  const OTHER_TESTS = [
-    { id: 'typhi', name: 'Typhoid', resultId: 'typhiResult' },
-    { id: 'dengue', name: 'Dengue', resultId: 'dengueResult' },
-    { id: 'malaria', name: 'Malaria Parasite', resultId: 'malariaResult' }
-  ];
   
   const ESR_REF = { unit: 'mm/hr', max: 20, display: '0-20' };
   
@@ -268,7 +255,6 @@
 
   /* ===== Module: assets/js/state/storage.js ===== */
   /* Centralises localStorage keys and Supabase Cloud sync */
-  
   
   const STORAGE_KEYS = {
     HISTORY: 'labReportsHistory',
@@ -581,7 +567,7 @@
         try {
           if (document.getElementById('historyList') && typeof loadHistory === 'function') loadHistory();
           if (document.getElementById('todayTestCount') && typeof updateTodayReportCount === 'function') updateTodayReportCount();
-          if (document.getElementById('todayTotal') && typeof updateTodayTotal === 'function') updateTodayTotal();
+          if ((document.getElementById('dashTodayTotal') || document.getElementById('todayTotal')) && typeof updateTodayTotal === 'function') updateTodayTotal();
           if (document.getElementById('statisticsContent') && typeof renderStatistics === 'function') renderStatistics();
         } catch (uiErr) {}
       }
@@ -722,9 +708,6 @@
     localStorage.setItem(STORAGE_KEYS.PURPLE_TUBE, purple.toString());
     localStorage.setItem(STORAGE_KEYS.RED_TUBE, red.toString());
   }
-  // Legacy no-ops L740-742, L795-797 — kept as no-op exports so parity grep still finds them, but flagged DELETE.
-  function updateTubeCountsDisplay() { /* Handled dynamically in statistics modal (legacy stub) */ }
-  function updateKitCountsDisplay() { /* Handled dynamically in statistics modal (legacy stub) */ }
   
   function decrementTube(tubeUsed) {
     const tubeCounts = getTubeCounts();
@@ -750,7 +733,6 @@
   function setKitCounts(typhoid, malaria) {
     localStorage.setItem(STORAGE_KEYS.TYPHOID_KIT, typhoid.toString());
     localStorage.setItem(STORAGE_KEYS.MALARIA_KIT, malaria.toString());
-    updateKitCountsDisplay();
   }
   function decrementKits(tests) {
     const kitCounts = getKitCounts();
@@ -902,11 +884,6 @@
   }
 
   /* ===== Module: assets/js/utils/dom-helpers.js ===== */
-  /* NEW in v2 — cuts 115x getElementById repetition. No behaviour change. */
-  const $ = (id) => document.getElementById(id);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-  
-  
   function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -1328,21 +1305,7 @@
     }
   }
   
-  // Password modal controls for Statistics
-  function openStatisticsPasswordModal() {
-    const modal = document.getElementById('statisticsPasswordModal');
-    const input = document.getElementById('statisticsPasswordInput');
-    const error = document.getElementById('statisticsPasswordError');
-    if (modal) {
-      modal.style.display = 'flex';
-      if (error) error.style.display = 'none';
-      if (input) {
-        input.value = '';
-        setTimeout(() => input.focus(), 50);
-      }
-    }
-  }
-  
+  // Password modal close kept for Escape handler (modal removed in multi-page split)
   function closeStatisticsPasswordModal() {
     const modal = document.getElementById('statisticsPasswordModal');
     const input = document.getElementById('statisticsPasswordInput');
@@ -1350,21 +1313,6 @@
     if (modal) modal.style.display = 'none';
     if (input) input.value = '';
     if (error) error.style.display = 'none';
-  }
-  
-  function submitStatisticsPassword() {
-    const input = document.getElementById('statisticsPasswordInput');
-    const error = document.getElementById('statisticsPasswordError');
-    if (input && input.value === INVENTORY_PASSWORD) {
-      closeStatisticsPasswordModal();
-      renderStatistics();
-    } else {
-      if (error) error.style.display = 'block';
-      if (input) {
-        input.focus();
-        input.select();
-      }
-    }
   }
   
   function renderStatistics() {
@@ -1486,11 +1434,6 @@
     }
     const statsModal = document.getElementById('statisticsModal');
     if (statsModal) statsModal.style.display = 'block';
-  }
-  
-  // L2723 — open password modal
-  function showStatistics() {
-    openStatisticsPasswordModal();
   }
 
   /* ===== Module: assets/js/services/search-service.js ===== */
@@ -2321,21 +2264,7 @@
     addHistoryItemEventListeners();
   }
   
-  // Password modal controls for Report History
-  function openHistoryPasswordModal() {
-    const modal = document.getElementById('historyPasswordModal');
-    const input = document.getElementById('historyPasswordInput');
-    const error = document.getElementById('historyPasswordError');
-    if (modal) {
-      modal.style.display = 'flex';
-      if (error) error.style.display = 'none';
-      if (input) {
-        input.value = '';
-        setTimeout(() => input.focus(), 50);
-      }
-    }
-  }
-  
+  // Password modal close kept for Escape handler (modal removed in multi-page split)
   function closeHistoryPasswordModal() {
     const modal = document.getElementById('historyPasswordModal');
     const input = document.getElementById('historyPasswordInput');
@@ -2343,29 +2272,6 @@
     if (modal) modal.style.display = 'none';
     if (input) input.value = '';
     if (error) error.style.display = 'none';
-  }
-  
-  function submitHistoryPassword() {
-    const input = document.getElementById('historyPasswordInput');
-    const error = document.getElementById('historyPasswordError');
-    if (input && input.value === HISTORY_PASSWORD) {
-      closeHistoryPasswordModal();
-      showHistory();
-    } else {
-      if (error) error.style.display = 'block';
-      if (input) {
-        input.focus();
-        input.select();
-      }
-    }
-  }
-  
-  // L2409
-  function showHistory() {
-    loadHistory();
-    const histModal = document.getElementById('historyModal');
-    if (histModal) histModal.style.display = 'block';
-    setTimeout(() => { import('./search-service.js').then(m => m.setupQuickFilters()); }, 100);
   }
   
   // L2420
@@ -2710,8 +2616,6 @@
   
     setTubeCounts(purpleVal, redVal);
     setKitCounts(typhoidVal, malariaVal);
-    updateTubeCountsDisplay();
-    updateKitCountsDisplay();
   
     const statsModal = document.getElementById('statisticsModal');
     if (statsModal && statsModal.style.display === 'block') {
@@ -2896,17 +2800,16 @@
   
   
   const INVOICE_TEST_CATALOG = {
-    cbc: { name: 'Complete Blood Count (CBC / Hemogram)', sample: 'EDTA Whole Blood', rate: 200 },
-    esr: { name: 'Erythrocyte Sedimentation Rate (ESR)', sample: 'EDTA Whole Blood', rate: 100 },
-    typhi: { name: 'Typhoid (Typhi-dot) Rapid Antibody Test', sample: 'Serum / Whole Blood', rate: 100 },
-    dengue: { name: 'Dengue NS1 Antigen & IgG/IgM Antibodies', sample: 'Serum / Whole Blood', rate: 400 },
-    malaria: { name: 'Malaria Antigen Rapid Test (Pv / Pf)', sample: 'Whole Blood', rate: 100 },
-    widal: { name: 'Widal Slide Agglutination Test (S. Typhi)', sample: 'Serum', rate: 100 },
-    bloodGroup: { name: 'ABO & Rh Blood Grouping', sample: 'Whole Blood', rate: 100 },
-    bilirubin: { name: 'Serum Bilirubin Profile (Total, Direct, Indirect)', sample: 'Serum', rate: 200 },
-    crp: { name: 'C-Reactive Protein (CRP) Quantitative', sample: 'Serum', rate: 250 }
+    cbc: { name: 'Complete Blood Count (CBC / Hemogram)', sample: 'EDTA Whole Blood', rate: PRICES.cbc },
+    esr: { name: 'Erythrocyte Sedimentation Rate (ESR)', sample: 'EDTA Whole Blood', rate: PRICES.esr },
+    typhi: { name: 'Typhoid (Typhi-dot) Rapid Antibody Test', sample: 'Serum / Whole Blood', rate: PRICES.typhi },
+    dengue: { name: 'Dengue NS1 Antigen & IgG/IgM Antibodies', sample: 'Serum / Whole Blood', rate: PRICES.dengue },
+    malaria: { name: 'Malaria Antigen Rapid Test (Pv / Pf)', sample: 'Whole Blood', rate: PRICES.malaria },
+    widal: { name: 'Widal Slide Agglutination Test (S. Typhi)', sample: 'Serum', rate: PRICES.widal },
+    bloodGroup: { name: 'ABO & Rh Blood Grouping', sample: 'Whole Blood', rate: PRICES.bloodGroup },
+    bilirubin: { name: 'Serum Bilirubin Profile (Total, Direct, Indirect)', sample: 'Serum', rate: PRICES.bilirubin },
+    crp: { name: 'C-Reactive Protein (CRP) Quantitative', sample: 'Serum', rate: PRICES.crp }
   };
-  const TEST_CATALOG = INVOICE_TEST_CATALOG;
   
   function numberToIndianWords(num) {
     const n = Math.floor(Math.abs(Number(num) || 0));
@@ -3219,11 +3122,6 @@
     if (wordsElem) wordsElem.innerText = numberToIndianWords(net);
   }
   
-  // Backward-compatibility aliases for modular consumers
-  const bindTableEvents = bindInvoiceTableEvents;
-  const recalculateFromTable = recalculateInvoiceFromTable;
-  const updateTotals = updateInvoiceTotals;
-  
   function showInvoiceEmptyState(title, message) {
     const sheet = document.getElementById('invoiceSheet');
     if (sheet) sheet.style.display = 'none';
@@ -3279,8 +3177,6 @@
     updateTodayTotal();
     updateTodayReportCount();
     updateTestStats();
-    updateTubeCountsDisplay();
-    updateKitCountsDisplay();
   }
   
   function bindCalculatorInputs() {
@@ -3486,40 +3382,8 @@
       closeCollectionPassBtn.addEventListener('click', closeCollectionPasswordModal);
     }
   
-    // History Password Modal bindings
-    const historyPassForm = document.getElementById('historyPasswordForm');
-    if (historyPassForm) {
-      historyPassForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        submitHistoryPassword();
-      });
-    }
-    const cancelHistoryPassBtn = document.getElementById('cancelHistoryPassword');
-    if (cancelHistoryPassBtn) {
-      cancelHistoryPassBtn.addEventListener('click', closeHistoryPasswordModal);
-    }
-    const closeHistoryPassBtn = document.getElementById('closeHistoryPassword');
-    if (closeHistoryPassBtn) {
-      closeHistoryPassBtn.addEventListener('click', closeHistoryPasswordModal);
-    }
-  
-    // Statistics Password Modal bindings
-    const statsPassForm = document.getElementById('statisticsPasswordForm');
-    if (statsPassForm) {
-      statsPassForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        submitStatisticsPassword();
-      });
-    }
-    const cancelStatsPassBtn = document.getElementById('cancelStatisticsPassword');
-    if (cancelStatsPassBtn) {
-      cancelStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
-    }
-    const closeStatsPassBtn = document.getElementById('closeStatisticsPassword');
-    if (closeStatsPassBtn) {
-      closeStatsPassBtn.addEventListener('click', closeStatisticsPasswordModal);
-    }
-  
+    // History + Statistics password forms were removed in multi-page split
+    // (no #historyPasswordForm / #statisticsPasswordForm in live HTML).
     // Inventory Password Modal bindings
     const invPassForm = document.getElementById('inventoryPasswordForm');
     if (invPassForm) {
@@ -3558,12 +3422,8 @@
     }
   
     window.addEventListener('click', function (event) {
-      if (event.target === document.getElementById('historyModal')) document.getElementById('historyModal').style.display = 'none';
-      if (event.target === document.getElementById('statisticsModal')) document.getElementById('statisticsModal').style.display = 'none';
       if (event.target === document.getElementById('advancedSearchModal')) closeAdvancedSearch();
       if (event.target === document.getElementById('collectionPasswordModal')) closeCollectionPasswordModal();
-      if (event.target === document.getElementById('historyPasswordModal')) closeHistoryPasswordModal();
-      if (event.target === document.getElementById('statisticsPasswordModal')) closeStatisticsPasswordModal();
       if (event.target === document.getElementById('inventoryPasswordModal')) closeInventoryPasswordModal();
       if (event.target === document.getElementById('updateInventoryModal')) closeUpdateInventoryModal();
     });

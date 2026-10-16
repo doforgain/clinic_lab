@@ -46,17 +46,15 @@ async function runTests() {
   const domHelpersModule = await import('../assets/js/utils/dom-helpers.js');
   const searchModule = await import('../assets/js/services/search-service.js');
 
-  const { formatPlateletValue, formatPointValue } = cbcModule;
+  const { formatPlateletValue } = cbcModule;
   const {
     isAbnormalByRange,
     refRangeFor,
     crpTier,
     isWidalPositive,
-    CBC_PARAMS,
-    ESR_REF,
-    BILIRUBIN_REF
+    CBC_PARAMS
   } = testConstantsModule;
-  const { computeSuggestedCost, PRICES } = pricingModule;
+  const { computeSuggestedCost } = pricingModule;
   const { escapeHtml } = domHelpersModule;
   const { applyAdvancedFilters } = searchModule;
 

@@ -16,8 +16,7 @@
                 flex-direction: column;
             }
 
-            .cost-row,
-            .total-row {
+            .cost-row {
                 flex-direction: column;
                 gap: 10px;
             }

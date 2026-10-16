@@ -11,9 +11,6 @@ export function setTubeCounts(purple, red) {
   localStorage.setItem(STORAGE_KEYS.PURPLE_TUBE, purple.toString());
   localStorage.setItem(STORAGE_KEYS.RED_TUBE, red.toString());
 }
-// Legacy no-ops L740-742, L795-797 — kept as no-op exports so parity grep still finds them, but flagged DELETE.
-export function updateTubeCountsDisplay() { /* Handled dynamically in statistics modal (legacy stub) */ }
-export function updateKitCountsDisplay() { /* Handled dynamically in statistics modal (legacy stub) */ }
 
 export function decrementTube(tubeUsed) {
   const tubeCounts = getTubeCounts();
@@ -39,7 +36,6 @@ export function getKitCounts() {
 export function setKitCounts(typhoid, malaria) {
   localStorage.setItem(STORAGE_KEYS.TYPHOID_KIT, typhoid.toString());
   localStorage.setItem(STORAGE_KEYS.MALARIA_KIT, malaria.toString());
-  updateKitCountsDisplay();
 }
 export function decrementKits(tests) {
   const kitCounts = getKitCounts();

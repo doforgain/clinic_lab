@@ -8,19 +8,19 @@
    ========================================================================== */
 
 import { loadHistoryData } from '../state/storage.js';
+import { PRICES } from '../config/pricing-config.js';
 
 export const INVOICE_TEST_CATALOG = {
-  cbc: { name: 'Complete Blood Count (CBC / Hemogram)', sample: 'EDTA Whole Blood', rate: 200 },
-  esr: { name: 'Erythrocyte Sedimentation Rate (ESR)', sample: 'EDTA Whole Blood', rate: 100 },
-  typhi: { name: 'Typhoid (Typhi-dot) Rapid Antibody Test', sample: 'Serum / Whole Blood', rate: 100 },
-  dengue: { name: 'Dengue NS1 Antigen & IgG/IgM Antibodies', sample: 'Serum / Whole Blood', rate: 400 },
-  malaria: { name: 'Malaria Antigen Rapid Test (Pv / Pf)', sample: 'Whole Blood', rate: 100 },
-  widal: { name: 'Widal Slide Agglutination Test (S. Typhi)', sample: 'Serum', rate: 100 },
-  bloodGroup: { name: 'ABO & Rh Blood Grouping', sample: 'Whole Blood', rate: 100 },
-  bilirubin: { name: 'Serum Bilirubin Profile (Total, Direct, Indirect)', sample: 'Serum', rate: 200 },
-  crp: { name: 'C-Reactive Protein (CRP) Quantitative', sample: 'Serum', rate: 250 }
+  cbc: { name: 'Complete Blood Count (CBC / Hemogram)', sample: 'EDTA Whole Blood', rate: PRICES.cbc },
+  esr: { name: 'Erythrocyte Sedimentation Rate (ESR)', sample: 'EDTA Whole Blood', rate: PRICES.esr },
+  typhi: { name: 'Typhoid (Typhi-dot) Rapid Antibody Test', sample: 'Serum / Whole Blood', rate: PRICES.typhi },
+  dengue: { name: 'Dengue NS1 Antigen & IgG/IgM Antibodies', sample: 'Serum / Whole Blood', rate: PRICES.dengue },
+  malaria: { name: 'Malaria Antigen Rapid Test (Pv / Pf)', sample: 'Whole Blood', rate: PRICES.malaria },
+  widal: { name: 'Widal Slide Agglutination Test (S. Typhi)', sample: 'Serum', rate: PRICES.widal },
+  bloodGroup: { name: 'ABO & Rh Blood Grouping', sample: 'Whole Blood', rate: PRICES.bloodGroup },
+  bilirubin: { name: 'Serum Bilirubin Profile (Total, Direct, Indirect)', sample: 'Serum', rate: PRICES.bilirubin },
+  crp: { name: 'C-Reactive Protein (CRP) Quantitative', sample: 'Serum', rate: PRICES.crp }
 };
-export const TEST_CATALOG = INVOICE_TEST_CATALOG;
 
 export function numberToIndianWords(num) {
   const n = Math.floor(Math.abs(Number(num) || 0));
@@ -332,11 +332,6 @@ function updateInvoiceTotals(subtotal, discount, tax = 0) {
   const wordsElem = document.getElementById('invAmountInWords');
   if (wordsElem) wordsElem.innerText = numberToIndianWords(net);
 }
-
-// Backward-compatibility aliases for modular consumers
-export const bindTableEvents = bindInvoiceTableEvents;
-export const recalculateFromTable = recalculateInvoiceFromTable;
-export const updateTotals = updateInvoiceTotals;
 
 function showInvoiceEmptyState(title, message) {
   const sheet = document.getElementById('invoiceSheet');

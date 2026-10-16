@@ -1,8 +1,6 @@
 /* Centralises localStorage keys and Supabase Cloud sync */
 import { getSupabaseClient, getCloudAuthSession, signInCloudStaff, signOutCloudStaff } from '../config/supabase-config.js';
 
-export { getCloudAuthSession, signInCloudStaff, signOutCloudStaff };
-
 export const STORAGE_KEYS = {
   HISTORY: 'labReportsHistory',
   DELETED_IDS: 'deletedReportIds',
@@ -314,7 +312,7 @@ export async function syncReportsFromCloud(callbacks = {}, retryCount = 0) {
       try {
         if (document.getElementById('historyList') && typeof loadHistory === 'function') loadHistory();
         if (document.getElementById('todayTestCount') && typeof updateTodayReportCount === 'function') updateTodayReportCount();
-        if (document.getElementById('todayTotal') && typeof updateTodayTotal === 'function') updateTodayTotal();
+        if ((document.getElementById('dashTodayTotal') || document.getElementById('todayTotal')) && typeof updateTodayTotal === 'function') updateTodayTotal();
         if (document.getElementById('statisticsContent') && typeof renderStatistics === 'function') renderStatistics();
       } catch (uiErr) {}
     }

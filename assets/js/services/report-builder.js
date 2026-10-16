@@ -1,5 +1,5 @@
 /* Extracted from index.html L1673-2013. Template logic identical; ranges via config/test-constants.js */
-import { CBC_PARAMS, WIDAL_PARAMS, WIDAL_CUTOFF, OTHER_TESTS, ESR_REF, BILIRUBIN_REF, crpTier, refRangeFor, isAbnormalByRange, isWidalPositive } from '../config/test-constants.js';
+import { CBC_PARAMS, WIDAL_PARAMS, WIDAL_CUTOFF, ESR_REF, BILIRUBIN_REF, crpTier, refRangeFor, isAbnormalByRange, isWidalPositive } from '../config/test-constants.js';
 import { CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from '../calculators/cbc-calculator.js';
 import { formatLabDate } from '../utils/date-helpers.js';
 import { escapeHtml } from '../utils/dom-helpers.js';

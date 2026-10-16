@@ -1,6 +1,6 @@
 /* Extracted from index.html L2900-2932 — refactored to clean UI modals. */
 import { INVENTORYUPDATE_PASSWORD } from '../config/auth-config.js';
-import { getTubeCounts, setTubeCounts, getKitCounts, setKitCounts, updateTubeCountsDisplay, updateKitCountsDisplay } from '../state/inventory-state.js';
+import { getTubeCounts, setTubeCounts, getKitCounts, setKitCounts } from '../state/inventory-state.js';
 import { renderStatistics } from './stats-service.js';
 
 export function openInventoryPasswordModal() {
@@ -91,8 +91,6 @@ export function saveInventoryChanges() {
 
   setTubeCounts(purpleVal, redVal);
   setKitCounts(typhoidVal, malariaVal);
-  updateTubeCountsDisplay();
-  updateKitCountsDisplay();
 
   const statsModal = document.getElementById('statisticsModal');
   if (statsModal && statsModal.style.display === 'block') {

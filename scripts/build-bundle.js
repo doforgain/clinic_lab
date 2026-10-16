@@ -50,7 +50,7 @@ const MODULE_ORDER = [
 /**
  * Strips ES6 imports and exports from a module for universal IIFE concatenation.
  */
-function transformModule(content, relativePath) {
+function transformModule(content) {
   let code = content;
 
   // 1. Remove ES6 import statements (single-line & multi-line)
@@ -104,7 +104,7 @@ function generateBundle() {
     }
 
     const rawContent = fs.readFileSync(fullPath, 'utf8');
-    const transformed = transformModule(rawContent, relPath);
+    const transformed = transformModule(rawContent);
 
     parts.push(`\n  /* ===== Module: ${relPath} ===== */\n  ${transformed.replace(/\n/g, '\n  ')}\n`);
   }

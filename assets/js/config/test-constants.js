@@ -39,13 +39,6 @@ export function isWidalPositive(value) {
   });
 }
 
-// index.html L1962-1966
-export const OTHER_TESTS = [
-  { id: 'typhi', name: 'Typhoid', resultId: 'typhiResult' },
-  { id: 'dengue', name: 'Dengue', resultId: 'dengueResult' },
-  { id: 'malaria', name: 'Malaria Parasite', resultId: 'malariaResult' }
-];
-
 export const ESR_REF = { unit: 'mm/hr', max: 20, display: '0-20' };
 
 export const BILIRUBIN_REF = {

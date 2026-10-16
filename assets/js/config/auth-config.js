@@ -14,11 +14,5 @@ export const STAFF_PASSWORD = 'admin124';
 export const AUTH_SESSION_KEY = 'shc_auth_session';
 
 export const INVENTORYUPDATE_PASSWORD = '9211';
-export const HISTORY_PASSWORD = 'admin1';
-export const INVENTORY_PASSWORD = 'admin1';
 export const COLLECTION_PASSWORD = 'admin1';
-
-// Consolidated aliases for convenience
-export const VIEW_PASSWORD = HISTORY_PASSWORD; // history + stats + collection gates
-export const UPDATE_PASSWORD = INVENTORYUPDATE_PASSWORD;
 

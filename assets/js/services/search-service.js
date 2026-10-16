@@ -1,7 +1,6 @@
 /* Extracted from index.html L1104-1139, L2097-2406. No import of history-service (cycle broken via hook). */
 import { getCurrentFilters, setCurrentFilters } from '../state/app-state.js';
 import { formatDisplayDate } from '../utils/date-helpers.js';
-import { calculateSearchStatistics } from './stats-service.js';
 import { escapeHtml } from '../utils/dom-helpers.js';
 
 // Hook set by app.js to break search<->history import cycle (behaviour identical to legacy direct call)
@@ -219,5 +218,3 @@ export function setupSearchFunctionality() {
     });
   }
 }
-
-export { calculateSearchStatistics };
