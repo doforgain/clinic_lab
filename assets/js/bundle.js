@@ -406,8 +406,10 @@
     const tombstones = new Set(getDeletedReportIds().map(String));
     if (tombstones.has(strId) || reportItem.is_deleted === true) return;
   
+    const numericId = /^\d+$/.test(strId) ? Number(strId) : strId;
+  
     const payload = {
-      id: strId,
+      id: numericId,
       serial: reportItem.serial,
       patient_id: reportItem.patientId || '',
       patient_name: reportItem.patientName || '',
@@ -424,6 +426,12 @@
         }
       } else {
         reportItem._synced = true;
+        const currentList = loadHistoryData();
+        const match = currentList.find(item => String(item.id) === strId);
+        if (match) {
+          match._synced = true;
+          saveHistoryData(currentList);
+        }
         updateCloudStatusBadge('connected', '🟢 Cloud Synced');
       }
     } catch (err) {
@@ -437,16 +445,17 @@
     addTombstone(strId);
     const client = getSupabaseClient();
     if (!client) return;
+    const numericId = /^\d+$/.test(strId) ? Number(strId) : strId;
     try {
       // Attempt soft-delete via is_deleted flag; fallback to delete if column does not exist
       let { error } = await client
         .from('lab_reports')
         .upsert({
-          id: strId,
+          id: numericId,
           is_deleted: true
         });
       if (error && (error.code === 'PGRST204' || (error.message && error.message.includes('is_deleted')))) {
-        const delRes = await client.from('lab_reports').delete().eq('id', strId);
+        const delRes = await client.from('lab_reports').delete().eq('id', numericId);
         error = delRes.error;
       }
       if (error) console.warn('Cloud report delete error:', error.message);
@@ -508,17 +517,29 @@
           })
           .filter(Boolean);
   
+        // Build map of cloud reports by ID
+        const cloudReportMap = new Map();
+        cloudReports.forEach(r => cloudReportMap.set(String(r.id), r));
+  
+        // Merge local reports: any local report not yet in the cloud is preserved
         const localReports = loadHistoryData();
-        const offlineReports = localReports.filter(r => r && r._synced === false && !activeTombstones.has(String(r.id)));
-        for (const offItem of offlineReports) {
-          await syncReportToCloud(offItem);
-          cloudReports.unshift(offItem);
+        for (const localItem of localReports) {
+          if (!localItem || localItem.id === undefined || localItem.id === null) continue;
+          const sId = String(localItem.id);
+          if (activeTombstones.has(sId)) continue; // Tombstoned, skip
+  
+          if (!cloudReportMap.has(sId)) {
+            // Exists locally but not in cloud yet; keep it and trigger upload
+            syncReportToCloud(localItem).catch(e => console.warn('Background sync error:', e));
+            cloudReportMap.set(sId, localItem);
+          }
         }
   
-        cloudReports.sort((a, b) => (b.serial || 0) - (a.serial || 0));
-        saveHistoryData(cloudReports);
+        const mergedReports = Array.from(cloudReportMap.values());
+        mergedReports.sort((a, b) => (b.serial || 0) - (a.serial || 0));
+        saveHistoryData(mergedReports);
   
-        const maxSerial = cloudReports.reduce((max, r) => Math.max(max, r.serial || 0), 0);
+        const maxSerial = mergedReports.reduce((max, r) => Math.max(max, r.serial || 0), 0);
         if (maxSerial > getGlobalSerial()) {
           setGlobalSerial(maxSerial);
         }
@@ -2156,8 +2177,7 @@
     const patientCity = document.getElementById('patientCity') ? document.getElementById('patientCity').value.trim() : '';
     const fastingStatus = document.getElementById('fastingStatus') ? document.getElementById('fastingStatus').value.trim() : '';
     const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
-    const guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
-    const existingReportIndex = history.findIndex(item => item.id === existingId);
+    const existingReportIndex = existingId ? history.findIndex(item => String(item.id) === String(existingId)) : -1;
     const previousTests = existingReportIndex !== -1 ? history[existingReportIndex].tests : null;
     const previousTube = existingReportIndex !== -1 ? history[existingReportIndex].tubeUsed : null;
     if (existingReportIndex === -1) { decrementTube(tubeUsed); decrementKits(tests); }
@@ -2194,11 +2214,12 @@
     if (tests.crp) testParameters.crp = { crp: document.getElementById('crp').value };
     const historyItem = {
       serial: existingReportIndex === -1 ? ++globalSerial : history[existingReportIndex].serial,
-      id: existingReportIndex === -1 ? `${Date.now()}-${Math.random().toString(36).substr(2, 5)}` : String(existingId),
+      id: existingReportIndex === -1 ? Date.now() : existingId,
       patientName, patientAge, patientGender, patientId, collectionDate, receivedDate, reportedDate, referredBy,
       patientPhone, patientCity, fastingStatus, relationType, guardianName,
       testCost: testCost || 'Not specified', paymentMode, tubeUsed, reportHTML, tests, testParameters,
-      timestamp: new Date().toLocaleString()
+      timestamp: new Date().toLocaleString(),
+      _synced: false
     };
     if (existingReportIndex === -1) { history.unshift(historyItem); setGlobalSerial(globalSerial); }
     else history[existingReportIndex] = historyItem;

@@ -35,8 +35,7 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   const patientCity = document.getElementById('patientCity') ? document.getElementById('patientCity').value.trim() : '';
   const fastingStatus = document.getElementById('fastingStatus') ? document.getElementById('fastingStatus').value.trim() : '';
   const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
-  const guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
-  const existingReportIndex = history.findIndex(item => item.id === existingId);
+  const existingReportIndex = existingId ? history.findIndex(item => String(item.id) === String(existingId)) : -1;
   const previousTests = existingReportIndex !== -1 ? history[existingReportIndex].tests : null;
   const previousTube = existingReportIndex !== -1 ? history[existingReportIndex].tubeUsed : null;
   if (existingReportIndex === -1) { decrementTube(tubeUsed); decrementKits(tests); }
@@ -73,11 +72,12 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   if (tests.crp) testParameters.crp = { crp: document.getElementById('crp').value };
   const historyItem = {
     serial: existingReportIndex === -1 ? ++globalSerial : history[existingReportIndex].serial,
-    id: existingReportIndex === -1 ? `${Date.now()}-${Math.random().toString(36).substr(2, 5)}` : String(existingId),
+    id: existingReportIndex === -1 ? Date.now() : existingId,
     patientName, patientAge, patientGender, patientId, collectionDate, receivedDate, reportedDate, referredBy,
     patientPhone, patientCity, fastingStatus, relationType, guardianName,
     testCost: testCost || 'Not specified', paymentMode, tubeUsed, reportHTML, tests, testParameters,
-    timestamp: new Date().toLocaleString()
+    timestamp: new Date().toLocaleString(),
+    _synced: false
   };
   if (existingReportIndex === -1) { history.unshift(historyItem); setGlobalSerial(globalSerial); }
   else history[existingReportIndex] = historyItem;
