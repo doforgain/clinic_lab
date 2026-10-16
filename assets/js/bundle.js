@@ -260,11 +260,14 @@
     HISTORY: 'labReportsHistory',
     DELETED_IDS: 'deletedReportIds',
     GLOBAL_SERIAL: 'globalHistorySerial',
-    // Consumable inventory counters are workstation-local (tracked in localStorage per counter)
+    // Consumable inventory: authoritative in Supabase public.lab_inventory (id = 1);
+    // localStorage keys below serve as the offline cache with delta-aware reconnect flush.
     PURPLE_TUBE: 'purpleTubeCount',
     RED_TUBE: 'redTubeCount',
     TYPHOID_KIT: 'typhoidKitCount',
-    MALARIA_KIT: 'malariaKitCount'
+    MALARIA_KIT: 'malariaKitCount',
+    DENGUE_KIT: 'dengueKitCount',
+    OFFLINE_INVENTORY_DELTAS: 'offlineInventoryDeltas'
   };
   const SESSION_KEYS = { CURRENT_PATIENT_ID: 'currentPatientId' };
   
@@ -580,6 +583,198 @@
     }
   }
   
+  /* ---- Cross-device inventory sync (Inventory Plan Phase 2) ----
+   * Single-row public.lab_inventory (id = 1). localStorage keys stay the
+   * offline cache. Only the originating device writes; remote devices apply
+   * realtime broadcasts via handleRemoteInventoryUpdate (never re-derived). */
+  function readLocalInventoryCounts() {
+    const num = k => {
+      const n = parseInt(localStorage.getItem(k) || '0');
+      return isNaN(n) || n < 0 ? 0 : n;
+    };
+    return {
+      purple: num(STORAGE_KEYS.PURPLE_TUBE),
+      red: num(STORAGE_KEYS.RED_TUBE),
+      typhoid: num(STORAGE_KEYS.TYPHOID_KIT),
+      malaria: num(STORAGE_KEYS.MALARIA_KIT),
+      dengue: num(STORAGE_KEYS.DENGUE_KIT)
+    };
+  }
+  
+  function writeLocalInventoryCounts(counts) {
+    const num = v => {
+      const n = parseInt(v);
+      return isNaN(n) || n < 0 ? 0 : n;
+    };
+    try {
+      localStorage.setItem(STORAGE_KEYS.PURPLE_TUBE, String(num(counts.purple)));
+      localStorage.setItem(STORAGE_KEYS.RED_TUBE, String(num(counts.red)));
+      localStorage.setItem(STORAGE_KEYS.TYPHOID_KIT, String(num(counts.typhoid)));
+      localStorage.setItem(STORAGE_KEYS.MALARIA_KIT, String(num(counts.malaria)));
+      localStorage.setItem(STORAGE_KEYS.DENGUE_KIT, String(num(counts.dengue)));
+    } catch (e) {}
+  }
+  
+  function refreshInventoryUI() {
+    try {
+      if (document.getElementById('statisticsContent') && typeof renderStatistics === 'function') renderStatistics();
+    } catch (uiErr) {}
+  }
+  
+  let _inventoryPushInFlight = false;
+  let _inventoryPushQueued = false;
+  
+  function handleRemoteInventoryUpdate(row) {
+    if (!row || typeof row !== 'object') return;
+    // If a local write is in-flight or queued, avoid overwriting with a stale interim snapshot
+    if (_inventoryPushInFlight || _inventoryPushQueued) return;
+    writeLocalInventoryCounts({
+      purple: row.purple_stock,
+      red: row.red_stock,
+      typhoid: row.typhoid_stock,
+      malaria: row.malaria_stock,
+      dengue: row.dengue_stock
+    });
+    refreshInventoryUI();
+  }
+  
+  async function fetchCloudInventory() {
+    const client = getSupabaseClient();
+    if (!client) return null;
+    try {
+      const { data, error } = await client.from('lab_inventory').select('*').eq('id', 1).maybeSingle();
+      if (error || !data) return null;
+      const counts = {
+        purple: data.purple_stock,
+        red: data.red_stock,
+        typhoid: data.typhoid_stock,
+        malaria: data.malaria_stock,
+        dengue: data.dengue_stock
+      };
+      writeLocalInventoryCounts(counts);
+      refreshInventoryUI();
+      return readLocalInventoryCounts();
+    } catch (err) {
+      return null;
+    }
+  }
+  
+  async function pushCloudInventory() {
+    const client = getSupabaseClient();
+    if (!client) return false;
+    if (_inventoryPushInFlight) {
+      _inventoryPushQueued = true;
+      return true;
+    }
+    _inventoryPushInFlight = true;
+    try {
+      const counts = readLocalInventoryCounts();
+      const { error } = await client.from('lab_inventory').upsert({
+        id: 1,
+        purple_stock: counts.purple,
+        red_stock: counts.red,
+        typhoid_stock: counts.typhoid,
+        malaria_stock: counts.malaria,
+        dengue_stock: counts.dengue,
+        updated_at: new Date().toISOString()
+      });
+      if (error) {
+        console.warn('Inventory cloud push failed:', error.message);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.warn('Network error pushing inventory:', err);
+      return false;
+    } finally {
+      _inventoryPushInFlight = false;
+      if (_inventoryPushQueued) {
+        _inventoryPushQueued = false;
+        pushCloudInventory();
+      }
+    }
+  }
+  
+  /* ---- Delta-aware offline recovery (Inventory Plan Phase 3) ----
+   * Offline report actions queue relative deltas (never stale absolute
+   * numbers). On reconnect, flush fetches the fresh cloud row, applies queued
+   * deltas, clamps at >= 0, and upserts the reconciled totals. */
+  const DELTA_FIELDS = ['purple', 'red', 'typhoid', 'malaria', 'dengue'];
+  
+  function getInventoryDeltas() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEYS.OFFLINE_INVENTORY_DELTAS)) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+  
+  function saveInventoryDeltas(deltas) {
+    try {
+      localStorage.setItem(STORAGE_KEYS.OFFLINE_INVENTORY_DELTAS, JSON.stringify(deltas));
+    } catch (e) {}
+  }
+  
+  function queueInventoryDeltas(delta) {
+    if (!delta || typeof delta !== 'object') return;
+    const cur = getInventoryDeltas();
+    DELTA_FIELDS.forEach(k => {
+      cur[k] = (parseInt(cur[k]) || 0) + (parseInt(delta[k]) || 0);
+    });
+    Object.keys(cur).forEach(k => { if (!cur[k]) delete cur[k]; });
+    saveInventoryDeltas(cur);
+  }
+  
+  async function flushInventoryDeltas() {
+    const deltas = getInventoryDeltas();
+    if (!deltas || Object.keys(deltas).length === 0) return true;
+    const client = getSupabaseClient();
+    if (!client) return false;
+    try {
+      const { data, error } = await client.from('lab_inventory').select('*').eq('id', 1).maybeSingle();
+      if (error || !data) return false;
+      const num = v => {
+        const n = parseInt(v);
+        return isNaN(n) || n < 0 ? 0 : n;
+      };
+      const reconciled = {
+        id: 1,
+        purple_stock: Math.max(0, num(data.purple_stock) + (parseInt(deltas.purple) || 0)),
+        red_stock: Math.max(0, num(data.red_stock) + (parseInt(deltas.red) || 0)),
+        typhoid_stock: Math.max(0, num(data.typhoid_stock) + (parseInt(deltas.typhoid) || 0)),
+        malaria_stock: Math.max(0, num(data.malaria_stock) + (parseInt(deltas.malaria) || 0)),
+        dengue_stock: Math.max(0, num(data.dengue_stock) + (parseInt(deltas.dengue) || 0)),
+        updated_at: new Date().toISOString()
+      };
+      const { error: upErr } = await client.from('lab_inventory').upsert(reconciled);
+      if (upErr) {
+        console.warn('Inventory delta flush failed:', upErr.message);
+        return false;
+      }
+      writeLocalInventoryCounts({
+        purple: reconciled.purple_stock,
+        red: reconciled.red_stock,
+        typhoid: reconciled.typhoid_stock,
+        malaria: reconciled.malaria_stock,
+        dengue: reconciled.dengue_stock
+      });
+      try {
+        localStorage.removeItem(STORAGE_KEYS.OFFLINE_INVENTORY_DELTAS);
+      } catch (e) {}
+      refreshInventoryUI();
+      return true;
+    } catch (err) {
+      console.warn('Network error flushing inventory deltas:', err);
+      return false;
+    }
+  }
+  
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('online', () => {
+      flushInventoryDeltas().catch(e => console.warn('Inventory delta flush error:', e));
+    });
+  }
+  
   let _realtimeChannel = null;
   
   function initRealtimeSync(callbacks = {}, retryCount = 0) {
@@ -593,7 +788,7 @@
     }
     try {
       _realtimeChannel = client
-        .channel('public:lab_reports')
+        .channel('public:lab_sync')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'lab_reports' }, (payload) => {
           console.log('Cloud change detected from another device:', payload ? payload.eventType : 'event');
           if (payload) {
@@ -606,9 +801,21 @@
           }
           syncReportsFromCloud(callbacks);
         })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'lab_inventory' }, (payload) => {
+          if (payload && payload.new) handleRemoteInventoryUpdate(payload.new);
+        })
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             console.log('Supabase realtime subscribed successfully.');
+            (async () => {
+              try {
+                const pending = getInventoryDeltas();
+                if (pending && Object.keys(pending).length > 0) await flushInventoryDeltas();
+                else await fetchCloudInventory();
+              } catch (e) {
+                console.warn('Inventory snapshot fetch error:', e);
+              }
+            })();
           }
         });
     } catch (err) {
@@ -698,6 +905,40 @@
   /* ===== Module: assets/js/state/inventory-state.js ===== */
   /* Extracted from index.html L732-877. Identical behaviour. Dead stubs deleted per v2. */
   
+  /* Originating-device write-through (Inventory Plan Phase 3): every local
+   * consumption/restock mutation pushes to cloud when online, or queues a
+   * relative delta when offline. Remote devices never call these — they apply
+   * realtime broadcasts via handleRemoteInventoryUpdate. */
+  let _writeThroughTimer = null;
+  let _pendingDeltas = {};
+  
+  function writeThroughInventory(delta) {
+    try {
+      if (!getSupabaseClient()) return; // pure local mode, nothing to sync
+      if (delta && typeof delta === 'object') {
+        Object.keys(delta).forEach(k => {
+          _pendingDeltas[k] = (_pendingDeltas[k] || 0) + (parseInt(delta[k]) || 0);
+        });
+      }
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        if (delta) queueInventoryDeltas(delta);
+        return;
+      }
+      // Coalesce rapid mutations (e.g. decrementTube followed immediately by decrementKits)
+      if (_writeThroughTimer) clearTimeout(_writeThroughTimer);
+      _writeThroughTimer = setTimeout(() => {
+        _writeThroughTimer = null;
+        const batchedDelta = { ..._pendingDeltas };
+        _pendingDeltas = {};
+        pushCloudInventory().then(ok => {
+          if (!ok && Object.keys(batchedDelta).length > 0) queueInventoryDeltas(batchedDelta);
+        }).catch(() => {
+          try { if (Object.keys(batchedDelta).length > 0) queueInventoryDeltas(batchedDelta); } catch (e) {}
+        });
+      }, 50);
+    } catch (e) {}
+  }
+  
   function getTubeCounts() {
     return {
       purple: parseInt(localStorage.getItem(STORAGE_KEYS.PURPLE_TUBE) || '0'),
@@ -712,73 +953,64 @@
   function decrementTube(tubeUsed) {
     const tubeCounts = getTubeCounts();
     if (tubeUsed === 'Purple') {
-      if (tubeCounts.purple > 0) setTubeCounts(tubeCounts.purple - 1, tubeCounts.red);
+      if (tubeCounts.purple > 0) { setTubeCounts(tubeCounts.purple - 1, tubeCounts.red); writeThroughInventory({ purple: -1 }); }
       else alert('Warning: No purple (EDTA) tubes left in inventory!');
     } else if (tubeUsed === 'Red') {
-      if (tubeCounts.red > 0) setTubeCounts(tubeCounts.purple, tubeCounts.red - 1);
+      if (tubeCounts.red > 0) { setTubeCounts(tubeCounts.purple, tubeCounts.red - 1); writeThroughInventory({ red: -1 }); }
       else alert('Warning: No red (plain) tubes left in inventory!');
     }
   }
   function incrementTube(tubeUsed) {
     const tubeCounts = getTubeCounts();
-    if (tubeUsed === 'Purple') setTubeCounts(tubeCounts.purple + 1, tubeCounts.red);
-    else if (tubeUsed === 'Red') setTubeCounts(tubeCounts.purple, tubeCounts.red + 1);
+    if (tubeUsed === 'Purple') { setTubeCounts(tubeCounts.purple + 1, tubeCounts.red); writeThroughInventory({ purple: 1 }); }
+    else if (tubeUsed === 'Red') { setTubeCounts(tubeCounts.purple, tubeCounts.red + 1); writeThroughInventory({ red: 1 }); }
   }
   function getKitCounts() {
     return {
       typhoid: parseInt(localStorage.getItem(STORAGE_KEYS.TYPHOID_KIT) || '0'),
-      malaria: parseInt(localStorage.getItem(STORAGE_KEYS.MALARIA_KIT) || '0')
+      malaria: parseInt(localStorage.getItem(STORAGE_KEYS.MALARIA_KIT) || '0'),
+      dengue: parseInt(localStorage.getItem(STORAGE_KEYS.DENGUE_KIT) || '0')
     };
   }
-  function setKitCounts(typhoid, malaria) {
+  function setKitCounts(typhoid, malaria, dengue = getKitCounts().dengue) {
     localStorage.setItem(STORAGE_KEYS.TYPHOID_KIT, typhoid.toString());
     localStorage.setItem(STORAGE_KEYS.MALARIA_KIT, malaria.toString());
+    localStorage.setItem(STORAGE_KEYS.DENGUE_KIT, dengue.toString());
   }
   function decrementKits(tests) {
     const kitCounts = getKitCounts();
     let updated = false;
-    if (tests.typhi && kitCounts.typhoid > 0) { kitCounts.typhoid--; updated = true; }
-    else if (tests.typhi && kitCounts.typhoid <= 0) { alert('⚠️ WARNING: No Typhoid test kits left in inventory!'); }
-    if (tests.malaria && kitCounts.malaria > 0) { kitCounts.malaria--; updated = true; }
-    else if (tests.malaria && kitCounts.malaria <= 0) { alert('⚠️ WARNING: No Malaria test kits left in inventory!'); }
-    if (updated) setKitCounts(kitCounts.typhoid, kitCounts.malaria);
+    const delta = {};
+    if (tests.typhi) {
+      if (kitCounts.typhoid > 0) { kitCounts.typhoid--; updated = true; delta.typhoid = -1; }
+      else alert('⚠️ WARNING: No Typhoid test kits left in inventory!');
+    }
+    if (tests.malaria) {
+      if (kitCounts.malaria > 0) { kitCounts.malaria--; updated = true; delta.malaria = -1; }
+      else alert('⚠️ WARNING: No Malaria test kits left in inventory!');
+    }
+    if (tests.dengue) {
+      if (kitCounts.dengue > 0) { kitCounts.dengue--; updated = true; delta.dengue = -1; }
+      else alert('⚠️ WARNING: No Dengue test kits left in inventory!');
+    }
+    if (updated) { setKitCounts(kitCounts.typhoid, kitCounts.malaria, kitCounts.dengue); writeThroughInventory(delta); }
   }
   function incrementKits(tests) {
     const kitCounts = getKitCounts();
     let updated = false;
-    if (tests.typhi) { kitCounts.typhoid++; updated = true; }
-    if (tests.malaria) { kitCounts.malaria++; updated = true; }
-    if (updated) setKitCounts(kitCounts.typhoid, kitCounts.malaria);
+    const delta = {};
+    if (tests.typhi) { kitCounts.typhoid++; updated = true; delta.typhoid = 1; }
+    if (tests.malaria) { kitCounts.malaria++; updated = true; delta.malaria = 1; }
+    if (tests.dengue) { kitCounts.dengue++; updated = true; delta.dengue = 1; }
+    if (updated) { setKitCounts(kitCounts.typhoid, kitCounts.malaria, kitCounts.dengue); writeThroughInventory(delta); }
   }
   function adjustKitsForEdit(oldTests, newTests) {
     if (!oldTests.typhi && newTests.typhi) decrementKits({ typhi: true });
     if (!oldTests.malaria && newTests.malaria) decrementKits({ malaria: true });
+    if (!oldTests.dengue && newTests.dengue) decrementKits({ dengue: true });
     if (oldTests.typhi && !newTests.typhi) incrementKits({ typhi: true });
     if (oldTests.malaria && !newTests.malaria) incrementKits({ malaria: true });
-  }
-  function initializeKitInventory() {
-    if (localStorage.getItem('shc_inventory_initialized')) return;
-    const kitCounts = getKitCounts();
-    if (kitCounts.typhoid === 0 && kitCounts.malaria === 0) {
-      const typhoidCount = prompt('Enter initial number of Typhoid test kits:', '50');
-      const malariaCount = prompt('Enter initial number of Malaria test kits:', '50');
-      if (typhoidCount !== null && !isNaN(parseInt(typhoidCount))) kitCounts.typhoid = parseInt(typhoidCount);
-      if (malariaCount !== null && !isNaN(parseInt(malariaCount))) kitCounts.malaria = parseInt(malariaCount);
-      setKitCounts(kitCounts.typhoid, kitCounts.malaria);
-      localStorage.setItem('shc_inventory_initialized', 'true');
-    }
-  }
-  function initializeTubeInventory() {
-    if (localStorage.getItem('shc_tubes_initialized')) return;
-    const tubeCounts = getTubeCounts();
-    if (tubeCounts.purple === 0 && tubeCounts.red === 0) {
-      const purpleCount = prompt('Enter initial number of Purple (EDTA) tubes:', '100');
-      const redCount = prompt('Enter initial number of Red (Plain) tubes:', '100');
-      if (purpleCount !== null && !isNaN(parseInt(purpleCount))) tubeCounts.purple = parseInt(purpleCount);
-      if (redCount !== null && !isNaN(parseInt(redCount))) tubeCounts.red = parseInt(redCount);
-      setTubeCounts(tubeCounts.purple, tubeCounts.red);
-      localStorage.setItem('shc_tubes_initialized', 'true');
-    }
+    if (oldTests.dengue && !newTests.dengue) incrementKits({ dengue: true });
   }
 
   /* ===== Module: assets/js/utils/date-helpers.js ===== */
@@ -1315,6 +1547,10 @@
     if (error) error.style.display = 'none';
   }
   
+  function stockLowClass(n) {
+    return n <= 10 ? ' low-stock' : '';
+  }
+  
   function renderStatistics() {
     updateTestStats();
     const history = loadHistoryData();
@@ -1409,7 +1645,7 @@
               </div>
               <div class="inv-stat-item">
                 <span class="inv-stat-label">🟣 Purple Tubes In Stock</span>
-                <span class="inv-stat-val stock">${tubeCounts.purple}</span>
+                <span class="inv-stat-val stock${stockLowClass(tubeCounts.purple)}">${tubeCounts.purple}</span>
               </div>
               <div class="inv-stat-item">
                 <span class="inv-stat-label">🔴 Red Tubes Used</span>
@@ -1417,15 +1653,31 @@
               </div>
               <div class="inv-stat-item">
                 <span class="inv-stat-label">🔴 Red Tubes In Stock</span>
-                <span class="inv-stat-val stock">${tubeCounts.red}</span>
+                <span class="inv-stat-val stock${stockLowClass(tubeCounts.red)}">${tubeCounts.red}</span>
               </div>
               <div class="inv-stat-item">
-                <span class="inv-stat-label">🧪 Typhoid Test Kits</span>
-                <span class="inv-stat-val stock">${kitCounts.typhoid}</span>
+                <span class="inv-stat-label">🧪 Typhoid Kits Used</span>
+                <span class="inv-stat-val usage">${testCounts.typhi}</span>
               </div>
               <div class="inv-stat-item">
-                <span class="inv-stat-label">🦟 Malaria Test Kits</span>
-                <span class="inv-stat-val stock">${kitCounts.malaria}</span>
+                <span class="inv-stat-label">🧪 Typhoid Kits In Stock</span>
+                <span class="inv-stat-val stock${stockLowClass(kitCounts.typhoid)}">${kitCounts.typhoid}</span>
+              </div>
+              <div class="inv-stat-item">
+                <span class="inv-stat-label">🦟 Malaria Kits Used</span>
+                <span class="inv-stat-val usage">${testCounts.malaria}</span>
+              </div>
+              <div class="inv-stat-item">
+                <span class="inv-stat-label">🦟 Malaria Kits In Stock</span>
+                <span class="inv-stat-val stock${stockLowClass(kitCounts.malaria)}">${kitCounts.malaria}</span>
+              </div>
+              <div class="inv-stat-item">
+                <span class="inv-stat-label">🦠 Dengue Kits Used</span>
+                <span class="inv-stat-val usage">${testCounts.dengue}</span>
+              </div>
+              <div class="inv-stat-item">
+                <span class="inv-stat-label">🦠 Dengue Kits In Stock</span>
+                <span class="inv-stat-val stock${stockLowClass(kitCounts.dengue)}">${kitCounts.dengue}</span>
               </div>
             </div>
           </div>
@@ -2576,11 +2828,13 @@
     const redInput = document.getElementById('invRedTubes');
     const typhoidInput = document.getElementById('invTyphoidKits');
     const malariaInput = document.getElementById('invMalariaKits');
+    const dengueInput = document.getElementById('invDengueKits');
   
     if (purpleInput) purpleInput.value = tubeCounts.purple;
     if (redInput) redInput.value = tubeCounts.red;
     if (typhoidInput) typhoidInput.value = kitCounts.typhoid;
     if (malariaInput) malariaInput.value = kitCounts.malaria;
+    if (dengueInput) dengueInput.value = kitCounts.dengue;
   
     if (error) error.style.display = 'none';
     if (modal) {
@@ -2602,11 +2856,13 @@
     const redVal = parseInt(document.getElementById('invRedTubes')?.value);
     const typhoidVal = parseInt(document.getElementById('invTyphoidKits')?.value);
     const malariaVal = parseInt(document.getElementById('invMalariaKits')?.value);
+    const dengueVal = parseInt(document.getElementById('invDengueKits')?.value);
   
     if (isNaN(purpleVal) || purpleVal < 0 ||
         isNaN(redVal) || redVal < 0 ||
         isNaN(typhoidVal) || typhoidVal < 0 ||
-        isNaN(malariaVal) || malariaVal < 0) {
+        isNaN(malariaVal) || malariaVal < 0 ||
+        isNaN(dengueVal) || dengueVal < 0) {
       if (error) {
         error.textContent = 'Please enter valid positive numbers for all inventory quantities.';
         error.style.display = 'block';
@@ -2614,8 +2870,18 @@
       return;
     }
   
+    // Online-only authoritative recount: never queue stale absolute numbers.
+    if (getSupabaseClient() && typeof navigator !== 'undefined' && navigator.onLine === false) {
+      if (error) {
+        error.textContent = 'Offline: reconnect to update stock (not saved).';
+        error.style.display = 'block';
+      }
+      return;
+    }
+  
     setTubeCounts(purpleVal, redVal);
-    setKitCounts(typhoidVal, malariaVal);
+    setKitCounts(typhoidVal, malariaVal, dengueVal);
+    pushCloudInventory().catch(e => console.warn('Inventory push error:', e));
   
     const statsModal = document.getElementById('statisticsModal');
     if (statsModal && statsModal.style.display === 'block') {
@@ -3166,8 +3432,10 @@
   }
   
   function initInventory() {
-    initializeKitInventory();
-    initializeTubeInventory();
+    try {
+      localStorage.removeItem('shc_inventory_initialized');
+      localStorage.removeItem('shc_tubes_initialized');
+    } catch (e) {}
     if (!localStorage.getItem(STORAGE_KEYS.GLOBAL_SERIAL)) localStorage.setItem(STORAGE_KEYS.GLOBAL_SERIAL, '0');
   }
   

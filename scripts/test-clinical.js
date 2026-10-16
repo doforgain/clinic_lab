@@ -460,11 +460,15 @@ async function runTests() {
     `Got: ${updatedReportHTML}`
   );
 
-  // Test B21: Consumable inventory prompt loops prevented
+  // Test B21: Zero-prompt inventory model (Phase 1 inventory plan)
   const inventoryCode = fs.readFileSync(path.join(ROOT_DIR, 'assets', 'js', 'state', 'inventory-state.js'), 'utf8');
   assert(
-    inventoryCode.includes('shc_inventory_initialized') && inventoryCode.includes('shc_tubes_initialized'),
-    'inventory-state.js checks onboarding flags to prevent blocking prompt loops at 0 stock (B21)'
+    !inventoryCode.includes('prompt('),
+    'inventory-state.js contains zero prompt() calls (zero-prompt boot)'
+  );
+  assert(
+    inventoryCode.includes('dengue') && inventoryCode.includes('DENGUE_KIT'),
+    'inventory-state.js tracks dengue kits alongside typhoid/malaria'
   );
 
   // Test B12, B17: Storage lock and subscription guard in storage.js
@@ -518,14 +522,14 @@ async function runTests() {
     'invoice-service.js explicitly documents ephemeral/stateless invoice model (B13)'
   );
 
-  // B21: Consumable inventory formally documented as workstation-local
+  // B21 (inventory sync plan): consumable inventory is cloud-synchronized
   assert(
-    agentsMdLive.includes('Workstation-Local Inventory') && agentsMdLive.includes('decoupled from cloud sync'),
-    'AGENTS.md §2.4 formally documents consumable tube and kit inventory as workstation-local (B21)'
+    agentsMdLive.includes('Cloud-Synchronized Inventory') && agentsMdLive.includes('public.lab_inventory'),
+    'AGENTS.md §2.4 documents consumable inventory as cloud-synchronized via public.lab_inventory (B21)'
   );
   assert(
-    storageCodeLive.includes('workstation-local'),
-    'storage.js clarifies consumable tube/kit inventory is workstation-local (B21)'
+    storageCodeLive.includes('public.lab_inventory'),
+    'storage.js documents inventory as cloud-backed with localStorage offline cache (B21)'
   );
 
   // B01: Supabase RLS tightening SQL script
@@ -537,6 +541,12 @@ async function runTests() {
     rlsSqlContent.includes('TO authenticated') &&
     rlsSqlContent.includes('DROP POLICY IF EXISTS "Allow public read-write for clinic app"'),
     'supabase-rls-setup.sql drops permissive public policy and enforces authenticated role (B01)'
+  );
+  assert(
+    rlsSqlContent.includes('CREATE TABLE IF NOT EXISTS public.lab_inventory') &&
+    rlsSqlContent.includes('Clinic staff authenticated full access on inventory') &&
+    rlsSqlContent.includes('supabase_realtime'),
+    'supabase-rls-setup.sql provisions lab_inventory singleton with RLS policy and realtime registration (B21)'
   );
 
   // B01: Dual-Mode Auth helpers in supabase-config.js and storage.js

@@ -74,3 +74,41 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.lab_reports;
 -- To verify that anonymous access is successfully blocked:
 -- curl -H "apikey: <YOUR_ANON_KEY>" "https://<YOUR_PROJECT_ID>.supabase.co/rest/v1/lab_reports?select=id"
 -- Result: Returns empty array [] or 401 Unauthorized (no patient data exposed).
+
+-- ============================================================================
+-- Step 7: Create lab_inventory singleton table for cross-device stock sync
+-- (Inventory Sync Plan — Phase 2. Run once in Supabase SQL editor.)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.lab_inventory (
+  id INT PRIMARY KEY,               -- always 1 (singleton row)
+  purple_stock INT NOT NULL DEFAULT 0,
+  red_stock INT NOT NULL DEFAULT 0,
+  typhoid_stock INT NOT NULL DEFAULT 0,
+  malaria_stock INT NOT NULL DEFAULT 0,
+  dengue_stock INT NOT NULL DEFAULT 0,   -- Dengue rapid kit
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
+);
+
+-- Seed singleton row if not present
+INSERT INTO public.lab_inventory (id, purple_stock, red_stock, typhoid_stock, malaria_stock, dengue_stock)
+VALUES (1, 0, 0, 0, 0, 0)
+ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE public.lab_inventory ENABLE ROW LEVEL SECURITY;
+
+-- Mirror lab_reports policy: clinic app (anon key) and authenticated staff full access.
+-- DROP first so the script is idempotent on re-run.
+DROP POLICY IF EXISTS "Clinic staff authenticated full access on inventory" ON public.lab_inventory;
+CREATE POLICY "Clinic staff authenticated full access on inventory"
+  ON public.lab_inventory FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
+-- Idempotent realtime registration (plain ADD TABLE errors on second run).
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'lab_inventory'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.lab_inventory;
+  END IF;
+END $$;

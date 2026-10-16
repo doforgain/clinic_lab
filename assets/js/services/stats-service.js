@@ -129,6 +129,10 @@ export function closeStatisticsPasswordModal() {
   if (error) error.style.display = 'none';
 }
 
+function stockLowClass(n) {
+  return n <= 10 ? ' low-stock' : '';
+}
+
 export function renderStatistics() {
   updateTestStats();
   const history = loadHistoryData();
@@ -223,7 +227,7 @@ export function renderStatistics() {
             </div>
             <div class="inv-stat-item">
               <span class="inv-stat-label">🟣 Purple Tubes In Stock</span>
-              <span class="inv-stat-val stock">${tubeCounts.purple}</span>
+              <span class="inv-stat-val stock${stockLowClass(tubeCounts.purple)}">${tubeCounts.purple}</span>
             </div>
             <div class="inv-stat-item">
               <span class="inv-stat-label">🔴 Red Tubes Used</span>
@@ -231,15 +235,31 @@ export function renderStatistics() {
             </div>
             <div class="inv-stat-item">
               <span class="inv-stat-label">🔴 Red Tubes In Stock</span>
-              <span class="inv-stat-val stock">${tubeCounts.red}</span>
+              <span class="inv-stat-val stock${stockLowClass(tubeCounts.red)}">${tubeCounts.red}</span>
             </div>
             <div class="inv-stat-item">
-              <span class="inv-stat-label">🧪 Typhoid Test Kits</span>
-              <span class="inv-stat-val stock">${kitCounts.typhoid}</span>
+              <span class="inv-stat-label">🧪 Typhoid Kits Used</span>
+              <span class="inv-stat-val usage">${testCounts.typhi}</span>
             </div>
             <div class="inv-stat-item">
-              <span class="inv-stat-label">🦟 Malaria Test Kits</span>
-              <span class="inv-stat-val stock">${kitCounts.malaria}</span>
+              <span class="inv-stat-label">🧪 Typhoid Kits In Stock</span>
+              <span class="inv-stat-val stock${stockLowClass(kitCounts.typhoid)}">${kitCounts.typhoid}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🦟 Malaria Kits Used</span>
+              <span class="inv-stat-val usage">${testCounts.malaria}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🦟 Malaria Kits In Stock</span>
+              <span class="inv-stat-val stock${stockLowClass(kitCounts.malaria)}">${kitCounts.malaria}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🦠 Dengue Kits Used</span>
+              <span class="inv-stat-val usage">${testCounts.dengue}</span>
+            </div>
+            <div class="inv-stat-item">
+              <span class="inv-stat-label">🦠 Dengue Kits In Stock</span>
+              <span class="inv-stat-val stock${stockLowClass(kitCounts.dengue)}">${kitCounts.dengue}</span>
             </div>
           </div>
         </div>

@@ -5,11 +5,14 @@ export const STORAGE_KEYS = {
   HISTORY: 'labReportsHistory',
   DELETED_IDS: 'deletedReportIds',
   GLOBAL_SERIAL: 'globalHistorySerial',
-  // Consumable inventory counters are workstation-local (tracked in localStorage per counter)
+  // Consumable inventory: authoritative in Supabase public.lab_inventory (id = 1);
+  // localStorage keys below serve as the offline cache with delta-aware reconnect flush.
   PURPLE_TUBE: 'purpleTubeCount',
   RED_TUBE: 'redTubeCount',
   TYPHOID_KIT: 'typhoidKitCount',
-  MALARIA_KIT: 'malariaKitCount'
+  MALARIA_KIT: 'malariaKitCount',
+  DENGUE_KIT: 'dengueKitCount',
+  OFFLINE_INVENTORY_DELTAS: 'offlineInventoryDeltas'
 };
 export const SESSION_KEYS = { CURRENT_PATIENT_ID: 'currentPatientId' };
 
@@ -325,6 +328,198 @@ export async function syncReportsFromCloud(callbacks = {}, retryCount = 0) {
   }
 }
 
+/* ---- Cross-device inventory sync (Inventory Plan Phase 2) ----
+ * Single-row public.lab_inventory (id = 1). localStorage keys stay the
+ * offline cache. Only the originating device writes; remote devices apply
+ * realtime broadcasts via handleRemoteInventoryUpdate (never re-derived). */
+function readLocalInventoryCounts() {
+  const num = k => {
+    const n = parseInt(localStorage.getItem(k) || '0');
+    return isNaN(n) || n < 0 ? 0 : n;
+  };
+  return {
+    purple: num(STORAGE_KEYS.PURPLE_TUBE),
+    red: num(STORAGE_KEYS.RED_TUBE),
+    typhoid: num(STORAGE_KEYS.TYPHOID_KIT),
+    malaria: num(STORAGE_KEYS.MALARIA_KIT),
+    dengue: num(STORAGE_KEYS.DENGUE_KIT)
+  };
+}
+
+function writeLocalInventoryCounts(counts) {
+  const num = v => {
+    const n = parseInt(v);
+    return isNaN(n) || n < 0 ? 0 : n;
+  };
+  try {
+    localStorage.setItem(STORAGE_KEYS.PURPLE_TUBE, String(num(counts.purple)));
+    localStorage.setItem(STORAGE_KEYS.RED_TUBE, String(num(counts.red)));
+    localStorage.setItem(STORAGE_KEYS.TYPHOID_KIT, String(num(counts.typhoid)));
+    localStorage.setItem(STORAGE_KEYS.MALARIA_KIT, String(num(counts.malaria)));
+    localStorage.setItem(STORAGE_KEYS.DENGUE_KIT, String(num(counts.dengue)));
+  } catch (e) {}
+}
+
+function refreshInventoryUI() {
+  try {
+    if (document.getElementById('statisticsContent') && typeof renderStatistics === 'function') renderStatistics();
+  } catch (uiErr) {}
+}
+
+let _inventoryPushInFlight = false;
+let _inventoryPushQueued = false;
+
+export function handleRemoteInventoryUpdate(row) {
+  if (!row || typeof row !== 'object') return;
+  // If a local write is in-flight or queued, avoid overwriting with a stale interim snapshot
+  if (_inventoryPushInFlight || _inventoryPushQueued) return;
+  writeLocalInventoryCounts({
+    purple: row.purple_stock,
+    red: row.red_stock,
+    typhoid: row.typhoid_stock,
+    malaria: row.malaria_stock,
+    dengue: row.dengue_stock
+  });
+  refreshInventoryUI();
+}
+
+export async function fetchCloudInventory() {
+  const client = getSupabaseClient();
+  if (!client) return null;
+  try {
+    const { data, error } = await client.from('lab_inventory').select('*').eq('id', 1).maybeSingle();
+    if (error || !data) return null;
+    const counts = {
+      purple: data.purple_stock,
+      red: data.red_stock,
+      typhoid: data.typhoid_stock,
+      malaria: data.malaria_stock,
+      dengue: data.dengue_stock
+    };
+    writeLocalInventoryCounts(counts);
+    refreshInventoryUI();
+    return readLocalInventoryCounts();
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function pushCloudInventory() {
+  const client = getSupabaseClient();
+  if (!client) return false;
+  if (_inventoryPushInFlight) {
+    _inventoryPushQueued = true;
+    return true;
+  }
+  _inventoryPushInFlight = true;
+  try {
+    const counts = readLocalInventoryCounts();
+    const { error } = await client.from('lab_inventory').upsert({
+      id: 1,
+      purple_stock: counts.purple,
+      red_stock: counts.red,
+      typhoid_stock: counts.typhoid,
+      malaria_stock: counts.malaria,
+      dengue_stock: counts.dengue,
+      updated_at: new Date().toISOString()
+    });
+    if (error) {
+      console.warn('Inventory cloud push failed:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Network error pushing inventory:', err);
+    return false;
+  } finally {
+    _inventoryPushInFlight = false;
+    if (_inventoryPushQueued) {
+      _inventoryPushQueued = false;
+      pushCloudInventory();
+    }
+  }
+}
+
+/* ---- Delta-aware offline recovery (Inventory Plan Phase 3) ----
+ * Offline report actions queue relative deltas (never stale absolute
+ * numbers). On reconnect, flush fetches the fresh cloud row, applies queued
+ * deltas, clamps at >= 0, and upserts the reconciled totals. */
+const DELTA_FIELDS = ['purple', 'red', 'typhoid', 'malaria', 'dengue'];
+
+export function getInventoryDeltas() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.OFFLINE_INVENTORY_DELTAS)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveInventoryDeltas(deltas) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.OFFLINE_INVENTORY_DELTAS, JSON.stringify(deltas));
+  } catch (e) {}
+}
+
+export function queueInventoryDeltas(delta) {
+  if (!delta || typeof delta !== 'object') return;
+  const cur = getInventoryDeltas();
+  DELTA_FIELDS.forEach(k => {
+    cur[k] = (parseInt(cur[k]) || 0) + (parseInt(delta[k]) || 0);
+  });
+  Object.keys(cur).forEach(k => { if (!cur[k]) delete cur[k]; });
+  saveInventoryDeltas(cur);
+}
+
+export async function flushInventoryDeltas() {
+  const deltas = getInventoryDeltas();
+  if (!deltas || Object.keys(deltas).length === 0) return true;
+  const client = getSupabaseClient();
+  if (!client) return false;
+  try {
+    const { data, error } = await client.from('lab_inventory').select('*').eq('id', 1).maybeSingle();
+    if (error || !data) return false;
+    const num = v => {
+      const n = parseInt(v);
+      return isNaN(n) || n < 0 ? 0 : n;
+    };
+    const reconciled = {
+      id: 1,
+      purple_stock: Math.max(0, num(data.purple_stock) + (parseInt(deltas.purple) || 0)),
+      red_stock: Math.max(0, num(data.red_stock) + (parseInt(deltas.red) || 0)),
+      typhoid_stock: Math.max(0, num(data.typhoid_stock) + (parseInt(deltas.typhoid) || 0)),
+      malaria_stock: Math.max(0, num(data.malaria_stock) + (parseInt(deltas.malaria) || 0)),
+      dengue_stock: Math.max(0, num(data.dengue_stock) + (parseInt(deltas.dengue) || 0)),
+      updated_at: new Date().toISOString()
+    };
+    const { error: upErr } = await client.from('lab_inventory').upsert(reconciled);
+    if (upErr) {
+      console.warn('Inventory delta flush failed:', upErr.message);
+      return false;
+    }
+    writeLocalInventoryCounts({
+      purple: reconciled.purple_stock,
+      red: reconciled.red_stock,
+      typhoid: reconciled.typhoid_stock,
+      malaria: reconciled.malaria_stock,
+      dengue: reconciled.dengue_stock
+    });
+    try {
+      localStorage.removeItem(STORAGE_KEYS.OFFLINE_INVENTORY_DELTAS);
+    } catch (e) {}
+    refreshInventoryUI();
+    return true;
+  } catch (err) {
+    console.warn('Network error flushing inventory deltas:', err);
+    return false;
+  }
+}
+
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('online', () => {
+    flushInventoryDeltas().catch(e => console.warn('Inventory delta flush error:', e));
+  });
+}
+
 let _realtimeChannel = null;
 
 export function initRealtimeSync(callbacks = {}, retryCount = 0) {
@@ -338,7 +533,7 @@ export function initRealtimeSync(callbacks = {}, retryCount = 0) {
   }
   try {
     _realtimeChannel = client
-      .channel('public:lab_reports')
+      .channel('public:lab_sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lab_reports' }, (payload) => {
         console.log('Cloud change detected from another device:', payload ? payload.eventType : 'event');
         if (payload) {
@@ -351,9 +546,21 @@ export function initRealtimeSync(callbacks = {}, retryCount = 0) {
         }
         syncReportsFromCloud(callbacks);
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lab_inventory' }, (payload) => {
+        if (payload && payload.new) handleRemoteInventoryUpdate(payload.new);
+      })
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('Supabase realtime subscribed successfully.');
+          (async () => {
+            try {
+              const pending = getInventoryDeltas();
+              if (pending && Object.keys(pending).length > 0) await flushInventoryDeltas();
+              else await fetchCloudInventory();
+            } catch (e) {
+              console.warn('Inventory snapshot fetch error:', e);
+            }
+          })();
         }
       });
   } catch (err) {

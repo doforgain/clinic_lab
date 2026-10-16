@@ -5,7 +5,6 @@ import { getTodayDate } from './utils/date-helpers.js';
 import { generatePatientId, validatePatientId } from './utils/patient-id.js';
 import { getAppState, toggleGenerateUpdateButton, getLastGeneratedReportId, setLastGeneratedReportId, getCurrentPreviewHistoryId, setCurrentPreviewHistoryId } from './state/app-state.js';
 import { STORAGE_KEYS, SESSION_KEYS, loadHistoryData, syncReportsFromCloud, initRealtimeSync } from './state/storage.js';
-import { initializeKitInventory, initializeTubeInventory } from './state/inventory-state.js';
 import { calculateCBCParameters, calculateIndirectBilirubin, CBC_DECIMAL_FIELD_IDS, formatPointValue, formatPlateletValue } from './calculators/cbc-calculator.js';
 import { updateTodayTotal, toggleCollection, submitCollectionPassword, closeCollectionPasswordModal } from './calculators/cost-calculator.js';
 import { updateSuggestedCost } from './config/pricing-config.js';
@@ -37,8 +36,10 @@ function initPatientId() {
 }
 
 function initInventory() {
-  initializeKitInventory();
-  initializeTubeInventory();
+  try {
+    localStorage.removeItem('shc_inventory_initialized');
+    localStorage.removeItem('shc_tubes_initialized');
+  } catch (e) {}
   if (!localStorage.getItem(STORAGE_KEYS.GLOBAL_SERIAL)) localStorage.setItem(STORAGE_KEYS.GLOBAL_SERIAL, '0');
 }
 

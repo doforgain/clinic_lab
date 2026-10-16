@@ -563,6 +563,16 @@
             margin-bottom: 18px;
         }
 
+        /* 5th (Dengue) field spans full width on the 2-col modal grid */
+        .inventory-form-grid .inventory-field-group:last-child {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 480px) {
+            .inventory-form-grid { grid-template-columns: 1fr; }
+            .inventory-form-grid .inventory-field-group:last-child { grid-column: auto; }
+        }
+
         .inventory-field-group {
             display: flex;
             flex-direction: column;

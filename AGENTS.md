@@ -70,9 +70,9 @@ variables.css ➔ base.css ➔ components/*.css ➔ modals.css ➔ print.css ➔
 ### 2.4 Cloud Sync & Persistence (`assets/js/state/storage.js`)
 - **Dual-Mode Architecture**:
   - *Offline Local Mode*: Workstations running on `file:///` operate 100% offline using `localStorage` without requiring logins or cloud connectivity.
-  - *Cloud Sync Mode*: Synchronizes `public.lab_reports` when connected and authenticated to Supabase.
-- **Primary Database**: Supabase PostgreSQL table `public.lab_reports` (with Row Level Security enabled).
-- **Workstation-Local Inventory**: Tube counts (`purpleTubeCount`, `redTubeCount`) and rapid test kits (`typhoidKitCount`, `malariaKitCount`) are tracked strictly in `localStorage` per counter workstation to reflect physical bench stock; they are intentionally decoupled from cloud sync.
+  - *Cloud Sync Mode*: Synchronizes `public.lab_reports` and `public.lab_inventory` stock when connected and authenticated to Supabase.
+- **Primary Database**: Supabase PostgreSQL tables `public.lab_reports` and `public.lab_inventory` (with Row Level Security enabled).
+- **Cloud-Synchronized Inventory**: Tube counts (`purpleTubeCount`, `redTubeCount`) and rapid test kits (`typhoidKitCount`, `malariaKitCount`, `dengueKitCount`) are authoritative in Supabase `public.lab_inventory` (singleton row `id = 1`, authenticated RLS, realtime broadcast); the `localStorage` keys serve as the offline cache with delta-aware reconnect flush (`offlineInventoryDeltas`). Modal recounts are online-only absolute resets (`9211` PIN); report consumption syncs write-through from the originating device only.
 - **Stateless Invoice Views**: Invoices (`invoice.html`) are ephemeral printable documents rendered dynamically from `loadHistoryData()` records; line customizations are transient and not cloud-synced.
 - **Tombstone Sync**: Deletions set `is_deleted: true` with a tombstone entry in localStorage (`deletedReportIds`) to guarantee deleted records stay deleted across all synchronized devices.
 

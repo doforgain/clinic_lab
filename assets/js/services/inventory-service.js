@@ -1,6 +1,8 @@
 /* Extracted from index.html L2900-2932 — refactored to clean UI modals. */
 import { INVENTORYUPDATE_PASSWORD } from '../config/auth-config.js';
+import { getSupabaseClient } from '../config/supabase-config.js';
 import { getTubeCounts, setTubeCounts, getKitCounts, setKitCounts } from '../state/inventory-state.js';
+import { pushCloudInventory } from '../state/storage.js';
 import { renderStatistics } from './stats-service.js';
 
 export function openInventoryPasswordModal() {
@@ -51,11 +53,13 @@ export function openUpdateInventoryModal() {
   const redInput = document.getElementById('invRedTubes');
   const typhoidInput = document.getElementById('invTyphoidKits');
   const malariaInput = document.getElementById('invMalariaKits');
+  const dengueInput = document.getElementById('invDengueKits');
 
   if (purpleInput) purpleInput.value = tubeCounts.purple;
   if (redInput) redInput.value = tubeCounts.red;
   if (typhoidInput) typhoidInput.value = kitCounts.typhoid;
   if (malariaInput) malariaInput.value = kitCounts.malaria;
+  if (dengueInput) dengueInput.value = kitCounts.dengue;
 
   if (error) error.style.display = 'none';
   if (modal) {
@@ -77,11 +81,13 @@ export function saveInventoryChanges() {
   const redVal = parseInt(document.getElementById('invRedTubes')?.value);
   const typhoidVal = parseInt(document.getElementById('invTyphoidKits')?.value);
   const malariaVal = parseInt(document.getElementById('invMalariaKits')?.value);
+  const dengueVal = parseInt(document.getElementById('invDengueKits')?.value);
 
   if (isNaN(purpleVal) || purpleVal < 0 ||
       isNaN(redVal) || redVal < 0 ||
       isNaN(typhoidVal) || typhoidVal < 0 ||
-      isNaN(malariaVal) || malariaVal < 0) {
+      isNaN(malariaVal) || malariaVal < 0 ||
+      isNaN(dengueVal) || dengueVal < 0) {
     if (error) {
       error.textContent = 'Please enter valid positive numbers for all inventory quantities.';
       error.style.display = 'block';
@@ -89,8 +95,18 @@ export function saveInventoryChanges() {
     return;
   }
 
+  // Online-only authoritative recount: never queue stale absolute numbers.
+  if (getSupabaseClient() && typeof navigator !== 'undefined' && navigator.onLine === false) {
+    if (error) {
+      error.textContent = 'Offline: reconnect to update stock (not saved).';
+      error.style.display = 'block';
+    }
+    return;
+  }
+
   setTubeCounts(purpleVal, redVal);
-  setKitCounts(typhoidVal, malariaVal);
+  setKitCounts(typhoidVal, malariaVal, dengueVal);
+  pushCloudInventory().catch(e => console.warn('Inventory push error:', e));
 
   const statsModal = document.getElementById('statisticsModal');
   if (statsModal && statsModal.style.display === 'block') {
