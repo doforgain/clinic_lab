@@ -122,7 +122,7 @@
         }
 
         .unified-report-table th {
-            background-color: #cbd5e1;
+            background-color: transparent;
             color: #1e293b;
             font-weight: 700;
             font-size: 11pt;
