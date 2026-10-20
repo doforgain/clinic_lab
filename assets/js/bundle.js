@@ -2009,7 +2009,6 @@
     }
   
     patientInfoHTML += `\n      <div><strong>Specimen:</strong> ${escapeHtml(specimenType)}</div>
-        <div class="no-print"><strong>Payment Mode:</strong> ${escapeHtml(paymentMode)}</div>
         <div class="no-print"><strong>Tube Used:</strong> ${escapeHtml(tubeUsed)}</div>`;
   
     let reportHTML = `
