@@ -63,7 +63,7 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   }
   if (tests.esr) testParameters.esr = { esr: document.getElementById('esr').value };
   if (tests.typhi) testParameters.typhi = { typhiResult: document.getElementById('typhiResult').value, typhiSubtype: document.getElementById('typhiSubtype').value };
-  if (tests.dengue) testParameters.dengue = { dengueResult: document.getElementById('dengueResult').value };
+  if (tests.dengue) testParameters.dengue = { dengueResult: document.getElementById('dengueResult').value, dengueSubtype: document.getElementById('dengueSubtype')?.value || 'NS1' };
   if (tests.malaria) testParameters.malaria = { malariaResult: document.getElementById('malariaResult').value, malariaSubtype: document.getElementById('malariaSubtype').value };
   if (tests.widal) testParameters.widal = { oAntigen: document.getElementById('oAntigen').value, hAntigen: document.getElementById('hAntigen').value, ahAntigen: document.getElementById('ahAntigen').value, bhAntigen: document.getElementById('bhAntigen').value };
   if (tests.bloodGroup) testParameters.bloodGroup = { bloodGroup: document.getElementById('bloodGroup').value };
@@ -259,6 +259,7 @@ export function loadReportForEditing(id) {
         if (input) input.value = item.testParameters[test][param] || '';
       }
     }
+    toggleTestInputs();
   }
   if (item.tests && item.tests.cbc) {
     formatCBCDecimalInputs();

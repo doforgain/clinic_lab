@@ -70,6 +70,8 @@ export function toggleTestInputs() {
   setSectionVisibility('crpInputs', document.getElementById('testCRP').checked);
   const isTyphiPositive = document.getElementById('typhiResult').value === 'Positive';
   setSectionVisibility('typhiSubtypeContainer', (document.getElementById('testTyphi').checked && isTyphiPositive));
+  const isDenguePositive = document.getElementById('dengueResult')?.value === 'Positive';
+  setSectionVisibility('dengueSubtypeContainer', (document.getElementById('testDengue').checked && isDenguePositive));
   const isMalariaPositive = document.getElementById('malariaResult').value === 'Positive';
   setSectionVisibility('malariaSubtypeContainer', (document.getElementById('testMalaria').checked && isMalariaPositive));
 }
@@ -182,5 +184,6 @@ export function bindTestCheckboxes() {
     checkbox.addEventListener('change', function () { toggleTestInputs(); updateSuggestedCost(); });
   });
   document.getElementById('typhiResult').addEventListener('change', toggleTestInputs);
+  document.getElementById('dengueResult')?.addEventListener('change', toggleTestInputs);
   document.getElementById('malariaResult').addEventListener('change', toggleTestInputs);
 }

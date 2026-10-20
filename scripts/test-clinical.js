@@ -46,6 +46,7 @@ async function runTests() {
   const domHelpersModule = await import('../assets/js/utils/dom-helpers.js');
   const searchModule = await import('../assets/js/services/search-service.js');
   const formUiModule = await import('../assets/js/ui/form-ui.js');
+  const reportBuilderModule = await import('../assets/js/services/report-builder.js');
 
   const { formatPlateletValue } = cbcModule;
   const {
@@ -59,6 +60,7 @@ async function runTests() {
   const { escapeHtml } = domHelpersModule;
   const { applyAdvancedFilters } = searchModule;
   const { computePatientTitle } = formUiModule;
+  const { formatDengueSubtype } = reportBuilderModule;
 
   // ----------------------------------------------------
   // SUITE 1: Platelet Count Formatting (B18)
@@ -750,6 +752,36 @@ async function runTests() {
   assert(
     bundleJsCode.includes("genderEl.addEventListener('change', autoUpdatePatientTitle)"),
     'bundle.js incorporates patientGender change event listener'
+  );
+
+  // ----------------------------------------------------
+  // SUITE 16: Dengue Rapid Combo Subtype Formatting & UI
+  // ----------------------------------------------------
+  suite('16. Dengue Rapid Combo Subtype Formatting & UI');
+
+  assert(formatDengueSubtype('NS1') === 'Positive (NS1 Positive)', 'NS1 formats to "Positive (NS1 Positive)"');
+  assert(formatDengueSubtype('IgM') === 'Positive (IgM Positive)', 'IgM formats to "Positive (IgM Positive)"');
+  assert(formatDengueSubtype('IgG') === 'Positive (IgG Positive)', 'IgG formats to "Positive (IgG Positive)"');
+  assert(formatDengueSubtype('NS1 and IgM') === 'Positive (NS1, IgM Positive)', 'NS1 and IgM formats to "Positive (NS1, IgM Positive)"');
+  assert(formatDengueSubtype('IgM and IgG') === 'Positive (IgM, IgG Positive)', 'IgM and IgG formats to "Positive (IgM, IgG Positive)"');
+  assert(formatDengueSubtype('NS1 and IgG') === 'Positive (NS1, IgG Positive)', 'NS1 and IgG formats to "Positive (NS1, IgG Positive)"');
+  assert(formatDengueSubtype('All') === 'Positive (NS1, IgM, IgG Positive)', 'All formats to "Positive (NS1, IgM, IgG Positive)"');
+
+  // Verify form markup in create-report.html
+  const createReportContent = fs.readFileSync(path.join(ROOT_DIR, 'create-report.html'), 'utf8');
+  assert(
+    createReportContent.includes('id="dengueSubtypeContainer"') && createReportContent.includes('id="dengueSubtype"'),
+    'create-report.html includes dengueSubtypeContainer and dengueSubtype'
+  );
+  assert(
+    createReportContent.includes('<option value="NS1 and IgM">Both (NS1 and IgM)</option>'),
+    'create-report.html provides combo options in dengueSubtype select'
+  );
+
+  // Verify bundle incorporates formatDengueSubtype and dengueSubtypeContainer
+  assert(
+    bundleJsCode.includes('formatDengueSubtype') && bundleJsCode.includes('dengueSubtypeContainer'),
+    'bundle.js incorporates formatDengueSubtype and dengueSubtypeContainer logic'
   );
 
   // ----------------------------------------------------

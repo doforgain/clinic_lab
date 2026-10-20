@@ -21,6 +21,31 @@ function formatAlternatingRows(rowsHtml) {
   }).join('');
 }
 
+export function formatDengueSubtype(subtype) {
+  switch (subtype) {
+    case 'NS1':
+      return 'Positive (NS1 Positive)';
+    case 'IgM':
+      return 'Positive (IgM Positive)';
+    case 'IgG':
+      return 'Positive (IgG Positive)';
+    case 'NS1 and IgM':
+    case 'NS1_IgM':
+      return 'Positive (NS1, IgM Positive)';
+    case 'IgM and IgG':
+    case 'IgM_IgG':
+      return 'Positive (IgM, IgG Positive)';
+    case 'NS1 and IgG':
+    case 'NS1_IgG':
+      return 'Positive (NS1, IgG Positive)';
+    case 'All':
+    case 'All (NS1, IgM and IgG)':
+      return 'Positive (NS1, IgM, IgG Positive)';
+    default:
+      return subtype ? `Positive (${subtype})` : 'Positive';
+  }
+}
+
 export function createReportHTML(patientName, patientAge, patientGender, tests, testCost, paymentMode, tubeUsed) {
   const hasWholeBloodTest = !!(tests.cbc || tests.esr || tests.malaria || tests.bloodGroup);
   const hasSerumTest = !!(tests.typhi || tests.dengue || tests.widal || tests.bilirubin || tests.crp);
@@ -244,12 +269,18 @@ ${patientInfoHTML}
         rapidRows += `<tr><td>Typhoid Rapid (IgM / IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${escapeHtml(displayResult)}</td><td>—</td><td>Negative</td></tr>`;
       }
     }
+
     // Dengue (Serum)
     if (tests.dengue) {
       const result = document.getElementById('dengueResult').value || '';
       if (result) {
         hasDengue = true;
-        rapidRows += `<tr><td>Dengue Rapid (NS1 / IgM / IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${escapeHtml(result)}</td><td>—</td><td>Negative</td></tr>`;
+        let displayResult = result;
+        if (result === 'Positive') {
+          const subtype = document.getElementById('dengueSubtype')?.value || '';
+          displayResult = formatDengueSubtype(subtype);
+        }
+        rapidRows += `<tr><td>Dengue Rapid (NS1, IgM, IgG)</td><td class="${result === 'Positive' ? 'positive' : ''}">${escapeHtml(displayResult)}</td><td>—</td><td>Negative</td></tr>`;
       }
     }
     if (rapidRows) {
