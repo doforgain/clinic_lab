@@ -1,5 +1,14 @@
 /* Extracted from index.html L4120-4208 - parity with reference/index.legacy.html */
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 15px;
+                width: 100%;
+            }
+
             .patient-info {
                 grid-template-columns: 1fr;
             }
@@ -123,6 +132,15 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                padding: 6px;
+            }
+
+            .container {
+                padding: 10px;
+                border-radius: 8px;
+            }
+
             .test-options {
                 grid-template-columns: 1fr;
             }
@@ -147,4 +165,162 @@
             }
         }
 
+
+        /* ============================================================
+           REPORT PREVIEW — MOBILE-FRIENDLY (SCREEN ONLY)
+           All rules use @media screen so A4 print output is untouched.
+           ============================================================ */
+
+        /* — Tablet & Small Desktop (≤768px) — */
+        @media screen and (max-width: 768px) {
+
+            /* Report container: reduce padding */
+            .report-output {
+                padding: 12px;
+                margin-top: 15px;
+            }
+
+            /* Patient info: 3-col → 2-col */
+            .report-patient-info {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px 10px;
+                font-size: 13px;
+            }
+
+            /* Report table: auto layout, smaller font, tighter padding */
+            .unified-report-table {
+                table-layout: auto;
+                font-size: 9pt;
+            }
+
+            .unified-report-table th,
+            .unified-report-table td {
+                padding: 4px 6px;
+            }
+
+            /* Hide UNIT column (least critical on small screens) */
+            .unified-report-table th.col-unit,
+            .unified-report-table td:nth-child(3) {
+                display: none;
+            }
+
+            /* Section banner: stack name + method badge vertically */
+            .section-banner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+            }
+
+            .section-banner .method-badge {
+                font-size: 7.5pt;
+            }
+
+            /* Signatures: center, slightly narrower */
+            .report-signatures-compact {
+                justify-content: center;
+                padding: 0 8px;
+            }
+
+            .sig-column {
+                width: 170px;
+            }
+
+            /* Footer: allow wrapping */
+            .report-page-footer .footer-content {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 6px;
+            }
+
+            .report-page-footer .footer-subline {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 4px;
+            }
+        }
+
+        /* — Small Phone (≤480px) — */
+        @media screen and (max-width: 480px) {
+
+            /* Report container: minimal padding */
+            .report-output {
+                padding: 8px;
+                margin-top: 10px;
+                border-radius: 6px;
+            }
+
+            /* Patient info: single column, allow text wrap */
+            .report-patient-info {
+                grid-template-columns: 1fr;
+                gap: 3px 0;
+                font-size: 12.5px;
+            }
+
+            .report-patient-info > div {
+                white-space: normal;
+            }
+
+            /* Report table: even smaller for phone */
+            .unified-report-table {
+                font-size: 8.5pt;
+            }
+
+            .unified-report-table th,
+            .unified-report-table td {
+                padding: 3px 4px;
+            }
+
+            /* Also hide REFERENCE RANGE on very small phones */
+            .unified-report-table th.col-ref,
+            .unified-report-table td:nth-child(4) {
+                display: none;
+            }
+
+            /* Signature block: compact */
+            .sig-column {
+                width: 140px;
+            }
+
+            .doctor-signature-img {
+                max-height: 38px;
+                max-width: 100px;
+            }
+
+            .sig-title {
+                font-size: 10px;
+            }
+
+            .sig-sub {
+                font-size: 8px;
+            }
+
+            /* Header SVG: cap height on small screens */
+            .header-svg {
+                max-height: 70px;
+            }
+
+            /* Disclaimer: slightly smaller */
+            .compact-disclaimer-box {
+                font-size: 8px;
+                padding: 4px 6px;
+            }
+
+            .compact-disclaimer-box .disclaimer-title {
+                font-size: 8.5px;
+            }
+
+            /* Footer: smaller text */
+            .report-page-footer {
+                font-size: 7.5pt;
+            }
+
+            .report-page-footer .footer-item span {
+                font-size: 7pt;
+            }
+
+            .report-page-footer .footer-icon {
+                width: 10px;
+                height: 10px;
+            }
+        }
 
