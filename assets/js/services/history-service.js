@@ -34,6 +34,8 @@ export function saveToHistory(patientName, patientAge, patientGender, reportHTML
   const patientCity = document.getElementById('patientCity') ? document.getElementById('patientCity').value.trim() : '';
   const fastingStatus = document.getElementById('fastingStatus') ? document.getElementById('fastingStatus').value.trim() : '';
   const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
+  const rawGuardian = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
+  const guardianName = (rawGuardian === '[object Object]') ? '' : rawGuardian;
   const existingReportIndex = existingId ? history.findIndex(item => String(item.id) === String(existingId)) : -1;
   const previousTests = existingReportIndex !== -1 ? history[existingReportIndex].tests : null;
   const previousTube = existingReportIndex !== -1 ? history[existingReportIndex].tubeUsed : null;
@@ -212,17 +214,21 @@ export function loadReportForEditing(id) {
   
   let guardianPart = '';
   let relationPart = 'S/O';
-  const guardianMatch = nameToLoad.match(/\s*\((S\/O|W\/O|D\/O|C\/O)\s+([^)]+)\)/i);
+  const guardianMatch = nameToLoad.match(/\s*\((S\/O|W\/O|D\/O|C\/O)(?:\s+([^)]*))?\)/i);
   if (guardianMatch) {
     relationPart = guardianMatch[1].toUpperCase();
-    guardianPart = guardianMatch[2].trim();
+    guardianPart = (guardianMatch[2] || '').trim();
+    if (guardianPart === '[object Object]') guardianPart = '';
     nameToLoad = nameToLoad.replace(guardianMatch[0], '').trim();
   }
   if (document.getElementById('relationType')) {
-    document.getElementById('relationType').value = item.relationType || relationPart;
+    const rawRelation = (item.relationType && typeof item.relationType === 'string') ? item.relationType.trim() : '';
+    document.getElementById('relationType').value = rawRelation || relationPart || 'S/O';
   }
   if (document.getElementById('guardianName')) {
-    document.getElementById('guardianName').value = item.guardianName || guardianPart;
+    let rawGuardian = (item.guardianName && typeof item.guardianName === 'string') ? item.guardianName.trim() : '';
+    if (rawGuardian === '[object Object]') rawGuardian = '';
+    document.getElementById('guardianName').value = rawGuardian || guardianPart || '';
   }
   document.getElementById('patientName').value = nameToLoad;
   if (document.getElementById('patientPhone')) document.getElementById('patientPhone').value = item.patientPhone || '';

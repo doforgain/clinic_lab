@@ -74,13 +74,15 @@ export function createReportHTML(patientName, patientAge, patientGender, tests, 
 
   let cleanPatientName = patientName;
   let relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
-  let guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
+  let rawGuardian = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
+  let guardianName = (rawGuardian === '[object Object]') ? '' : rawGuardian;
 
-  const guardianMatch = cleanPatientName.match(/\s*\((S\/O|W\/O|D\/O|C\/O)\s+([^)]+)\)/i);
+  const guardianMatch = cleanPatientName.match(/\s*\((S\/O|W\/O|D\/O|C\/O)(?:\s+([^)]*))?\)/i);
   if (guardianMatch) {
     if (!guardianName) {
       relationType = guardianMatch[1].toUpperCase();
-      guardianName = guardianMatch[2].trim();
+      const extractedGuardian = (guardianMatch[2] || '').trim();
+      guardianName = (extractedGuardian === '[object Object]') ? '' : extractedGuardian;
     }
     cleanPatientName = cleanPatientName.replace(guardianMatch[0], '').trim();
   }
@@ -90,7 +92,7 @@ export function createReportHTML(patientName, patientAge, patientGender, tests, 
   let patientInfoHTML = `
       <div><strong>Patient Name:</strong> ${escapeHtml(cleanPatientName)}</div>`;
 
-  if (guardianName) {
+  if (guardianName && guardianName !== '[object Object]') {
     patientInfoHTML += `\n      <div><strong>${escapeHtml(relationType)}:</strong> ${escapeHtml(guardianName)}</div>`;
   }
 

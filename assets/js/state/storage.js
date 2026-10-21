@@ -78,6 +78,9 @@ export function loadHistoryData() {
         if (item.id !== undefined && item.id !== null) {
           item.id = String(item.id);
         }
+        if (item.guardianName && (typeof item.guardianName !== 'string' || item.guardianName === '[object Object]')) {
+          item.guardianName = '';
+        }
         return item;
       });
   } catch (e) {
@@ -141,6 +144,10 @@ export async function syncReportToCloud(reportItem) {
   if (tombstones.has(strId) || reportItem.is_deleted === true) return;
 
   const numericId = /^\d+$/.test(strId) ? Number(strId) : strId;
+
+  if (reportItem.guardianName && (typeof reportItem.guardianName !== 'string' || reportItem.guardianName === '[object Object]')) {
+    reportItem.guardianName = '';
+  }
 
   const payload = {
     id: numericId,
@@ -269,6 +276,9 @@ export async function syncReportsFromCloud(callbacks = {}, retryCount = 0) {
           if (r) {
             r.id = String(r.id || row.id);
             r._synced = true;
+            if (r.guardianName && (typeof r.guardianName !== 'string' || r.guardianName === '[object Object]')) {
+              r.guardianName = '';
+            }
           }
           return r;
         })

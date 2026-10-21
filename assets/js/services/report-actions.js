@@ -23,7 +23,8 @@ function readPatient() {
   const rawName = document.getElementById('patientName').value.trim();
   let patientName = (patientTitle && !rawName.toLowerCase().startsWith(patientTitle.toLowerCase())) ? `${patientTitle} ${rawName}` : rawName;
   const relationType = document.getElementById('relationType') ? document.getElementById('relationType').value : 'S/O';
-  const guardianName = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
+  const rawGuardian = document.getElementById('guardianName') ? document.getElementById('guardianName').value.trim() : '';
+  const guardianName = (rawGuardian === '[object Object]') ? '' : rawGuardian;
   const ageVal = document.getElementById('patientAge').value.trim();
   const ageUnit = document.getElementById('patientAgeUnit') ? document.getElementById('patientAgeUnit').value : 'Yrs';
   return { patientTitle, rawName, patientName, relationType, guardianName, ageVal, ageUnit, patientAge: ageVal ? `${ageVal} ${ageUnit}` : '', patientGender: document.getElementById('patientGender').value };
