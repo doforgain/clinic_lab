@@ -111,7 +111,9 @@
             display: none !important;
         }
 
-        body.report-preview-active #editReport {
+        body.report-preview-active #editReport,
+        body.report-preview-active #printReport,
+        body.report-preview-active #savePDF {
             display: inline-block !important;
             opacity: 1 !important;
             cursor: pointer !important;

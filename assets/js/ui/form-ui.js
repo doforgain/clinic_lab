@@ -94,8 +94,16 @@ export function setPreviewButtonMode() {
     editBtn.style.display = 'inline-block';
     editBtn.classList.add('enabled');
   }
-  if (printBtn) printBtn.classList.add('enabled');
-  if (savePdfBtn) savePdfBtn.classList.add('enabled');
+  if (printBtn) {
+    printBtn.classList.remove('is-hidden');
+    printBtn.style.display = 'inline-block';
+    printBtn.classList.add('enabled');
+  }
+  if (savePdfBtn) {
+    savePdfBtn.classList.remove('is-hidden');
+    savePdfBtn.style.display = 'inline-block';
+    savePdfBtn.classList.add('enabled');
+  }
   if (newBtn) newBtn.style.display = 'inline-block';
   if (viewHistoryBtn) viewHistoryBtn.style.display = 'none';
   if (statisticsBtn) statisticsBtn.style.display = 'none';
@@ -125,11 +133,19 @@ export function setFormButtonMode(isEditMode = false) {
     editBtn.style.display = 'none';
     editBtn.classList.remove('enabled');
   }
-  if (printBtn) printBtn.classList.remove('enabled');
-  if (savePdfBtn) savePdfBtn.classList.remove('enabled');
+  if (printBtn) {
+    printBtn.classList.add('is-hidden');
+    printBtn.style.display = 'none';
+    printBtn.classList.remove('enabled');
+  }
+  if (savePdfBtn) {
+    savePdfBtn.classList.add('is-hidden');
+    savePdfBtn.style.display = 'none';
+    savePdfBtn.classList.remove('enabled');
+  }
   if (newBtn) newBtn.style.display = 'inline-block';
-  if (viewHistoryBtn) viewHistoryBtn.style.display = 'inline-block';
-  if (statisticsBtn) statisticsBtn.style.display = 'inline-block';
+  if (viewHistoryBtn) viewHistoryBtn.style.display = 'none';
+  if (statisticsBtn) statisticsBtn.style.display = 'none';
 }
 
 // L2269 — moved from history/report to ui (v2 cycle-break delta, behaviour identical)
