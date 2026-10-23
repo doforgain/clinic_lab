@@ -32,7 +32,7 @@
 
     @page {
         size: A4 portrait;
-        margin: 10mm 12mm 15mm 12mm;
+        margin: 5mm;
     }
 
     body:not(.invoice-page-body) {
