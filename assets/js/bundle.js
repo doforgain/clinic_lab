@@ -1948,23 +1948,23 @@
   function formatDengueSubtype(subtype) {
     switch (subtype) {
       case 'NS1':
-        return 'Positive (NS1 Positive)';
+        return 'Positive (NS1)';
       case 'IgM':
-        return 'Positive (IgM Positive)';
+        return 'Positive (IgM)';
       case 'IgG':
-        return 'Positive (IgG Positive)';
+        return 'Positive (IgG)';
       case 'NS1 and IgM':
       case 'NS1_IgM':
-        return 'Positive (NS1, IgM Positive)';
+        return 'Positive (NS1, IgM)';
       case 'IgM and IgG':
       case 'IgM_IgG':
-        return 'Positive (IgM, IgG Positive)';
+        return 'Positive (IgM, IgG)';
       case 'NS1 and IgG':
       case 'NS1_IgG':
-        return 'Positive (NS1, IgG Positive)';
+        return 'Positive (NS1, IgG)';
       case 'All':
       case 'All (NS1, IgM and IgG)':
-        return 'Positive (NS1, IgM, IgG Positive)';
+        return 'Positive (NS1, IgM, IgG)';
       default:
         return subtype ? `Positive (${subtype})` : 'Positive';
     }
@@ -2052,7 +2052,7 @@
       <div class="report-header">
         <div class="header-container">
           <svg class="header-svg" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
-               viewBox="0 0 29700 6000"
+               viewBox="400 330 28920 5320"
                style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd">
             <defs>
               <style type="text/css">

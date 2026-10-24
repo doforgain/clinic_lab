@@ -83,7 +83,7 @@ variables.css ➔ base.css ➔ components/*.css ➔ modals.css ➔ print.css ➔
 ### 3.1 A4 Print Constraints (`assets/css/print.css`)
 - **Paper Dimensions**: Standard A4 (`210mm × 297mm`) in portrait orientation.
 - **Fixed Page Margins**: Set specifically in `@page { size: A4; margin: 5mm; }`.
-- **Page Footers**: Pinned to the bottom of pages via CSS print media rules (`position: fixed; bottom: 0; left: 0; right: 0;`).
+- **Page Footers**: Pinned to the report footer via CSS print media rules (`.report-page-footer` with contact metadata and divider).
 - **Doctor Signature**: Authorized physician signature block for **Dr. Shahid Khan, MBBS** (`assets/images/signature.png` / `signature.svg`) right-aligned above the footer.
 - **Color Preservation**: Print styles enforce `-webkit-print-color-adjust: exact;` and `print-color-adjust: exact;` so badges and alternating row shading render accurately.
 
