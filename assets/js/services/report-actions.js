@@ -1,6 +1,7 @@
 import { getAppState, toggleGenerateUpdateButton, setLastGeneratedReportId } from '../state/app-state.js';
 import { setPreviewButtonMode } from '../ui/form-ui.js';
 import { createReportHTML } from './report-builder.js';
+import { paginateReport } from './report-paginator.js';
 import { saveToHistory } from './history-service.js';
 import { checkDuplicatePatient } from './duplicate-service.js';
 import { formatDisplayDate } from '../utils/date-helpers.js';
@@ -38,6 +39,7 @@ function showGeneratedReport(reportHTML) {
   document.querySelector('.cost-section').style.display = 'none';
   const testStats = document.querySelector('.test-stats');
   if (testStats) testStats.style.display = 'none';
+  paginateReport(document.getElementById('reportOutput'));
   setPreviewButtonMode();
 }
 

@@ -1,5 +1,6 @@
 import { updateSuggestedCost } from '../config/pricing-config.js';
 import { setCurrentPreviewHistoryId } from '../state/app-state.js';
+import { paginateReport } from '../services/report-paginator.js';
 
 // L962
 export function computePatientTitle({ ageVal, ageUnit = 'Yrs', gender = '' } = {}) {
@@ -168,6 +169,7 @@ export function showReport(item) {
   if (costSec) costSec.style.display = 'none';
   const testStats = document.querySelector('.test-stats');
   if (testStats) testStats.style.display = 'none';
+  paginateReport(reportOut);
   setPreviewButtonMode();
   const histModal = document.getElementById('historyModal');
   if (histModal) histModal.style.display = 'none';

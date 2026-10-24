@@ -502,7 +502,7 @@ ${patientInfoHTML}
             <line x1="16" y1="13" x2="8" y2="13"></line>
             <line x1="16" y1="17" x2="8" y2="17"></line>
           </svg>
-          <span>Page <strong>1 of 1</strong></span>
+          <span>Page <strong class="page-number">1/1</strong></span>
         </div>
       </div>
     </div>`;

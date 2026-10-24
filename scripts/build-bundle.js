@@ -39,6 +39,7 @@ const MODULE_ORDER = [
   'assets/js/services/stats-service.js',
   'assets/js/services/search-service.js',
   'assets/js/services/report-builder.js',
+  'assets/js/services/report-paginator.js',
   'assets/js/services/history-service.js',
   'assets/js/services/report-actions.js',
   'assets/js/services/inventory-service.js',

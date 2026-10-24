@@ -48,15 +48,45 @@
         left: 0;
         top: 0;
         width: 100%;
-        min-height: 287mm;
-        display: flex;
-        flex-direction: column;
+        min-height: 0;
+        display: block;
         padding: 0;
         margin: 0;
         border: none;
+        border-radius: 0;
+        background: transparent;
+        overflow: visible;
         box-sizing: border-box;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+
+    /* One A4 page card = one printed sheet (200mm x 286.5mm inside 5mm @page margins) */
+    .report-page {
+        width: 200mm;
+        height: 286.5mm;
+        min-height: 286.5mm;
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 0;
+        background: #ffffff !important;
+        box-shadow: none;
+        overflow: hidden;
+        zoom: 1 !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .report-page--tall {
+        height: auto;
+        min-height: 286.5mm;
+    }
+
+    .report-pagination-stage {
+        display: none !important;
     }
 
     .report-header {

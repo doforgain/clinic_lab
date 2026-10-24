@@ -47,7 +47,7 @@ The application must execute reliably across two distinct environments:
 - **Source Modules (`assets/js/`)**: Structured into clean ES6 domain modules:
   - `calculators/`: `cbc-calculator.js`, `cost-calculator.js`
   - `config/`: `auth-config.js`, `pricing-config.js`, `supabase-config.js`, `test-constants.js`
-  - `services/`: `duplicate-service.js`, `history-service.js`, `inventory-service.js`, `invoice-service.js`, `pdf-service.js`, `report-actions.js`, `report-builder.js`, `search-service.js`, `stats-service.js`
+  - `services/`: `duplicate-service.js`, `history-service.js`, `inventory-service.js`, `invoice-service.js`, `pdf-service.js`, `report-actions.js`, `report-builder.js`, `report-paginator.js`, `search-service.js`, `stats-service.js`
   - `state/`: `app-state.js`, `inventory-state.js`, `storage.js`
   - `ui/`: `form-ui.js`
   - `utils/`: `date-helpers.js`, `dom-helpers.js`, `patient-id.js`

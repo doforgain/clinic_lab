@@ -1407,6 +1407,34 @@
 
   /* ===== Module: assets/js/services/pdf-service.js ===== */
   /* Extracted from index.html L2015-2025. */
+  
+  // One A4 sheet inside the 5mm @page margins declared in print.css.
+  const PAGE_MARGIN_MM = 5;
+  const PAGE_WIDTH_MM = 200;
+  const PAGE_HEIGHT_MM = 286.5;
+  
+  // Adds a captured card to the PDF, slicing it when a single test section is
+  // taller than one sheet (the paginator marks those cards .report-page--tall).
+  function addCanvasPages(pdf, canvas) {
+    const sliceHeight = Math.ceil(canvas.width * PAGE_HEIGHT_MM / PAGE_WIDTH_MM);
+    for (let top = 0; top < canvas.height; top += sliceHeight) {
+      const height = Math.min(sliceHeight, canvas.height - top);
+      const slice = document.createElement('canvas');
+      slice.width = canvas.width;
+      slice.height = height;
+      slice.getContext('2d').drawImage(canvas, 0, top, canvas.width, height, 0, 0, canvas.width, height);
+      pdf.addPage();
+      pdf.addImage(
+        slice.toDataURL('image/jpeg', 0.98),
+        'JPEG',
+        PAGE_MARGIN_MM,
+        PAGE_MARGIN_MM,
+        PAGE_WIDTH_MM,
+        PAGE_WIDTH_MM * height / canvas.width
+      );
+    }
+  }
+  
   function saveAsPDF() {
     const element = document.getElementById('reportOutput');
     if (!element) return;
@@ -1420,20 +1448,45 @@
   
     const patientIdEl = document.getElementById('patientId');
     const patientId = patientIdEl && patientIdEl.value ? patientIdEl.value.trim() : 'report';
+    const filename = `lab_report_${patientId}.pdf`;
     const opt = {
-      margin: 10,
-      filename: `lab_report_${patientId}.pdf`,
+      margin: PAGE_MARGIN_MM,
+      filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
+      html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
   
-    try {
-      window.html2pdf().set(opt).from(element).save();
-    } catch (err) {
+    element.classList.add('is-exporting');
+    const restore = () => element.classList.remove('is-exporting');
+  
+    // One capture per A4 card. Capturing the whole stack at once lets html2pdf
+    // re-slice it at its own page height, which stretches cards or adds a page.
+    const build = async () => {
+      const cards = [...element.querySelectorAll('.report-page')];
+      if (!cards.length) {
+        // Legacy/unpaginated report: html2pdf slices the single capture itself.
+        await window.html2pdf().set(opt).from(element).save();
+        return;
+      }
+  
+      const first = window.html2pdf().set(opt).from(cards[0]);
+      await first.toPdf();
+      const pdf = await first.get('pdf');
+  
+      for (const card of cards.slice(1)) {
+        const worker = window.html2pdf().set(opt).from(card);
+        await worker.toCanvas();
+        addCanvasPages(pdf, await worker.get('canvas'));
+      }
+      pdf.save(filename);
+    };
+  
+    return build().then(restore, err => {
+      restore();
       console.warn('html2pdf generation failed, falling back to window.print():', err);
       window.print();
-    }
+    });
   }
 
   /* ===== Module: assets/js/services/stats-service.js ===== */
@@ -2426,7 +2479,7 @@
               <line x1="16" y1="13" x2="8" y2="13"></line>
               <line x1="16" y1="17" x2="8" y2="17"></line>
             </svg>
-            <span>Page <strong>1 of 1</strong></span>
+            <span>Page <strong class="page-number">1/1</strong></span>
           </div>
         </div>
       </div>`;
@@ -2434,6 +2487,249 @@
     reportHTML += disclaimerHTML;
   
     return reportHTML;
+  }
+
+  /* ===== Module: assets/js/services/report-paginator.js ===== */
+  /* A4 report paginator.
+   * Re-flows a rendered report into fixed A4 page cards so that:
+   *   - the letterhead + patient info repeat at the top of every page,
+   *   - the footer is pinned to the bottom of every page (not floating),
+   *   - page numbers are exact ("Page 1/3", "Page 2/3", ...),
+   *   - a test section is never broken across pages (unless it is taller than a page),
+   *   - the disclaimer + signature appear only on the last page.
+   * The preview uses the same DOM that prints, so screen and paper match.
+   */
+  
+  // 200mm A4 content width (210mm - 2 x 5mm page margins) expressed in CSS pixels.
+  const PAGE_WIDTH_PX = (200 / 25.4) * 96;
+  const TOLERANCE_PX = 1;
+  
+  function setPageNumber(footer, index, total) {
+    if (!footer) return;
+    let number = footer.querySelector('.page-number');
+    if (!number) {
+      const items = [...footer.querySelectorAll('.footer-item')];
+      const pageItem = items.find(item => /^\s*Page\b/i.test(item.textContent));
+      if (!pageItem) return;
+      const label = pageItem.querySelector('span');
+      if (label) {
+        label.innerHTML = 'Page <strong class="page-number">1/1</strong>';
+        number = label.querySelector('.page-number');
+      } else {
+        const icons = [...pageItem.querySelectorAll('svg')];
+        pageItem.innerHTML = '';
+        icons.forEach(icon => pageItem.appendChild(icon));
+        pageItem.insertAdjacentHTML('beforeend', 'Page <strong class="page-number">1/1</strong>');
+        number = pageItem.querySelector('.page-number');
+      }
+    }
+    number.textContent = `${index}/${total}`;
+  }
+  
+  function fitReportPreview(container) {
+    if (!container || !container.classList.contains('report-paginated')) return;
+    const styles = window.getComputedStyle(container);
+    const padding = parseFloat(styles.paddingLeft || 0) + parseFloat(styles.paddingRight || 0);
+    const available = container.clientWidth - padding;
+    if (available <= 0) return;
+    const zoom = available < PAGE_WIDTH_PX ? available / PAGE_WIDTH_PX : 1;
+    container.style.setProperty('--report-zoom', zoom.toFixed(4));
+  }
+  
+  function paginateReport(container) {
+    if (!container || container.querySelector('.report-page')) return;
+  
+    const header = container.querySelector('.report-header');
+    const patientInfo = container.querySelector('.report-patient-info');
+    const footer = container.querySelector('.report-page-footer');
+    const table = container.querySelector('.unified-report-table');
+    if (!header && !table) return;
+  
+    const headHTML = (header ? header.outerHTML : '') + (patientInfo ? patientInfo.outerHTML : '');
+    const footHTML = footer ? footer.outerHTML : '';
+    const endingEls = [...container.children].filter(el =>
+      el.classList.contains('end-of-report') ||
+      el.classList.contains('compact-disclaimer-box') ||
+      el.classList.contains('report-signatures-compact'));
+  
+    // Group the unified table rows per test section (section banner + its result rows).
+    const theadHTML = table && table.tHead ? table.tHead.outerHTML : null;
+    const groups = [];
+    if (table) {
+      for (const tbody of table.tBodies) {
+        let group = null;
+        for (const row of tbody.rows) {
+          if (row.classList.contains('report-section-row')) {
+            group = { head: row.outerHTML, rows: [] };
+            groups.push(group);
+          } else {
+            if (!group) {
+              group = { head: '', rows: [] };
+              groups.push(group);
+            }
+            group.rows.push(row.outerHTML);
+          }
+        }
+      }
+    }
+  
+    const stage = document.createElement('div');
+    stage.className = 'report-pagination-stage';
+    document.body.appendChild(stage);
+  
+    const makePage = () => {
+      const page = document.createElement('div');
+      page.className = 'report-page';
+      const head = document.createElement('div');
+      head.className = 'report-page-head';
+      head.innerHTML = headHTML;
+      const body = document.createElement('div');
+      body.className = 'report-page-body';
+      if (theadHTML !== null) {
+        const tbl = document.createElement('table');
+        tbl.className = 'unified-report-table';
+        tbl.innerHTML = theadHTML;
+        body.appendChild(tbl);
+      }
+      const foot = document.createElement('div');
+      foot.className = 'report-page-foot';
+      foot.innerHTML = footHTML;
+      page.append(head, body, foot);
+      stage.appendChild(page);
+      return page;
+    };
+  
+    let page, bodyEl, tableEl;
+    const startPage = () => {
+      page = makePage();
+      bodyEl = page.querySelector('.report-page-body');
+      tableEl = bodyEl.querySelector('.unified-report-table');
+    };
+    startPage();
+  
+    const overflows = () => {
+      const content = bodyEl.lastElementChild;
+      if (!content) return false;
+      return content.getBoundingClientRect().bottom > bodyEl.getBoundingClientRect().bottom + TOLERANCE_PX;
+    };
+    const hasContent = () => tableEl ? !!tableEl.querySelector('tbody tr') : !!bodyEl.firstElementChild;
+  
+    // Fallback for legacy/block reports: keep each block whole.
+    const placeBlock = (html) => {
+      const holder = document.createElement('div');
+      holder.innerHTML = html;
+      const node = holder.firstElementChild;
+      if (!node) return;
+      bodyEl.appendChild(node);
+      if (!overflows()) return;
+      node.remove();
+      if (hasContent()) {
+        startPage();
+        placeBlock(html);
+        return;
+      }
+      bodyEl.appendChild(node);
+      page.classList.add('report-page--tall');
+    };
+  
+    const createTbody = () => {
+      const tbody = document.createElement('tbody');
+      tbody.className = 'report-test-group';
+      tableEl.appendChild(tbody);
+      return tbody;
+    };
+  
+    // Only used when one single test section is taller than a full page.
+    // The section banner is repeated on each continued page so no page starts
+    // with context-free result rows.
+    const splitSection = (group) => {
+      const rows = (group.head ? [group.head] : []).concat(group.rows);
+      let tbody = createTbody();
+      for (const rowHTML of rows) {
+        tbody.insertAdjacentHTML('beforeend', rowHTML);
+        if (!overflows()) continue;
+        tbody.lastElementChild.remove();
+        if (hasContent()) {
+          startPage();
+          tbody = createTbody();
+          if (group.head) {
+            tbody.insertAdjacentHTML('beforeend', group.head);
+            if (overflows()) {
+              tbody.lastElementChild.remove();
+              page.classList.add('report-page--tall');
+            }
+          }
+        }
+        tbody.insertAdjacentHTML('beforeend', rowHTML);
+        if (overflows()) page.classList.add('report-page--tall');
+      }
+    };
+  
+    const placeSection = (group) => {
+      const tbody = createTbody();
+      tbody.innerHTML = group.head + group.rows.join('');
+      if (!overflows()) return;
+      tbody.remove();
+      if (hasContent()) {
+        startPage();
+        placeSection(group);
+        return;
+      }
+      splitSection(group);
+    };
+  
+    const placeEnding = () => {
+      if (!endingEls.length) return;
+      const block = document.createElement('div');
+      block.className = 'report-ending-block';
+      block.innerHTML = endingEls.map(el => el.outerHTML).join('');
+      bodyEl.appendChild(block);
+      if (!overflows()) return;
+      block.remove();
+      if (hasContent()) {
+        startPage();
+        placeEnding();
+        return;
+      }
+      endingEls.forEach(el => placeBlock(el.outerHTML));
+    };
+  
+    groups.forEach(placeSection);
+    if (!groups.length) {
+      [...container.children].forEach(el => {
+        if (el === header || el === patientInfo || el === footer || endingEls.includes(el)) return;
+        if (el.tagName === 'TABLE') return;
+        placeBlock(el.outerHTML);
+      });
+    }
+    placeEnding();
+  
+    const pages = [...stage.querySelectorAll('.report-page')];
+  
+    // A page that only carries the disclaimer does not need the table header row.
+    pages.forEach(p => {
+      const tbl = p.querySelector('.unified-report-table');
+      if (tbl && !tbl.querySelector('tbody tr')) tbl.remove();
+    });
+  
+    pages.forEach((p, i) => setPageNumber(p.querySelector('.report-page-foot'), i + 1, pages.length));
+  
+    container.innerHTML = '';
+    pages.forEach(p => container.appendChild(p));
+    container.classList.add('report-paginated');
+    stage.remove();
+    fitReportPreview(container);
+  }
+  
+  if (typeof window !== 'undefined') {
+    let fitTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(fitTimer);
+      fitTimer = setTimeout(() => {
+        const el = document.getElementById('reportOutput');
+        if (el) fitReportPreview(el);
+      }, 150);
+    });
   }
 
   /* ===== Module: assets/js/services/history-service.js ===== */
@@ -2771,6 +3067,7 @@
     document.querySelector('.cost-section').style.display = 'none';
     const testStats = document.querySelector('.test-stats');
     if (testStats) testStats.style.display = 'none';
+    paginateReport(document.getElementById('reportOutput'));
     setPreviewButtonMode();
   }
   
@@ -3273,6 +3570,7 @@
     if (costSec) costSec.style.display = 'none';
     const testStats = document.querySelector('.test-stats');
     if (testStats) testStats.style.display = 'none';
+    paginateReport(reportOut);
     setPreviewButtonMode();
     const histModal = document.getElementById('historyModal');
     if (histModal) histModal.style.display = 'none';

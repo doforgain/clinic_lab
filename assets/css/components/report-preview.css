@@ -1,11 +1,227 @@
 /* Extracted from index.html L3305-3388 - parity with reference/index.legacy.html */
 .report-output {
     margin-top: 30px;
-    padding: 20px;
-    border: 1px solid #ddd;
+    padding: 16px;
+    border: 1px solid #dde5ee;
     border-radius: 8px;
-    background-color: #fff;
+    background-color: #eef2f7;
     display: none;
+    overflow-x: auto;
+}
+
+/* ============================================================
+   A4 PAGE CARDS — shared by screen preview and print.
+   Every card is exactly one printed sheet (200mm x 286.5mm,
+   inside the 5mm @page margins), so preview === paper.
+   ============================================================ */
+.report-page {
+    width: 200mm;
+    height: 286.5mm;
+    min-height: 286.5mm;
+    margin: 0 auto 18px;
+    padding: 0;
+    background-color: #fff;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, .14);
+    zoom: var(--report-zoom, 1);
+}
+
+/* Clean sheet look while html2pdf captures the DOM (no shadows / gray backdrop). */
+.report-output.is-exporting {
+    padding: 0;
+    border: none;
+    background: #fff;
+    overflow: visible;
+}
+
+.report-output.is-exporting .report-page {
+    box-shadow: none;
+    margin: 0 auto;
+    zoom: 1;
+}
+
+.report-page:not(:last-child) {
+    break-after: page;
+    page-break-after: always;
+}
+
+.report-page:last-child {
+    margin-bottom: 0;
+}
+
+.report-page-head {
+    flex: 0 0 auto;
+}
+
+.report-page-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.report-page-foot {
+    flex: 0 0 auto;
+    margin-top: auto;
+}
+
+.report-pagination-stage {
+    position: fixed;
+    top: 0;
+    left: -10000px;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Page-internal typography is fixed (pt/mm) so the printed sheet and the
+   on-screen card always break at the same place, regardless of viewport. */
+.report-page .report-header {
+    margin: 0 0 2px 0;
+}
+
+.report-page .report-patient-info {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px 10px;
+    margin: 2px 0 3px;
+    font-size: 10pt;
+    line-height: 1.25;
+}
+
+.report-page .report-patient-info>div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.report-page .unified-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    margin: 3px 0 2px;
+    font-size: 9.75pt;
+}
+
+.report-page .unified-report-table th {
+    background-color: transparent;
+    color: #1e293b;
+    font-size: 10.5pt;
+    font-weight: 700;
+    letter-spacing: normal;
+    padding: 2px 6px;
+    border-top: 1px solid #94a3b8;
+    border-bottom: 1px solid #94a3b8;
+    text-align: left;
+}
+
+.report-page .unified-report-table td {
+    padding: 1.2px 6px;
+    font-size: 9.75pt;
+    color: #111;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.report-page .unified-report-table tr.alt-row td {
+    background-color: #f8fafc;
+}
+
+.report-page .unified-report-table .report-section-row td {
+    padding: 2px 6px;
+    background-color: #e2e8f0 !important;
+    border-top: 1px solid #cbd5e1 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+
+.report-page .section-banner .section-name {
+    font-size: 10.25pt;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: 0.3px;
+}
+
+.report-page .section-banner .method-badge {
+    font-size: 7.75pt;
+    font-weight: 500;
+    color: #475569;
+    background-color: #fff;
+    border: 1px solid #cbd5e1;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+.report-page .end-of-report {
+    font-size: 7.5pt;
+    margin: 2px 0 1px;
+}
+
+.report-page .compact-disclaimer-box {
+    padding: 2px 5px;
+    margin-top: 1.5px;
+    font-size: 6.25pt;
+    line-height: 1.2;
+    color: #666;
+}
+
+.report-page .compact-disclaimer-box .disclaimer-title {
+    font-size: 7.25pt;
+    margin-bottom: 1px;
+}
+
+.report-page .compact-disclaimer-box p {
+    margin: 0.5px 0;
+}
+
+.report-page .report-signatures-compact {
+    margin-top: 2px;
+    padding: 0 10px;
+}
+
+.report-page .sig-column {
+    width: 190px;
+}
+
+.report-page .sig-space {
+    height: 20px;
+    margin-bottom: 2px;
+}
+
+.report-page .doctor-signature-img {
+    max-height: 32px;
+    max-width: 110px;
+    margin-bottom: -3px;
+}
+
+.report-page .sig-title {
+    font-size: 8.5pt;
+}
+
+.report-page .sig-sub {
+    font-size: 7pt;
+}
+
+.report-page .report-page-footer {
+    margin-top: 0;
+    padding: 3px 0 2px;
+    font-size: 7pt;
+    border-top: 1.5px solid #cbd5e1;
+    color: #475569;
+}
+
+.report-page .report-page-footer .footer-icon {
+    width: 10px;
+    height: 10px;
+}
+
+.report-page .report-page-footer .footer-subline {
+    font-size: 6.25pt;
+}
+
+/* Last-resort fallback: content taller than one sheet grows instead of clipping. */
+.report-page--tall {
+    height: auto;
+    min-height: 286.5mm;
 }
 
 .report-header {
