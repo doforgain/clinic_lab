@@ -128,7 +128,7 @@ export function createReportHTML(patientName, patientAge, patientGender, tests, 
     <div class="report-header">
       <div class="header-container">
         <svg class="header-svg" xmlns="http://www.w3.org/2000/svg" xml:space="preserve"
-             viewBox="400 330 28920 5320"
+             viewBox="300 330 29400 5320"
              style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd">
           <defs>
             <style type="text/css">
@@ -142,9 +142,9 @@ export function createReportHTML(patientName, patientAge, patientGender, tests, 
               .fil2 {fill:#A527A3}
               .fil5 {fill:#EC3813}
               .fil3 {fill:#FEAF0B}
-              .fnt2 {font-weight:bold;font-size:590.45px;font-family:'Calibri','Segoe UI',Arial,sans-serif}
-              .fnt1 {font-weight:bold;font-size:2357.84px;font-family:'Calibri','Segoe UI',Arial,sans-serif}
-              .fnt0 {font-weight:bold;font-size:4346.53px;font-family:'Calibri','Segoe UI',Arial,sans-serif}
+              .fnt2 {font-weight:bold;font-size:590.45px;font-family:'Calibri','Roboto Condensed',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+              .fnt1 {font-weight:bold;font-size:2357.84px;font-family:'Calibri','Roboto Condensed',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+              .fnt0 {font-weight:bold;font-size:4346.53px;font-family:'Calibri','Roboto Condensed',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
             </style>
           </defs>
           <g id="Layer_x0020_1">
@@ -162,13 +162,13 @@ export function createReportHTML(patientName, patientAge, patientGender, tests, 
               <polygon class="fil7" points="14107,3098 14945,3098 14933,2277 14102,2272 "/>
             </g>
             <g transform="matrix(0.804033 0 0 1 -11533.7 1478.3)">
-              <text x="14850" y="3000" class="fil8 fnt0">SHAMS</text>
+              <text x="14850" y="3000" class="fil8 fnt0" textLength="13000" lengthAdjust="spacingAndGlyphs">SHAMS</text>
             </g>
             <g transform="matrix(0.948662 0 0 1 2698.3 886.328)">
-              <text x="14850" y="3000" class="fil8 fnt1">HEALTH CARE</text>
+              <text x="14850" y="3000" class="fil8 fnt1" textLength="12200" lengthAdjust="spacingAndGlyphs">HEALTH CARE</text>
             </g>
             <g transform="matrix(1.1105 0 0 1 4702.27 1416.22)">
-              <text x="14850" y="3000" class="fil9 fnt2">YOUR HEALTH, OUR PRIORITY</text>
+              <text x="14850" y="3000" class="fil9 fnt2" textLength="6400" lengthAdjust="spacingAndGlyphs">YOUR HEALTH, OUR PRIORITY</text>
             </g>
           </g>
         </svg>
