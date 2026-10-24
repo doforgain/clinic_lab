@@ -38,6 +38,10 @@
     body:not(.invoice-page-body) {
         width: 100%;
         min-height: auto;
+        /* Screen/responsive body padding would push the 286.5mm page card past
+           the 287mm printable height and add a blank trailing sheet. */
+        padding: 0 !important;
+        margin: 0 !important;
         font-size: 12pt;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
